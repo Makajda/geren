@@ -82,8 +82,12 @@ public sealed class {{name}}
 
         // FromJson
         return $$"""
-    public Task<{{returnType}}> {{signature}}
-        => _http.GetFromJsonAsync<{{returnType}}>({{pathExpr}}, cancellationToken);
+    public Task<{{returnType}}> {{signature}} {
+        var payload = _http.GetFromJsonAsync<{{returnType}}>({{pathExpr}}, cancellationToken);
+        if (payload is null)
+            throw new InvalidOperationException("Generated client '{{GetMethodName(signature)}}' received null body for non-string response.");
+        return payload;
+    }
 """;
     }
 
@@ -174,7 +178,10 @@ public sealed class {{name}}
     {
 {{send}}
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<{{returnType}}>(cancellationToken);
+        var payload = await response.Content.ReadFromJsonAsync<{{returnType}}>(cancellationToken);
+        if (payload is null)
+            throw new InvalidOperationException("Generated client '{{GetMethodName(signature)}}' received null body for non-string response.");
+        return payload;
     }
 """;
     }
@@ -194,5 +201,10 @@ public sealed class {{name}}
             return $"{param.Identifier} ? \"true\" : \"false\"";
 
         return $"Convert.ToString({param.Identifier}, CultureInfo.InvariantCulture) ?? string.Empty";
+    }
+
+    private static object GetMethodName(string signature) {
+        int index = signature.IndexOf('(');
+        return index >= 0 ? signature.Substring(0, index) : signature;
     }
 }
