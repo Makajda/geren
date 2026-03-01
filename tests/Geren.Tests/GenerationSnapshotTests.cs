@@ -58,6 +58,16 @@ public sealed class GenerationSnapshotTests {
             static s => GeneratorTestHarness.NormalizeCode(s.SourceText.ToString()),
             StringComparer.Ordinal);
 
+        var globalFiles = new[] { "FactoryBridge.g.cs", "Extensions.g.cs" };
+        var actualSet = actualByName.Keys
+            .Where(key => !globalFiles.Contains(key, StringComparer.Ordinal))
+            .ToHashSet(StringComparer.Ordinal);
+        var expectedSet = expectedFiles
+            .Select(Path.GetFileName)
+            .Where(fileName => !globalFiles.Contains(fileName, StringComparer.Ordinal))
+            .ToHashSet(StringComparer.Ordinal);
+        actualSet.Should().BeEquivalentTo(expectedSet, $"generated files for case '{caseName}' should match the snapshot set");
+
         foreach (var expectedFile in expectedFiles) {
             var fileName = Path.GetFileName(expectedFile);
             actualByName.Should().ContainKey(fileName, $"generated sources should contain '{fileName}' for case '{caseName}'");

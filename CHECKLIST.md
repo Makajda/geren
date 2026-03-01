@@ -98,12 +98,13 @@
 - [ ] `analyzers/dotnet/cs/System.Text.Encoding.CodePages.dll`
 - [ ] `analyzers/dotnet/cs/System.Text.Encodings.Web.dll`
 - [ ] `analyzers/dotnet/cs/System.Threading.Tasks.Extensions.dll`
-- [ ] package README is included.
-- [ ] package LICENSE is included.
-- [ ] `scripts/Invoke-NuGetPipeline.ps1` passes.
-- [ ] CI/release run `Invoke-NuGetPipeline.ps1 -EnablePackageAnalysis`.
+  - [ ] package README is included.
+  - [ ] package LICENSE is included.
+  - [ ] `scripts/Invoke-NuGetPipeline.ps1` passes.
+  - [ ] CI/release run `Invoke-NuGetPipeline.ps1 -EnablePackageAnalysis`.
+- [ ] README quick start promotes PackageReference and documents legacy analyzer includes as dev-only.
 
-## Mandatory Smoke Test Project
+  ## Mandatory Smoke Test Project
 
 - [ ] A fresh test project (clean environment) installs the package and generates code successfully.
 - [ ] No manual `Analyzer Include` hacks are required in the test project.

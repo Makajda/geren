@@ -4,21 +4,16 @@
 
 ## Quick Start
 
-In consumer project:
+In consumer projects prefer the packaged analyzer and only surface your OpenAPI files:
 
 ```xml
 <ItemGroup>
   <AdditionalFiles Include="..\v1.json" />
-
-  <ProjectReference Include="..\Geren\Geren.csproj" ReferenceOutputAssembly="false" />
-  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Geren.dll" />
-  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.Readers.dll" />
-  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" />
-  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\SharpYaml.dll" />
+  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.1.0" PrivateAssets="all" />
 </ItemGroup>
 ```
 
-Optional root namespace override:
+Optionally override the generated namespace:
 
 ```xml
 <PropertyGroup>
@@ -30,7 +25,19 @@ Optional root namespace override:
 </ItemGroup>
 ```
 
-If property is not set, default root namespace is `Gereb.Generated`.
+If the property is not set, the default root namespace is `Gereb.Generated`.
+
+When working on `Geren` itself or chasing analyzer issues you may still use the legacy configuration shown below, but prefer the packaged flow above for downstream consumers:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="..\Geren\Geren.csproj" ReferenceOutputAssembly="false" />
+  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Geren.dll" />
+  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.Readers.dll" />
+  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" />
+  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\SharpYaml.dll" />
+</ItemGroup>
+```
 
 ## Generation Contract
 
