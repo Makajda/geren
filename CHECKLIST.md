@@ -85,6 +85,19 @@
 - [ ] `analyzers/dotnet/cs/Microsoft.OpenApi.dll`
 - [ ] `analyzers/dotnet/cs/SharpYaml.dll`
 - [ ] `analyzers/dotnet/cs/System.Text.Json.dll`
+- [ ] `analyzers/dotnet/cs/Microsoft.CodeAnalysis.Analyzers.dll`
+- [ ] `analyzers/dotnet/cs/Microsoft.CodeAnalysis.dll`
+- [ ] `analyzers/dotnet/cs/Microsoft.Bcl.AsyncInterfaces.dll`
+- [ ] `analyzers/dotnet/cs/System.Buffers.dll`
+- [ ] `analyzers/dotnet/cs/System.Collections.Immutable.dll`
+- [ ] `analyzers/dotnet/cs/System.IO.Pipelines.dll`
+- [ ] `analyzers/dotnet/cs/System.Memory.dll`
+- [ ] `analyzers/dotnet/cs/System.Numerics.Vectors.dll`
+- [ ] `analyzers/dotnet/cs/System.Reflection.Metadata.dll`
+- [ ] `analyzers/dotnet/cs/System.Runtime.CompilerServices.Unsafe.dll`
+- [ ] `analyzers/dotnet/cs/System.Text.Encoding.CodePages.dll`
+- [ ] `analyzers/dotnet/cs/System.Text.Encodings.Web.dll`
+- [ ] `analyzers/dotnet/cs/System.Threading.Tasks.Extensions.dll`
 - [ ] package README is included.
 - [ ] package LICENSE is included.
 - [ ] `scripts/Invoke-NuGetPipeline.ps1` passes.
