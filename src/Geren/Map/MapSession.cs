@@ -30,6 +30,9 @@ internal sealed class MapSession(OpenApiDocument doc, string filePath, Compilati
                 _schemaTypeName.Clean();
                 var returnType = OperationReturnType.Resolve(operation.Value, _schemaTypeName);
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value);
+		if(bodyType is null && bodyMediaType is not null)
+                    continue;
+
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);
                 var (@params, queries) = SplitPathAndQueryParameters(path.Key, effectiveParameters);
                 if (!PathParametersAgainstPath.Validate(path.Key, normalizedPath, @params, _diagnostics))
