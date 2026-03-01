@@ -101,3 +101,24 @@ If property is not set, default root namespace is `Gereb.Generated`.
 - `GEREN008` Missing parameter location (`Error`)
 - `GEREN014` Ambiguous schema reference (`Error`)
 - `GEREN015` Path placeholder and parameter name mismatch (`Error`)
+
+## NuGet Pipeline
+
+Build/pack with analyzer dependency validation:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-NuGetPipeline.ps1
+```
+
+The pipeline verifies that `.nupkg` contains:
+- `analyzers/dotnet/cs/Geren.dll`
+- `analyzers/dotnet/cs/Microsoft.OpenApi.Readers.dll`
+- `analyzers/dotnet/cs/Microsoft.OpenApi.dll`
+- `analyzers/dotnet/cs/SharpYaml.dll`
+- `analyzers/dotnet/cs/System.Text.Json.dll`
+- `README.md`
+
+NuGet publish workflow:
+- CI release file: `.github/workflows/release.yml`
+- Trigger: push tag `v*` (for example `v0.2.0`) or manual `workflow_dispatch`
+- Required repository secret: `NUGET_API_KEY`

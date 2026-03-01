@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build-test-pack:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore .\geren.slnx -nologo
+
+      - name: Build
+        run: dotnet build .\geren.slnx -c Release --no-restore -nologo
+
+      - name: Test
+        run: dotnet test .\tests\Geren.Tests\Geren.Tests.csproj -c Release --no-build -nologo
+
+      - name: Pack and Validate Analyzer Dependencies
+        shell: pwsh
+        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget
+
+      - name: Upload NuGet Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/nuget/*.nupkg
+          if-no-files-found: error

@@ -1,0 +1,87 @@
+name: Release NuGet
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version (for example 0.2.0). If empty, version is taken from tag v*."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish-nuget:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve Version
+        id: version
+        shell: pwsh
+        run: |
+          $manual = "${{ github.event.inputs.version }}"
+          if (-not [string]::IsNullOrWhiteSpace($manual)) {
+            $resolved = $manual.Trim()
+          }
+          elseif ("${{ github.ref_type }}" -eq "tag") {
+            $resolved = "${{ github.ref_name }}"
+            if ($resolved.StartsWith("v")) {
+              $resolved = $resolved.Substring(1)
+            }
+          }
+          else {
+            throw "Version is required for workflow_dispatch when run without a tag."
+          }
+
+          if (-not ($resolved -match '^\d+\.\d+\.\d+(-[0-9A-Za-z\.-]+)?$')) {
+            throw "Invalid version '$resolved'. Expected SemVer format like 1.2.3 or 1.2.3-beta.1"
+          }
+
+          "version=$resolved" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "Resolved package version: $resolved"
+
+      - name: Restore
+        run: dotnet restore .\geren.slnx -nologo
+
+      - name: Build
+        run: dotnet build .\geren.slnx -c Release --no-restore -nologo
+
+      - name: Test
+        run: dotnet test .\tests\Geren.Tests\Geren.Tests.csproj -c Release --no-build -nologo
+
+      - name: Pack and Validate Analyzer Dependencies
+        shell: pwsh
+        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -Version ${{ steps.version.outputs.version }}
+
+      - name: Upload NuGet Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-${{ steps.version.outputs.version }}
+          path: artifacts/nuget/*.nupkg
+          if-no-files-found: error
+
+      - name: Push to NuGet.org
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
+            throw "Repository secret NUGET_API_KEY is not set."
+          }
+
+          dotnet nuget push "artifacts/nuget/*.nupkg" `
+            --source "https://api.nuget.org/v3/index.json" `
+            --api-key $env:NUGET_API_KEY `
+            --skip-duplicate

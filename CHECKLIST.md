@@ -84,7 +84,9 @@
 - [ ] `analyzers/dotnet/cs/Microsoft.OpenApi.Readers.dll`
 - [ ] `analyzers/dotnet/cs/Microsoft.OpenApi.dll`
 - [ ] `analyzers/dotnet/cs/SharpYaml.dll`
+- [ ] `analyzers/dotnet/cs/System.Text.Json.dll`
 - [ ] package README is included.
+- [ ] `scripts/Invoke-NuGetPipeline.ps1` passes.
 
 ## Mandatory Smoke Test Project
 
