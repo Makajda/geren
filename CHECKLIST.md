@@ -86,7 +86,9 @@
 - [ ] `analyzers/dotnet/cs/SharpYaml.dll`
 - [ ] `analyzers/dotnet/cs/System.Text.Json.dll`
 - [ ] package README is included.
+- [ ] package LICENSE is included.
 - [ ] `scripts/Invoke-NuGetPipeline.ps1` passes.
+- [ ] CI/release run `Invoke-NuGetPipeline.ps1 -EnablePackageAnalysis`.
 
 ## Mandatory Smoke Test Project
 

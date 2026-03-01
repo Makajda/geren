@@ -1,7 +1,8 @@
 param(
     [string]$Configuration = "Release",
     [string]$OutputDir = "artifacts/nuget",
-    [string]$Version = ""
+    [string]$Version = "",
+    [switch]$EnablePackageAnalysis
 )
 
 Set-StrictMode -Version Latest
@@ -32,6 +33,12 @@ if (-not [string]::IsNullOrWhiteSpace($Version)) {
     $packArgs += "-p:Version=$Version"
 }
 
+if ($EnablePackageAnalysis) {
+    $packArgs += "-p:NoPackageAnalysis=false"
+    $packArgs += "-p:TreatWarningsAsErrors=true"
+    $packArgs += "-p:WarningsNotAsErrors=NU5128"
+}
+
 Write-Host "Packing NuGet package..."
 & dotnet @packArgs
 if ($LASTEXITCODE -ne 0) {
@@ -60,7 +67,8 @@ try {
         "analyzers/dotnet/cs/Microsoft.OpenApi.dll",
         "analyzers/dotnet/cs/SharpYaml.dll",
         "analyzers/dotnet/cs/System.Text.Json.dll",
-        "README.md"
+        "README.md",
+        "LICENSE.txt"
     )
 
     $missingEntries = @()

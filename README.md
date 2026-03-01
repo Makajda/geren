@@ -110,6 +110,12 @@ Build/pack with analyzer dependency validation:
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-NuGetPipeline.ps1
 ```
 
+Enable package analysis (CI/release mode):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-NuGetPipeline.ps1 -EnablePackageAnalysis
+```
+
 The pipeline verifies that `.nupkg` contains:
 - `analyzers/dotnet/cs/Geren.dll`
 - `analyzers/dotnet/cs/Microsoft.OpenApi.Readers.dll`
@@ -117,6 +123,7 @@ The pipeline verifies that `.nupkg` contains:
 - `analyzers/dotnet/cs/SharpYaml.dll`
 - `analyzers/dotnet/cs/System.Text.Json.dll`
 - `README.md`
+- `LICENSE.txt`
 
 NuGet publish workflow:
 - CI release file: `.github/workflows/release.yml`

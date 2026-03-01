@@ -63,7 +63,7 @@ jobs:
 
       - name: Pack and Validate Analyzer Dependencies
         shell: pwsh
-        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -Version ${{ steps.version.outputs.version }}
+        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -Version ${{ steps.version.outputs.version }} -EnablePackageAnalysis
 
       - name: Upload NuGet Artifact
         uses: actions/upload-artifact@v4
