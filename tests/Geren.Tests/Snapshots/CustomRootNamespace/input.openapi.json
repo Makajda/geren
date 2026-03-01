@@ -1,0 +1,13 @@
+{
+  "openapi": "3.0.4",
+  "info": { "title": "t", "version": "1" },
+  "paths": {
+    "/status": {
+      "get": {
+        "responses": {
+          "204": { "description": "no content" }
+        }
+      }
+    }
+  }
+}

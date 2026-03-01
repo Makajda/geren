@@ -1,0 +1,27 @@
+{
+  "openapi": "3.0.4",
+  "info": { "title": "t", "version": "1" },
+  "paths": {
+    "/items/{id}": {
+      "delete": {
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer", "format": "int32" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "text/plain": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

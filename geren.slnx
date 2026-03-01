@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Geren/Geren.csproj" />
+  <Project Path="tests/Geren.Tests/Geren.Tests.csproj" />
+</Solution>

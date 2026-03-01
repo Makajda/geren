@@ -1,0 +1,16 @@
+root = true
+
+[*.cs]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+# Bracket on the same line (K&R / 1TBS)
+csharp_new_line_before_open_brace = none
+
+# Additionally, to prevent the formatter from flattening short blocks
+csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_statements = true
+
+# To make style violations visible
+dotnet_diagnostic.IDE0055.severity = warning
