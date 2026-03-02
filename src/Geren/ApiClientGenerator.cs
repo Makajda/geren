@@ -9,7 +9,7 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
             if (options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
                 && !string.IsNullOrWhiteSpace(configured))
                 return configured.Trim();
-            return "Gereb.Generated";
+            return "Geren";
         });
 
         context.RegisterSourceOutput(rootNamespace, static (spc, ns) => {
