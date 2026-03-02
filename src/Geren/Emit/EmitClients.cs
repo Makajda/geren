@@ -126,24 +126,6 @@ public sealed class {{name}}
         return EmitResponse(signature, e.ReturnType, send);
     }
 
-    private static string BuildPathExpression(EndpointSpec e) {
-        var interpolatedPath = BuildInterpolatedPath(e.Path, e.Params);
-        if (e.Queries.Length == 0)
-            return $"$\"{interpolatedPath}\"";
-
-        var queryBuilder = string.Join(Givenn.NewLine, e.Queries.Select(p =>
-            $"        query.Add(\"{p.Name}=\" + Uri.EscapeDataString({BuildQueryValueExpression(p)}));"));
-
-        var text = $"new Func<string>(() =>{Givenn.NewLine}"
-            + "    {" + Givenn.NewLine
-            + "        var query = new List<string>();" + Givenn.NewLine
-            + queryBuilder + Givenn.NewLine
-            + $"        return $\"{interpolatedPath}?{{string.Join(\"&\", query)}}\";{Givenn.NewLine}"
-            + "    })()";
-
-        return text;
-    }
-
     private static string EmitResponse(string signature, string returnType, string send) {
         // void
         if (string.IsNullOrEmpty(returnType)) {
@@ -179,12 +161,24 @@ public sealed class {{name}}
 """;
     }
 
-    private static string BuildInterpolatedPath(string path, ImmutableArray<ParamSpec> pathParams) {
-        var result = path;
-        foreach (var param in pathParams)
-            result = result.Replace(
-                "{" + param.Name + "}",
-                "{Uri.EscapeDataString(Convert.ToString(" + param.Identifier + ", CultureInfo.InvariantCulture) ?? string.Empty)}");
+    private static string BuildPathExpression(EndpointSpec e) {
+        string interpolatedPath = e.Path;
+        foreach (var param in e.Params)
+            interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{" + param.Identifier + "}");
+
+        if (e.Queries.Length == 0)
+            return $"$\"{interpolatedPath}\"";
+
+        // Query
+        string queryBuilder = string.Join(Givenn.NewLine, e.Queries.Select(p =>
+            $"        query.Add(\"{p.Name}=\" + Uri.EscapeDataString({BuildQueryValueExpression(p)}));"));
+
+        string result = $"new Func<string>(() =>{Givenn.NewLine}"
+            + "    {" + Givenn.NewLine
+            + "        var query = new List<string>();" + Givenn.NewLine
+            + queryBuilder + Givenn.NewLine
+            + $"        return $\"{interpolatedPath}?{{string.Join(\"&\", query)}}\";{Givenn.NewLine}"
+            + "    })()";
 
         return result;
     }
