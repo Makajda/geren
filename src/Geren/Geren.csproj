@@ -10,7 +10,7 @@
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
-		<IsPackable>true</IsPackable>
+		<IsPackable>false</IsPackable>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageId>Geren.OpenApiClientGenerator</PackageId>
 		<Version>0.1.0</Version>

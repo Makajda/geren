@@ -1,9 +1,20 @@
-root = true
+#root = true
+
+###############################
+# Core EditorConfig Options   #
+###############################
+# All files
+[*]
+indent_style = space
+# Code files
+[*.{cs,csx}]
+indent_size = 4
+insert_final_newline = true
+charset = utf-8
+
 
 [*.cs]
 end_of_line = lf
-insert_final_newline = true
-charset = utf-8
 
 # Bracket on the same line (K&R / 1TBS)
 csharp_new_line_before_open_brace = none
