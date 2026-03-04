@@ -6,18 +6,20 @@ internal static class EmitRegistrations {
 #nullable enable
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using System;
 
 namespace {{spaceName}};
 
-public static class GeneratedExtensions
+public static class GerenExtensions
 {
     public static IServiceCollection AddGerens(
         this IServiceCollection services,
         Action<IHttpClientBuilder>? configureBuilder = null,
         Action<HttpClient>? configureClient = null,
-        bool useStandardOrConfigureResilience = true,
-        Action<ResilienceHttpClientBuilderOptions>? configureResilience = null)
+        bool? useResilience = null,
+        string? resiliencePipelineName = null,
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>,ResilienceHandlerContext>? configureResilience = null)
     {
 {{AllReg()}}
         return services;
@@ -28,13 +30,13 @@ public static class GeneratedExtensions
 """;
 
         string AllReg() => string.Join(Givenn.NewLine, names.Select(name => $$"""
-        global::{{rootNamespace}}.Common.AddClient<{{name}}>(services, configureBuilder, configureClient, useStandardResilience, configureResilience);
+        global::{{rootNamespace}}.Common.AddClient<{{name}}>(services, configureClient, configureBuilder, useResilience, resiliencePipelineName, configureResilience);
 """));
 
         // Registration for each class
         string SingleReg() => string.Join(Givenn.NewLine + Givenn.NewLine, names.Select(name => $$"""
     public static IHttpClientBuilder AddGeren{{name.Replace(".", "_")}}(this IServiceCollection services,
-        Action<HttpClient>? configureClient = null) => global::{{rootNamespace}}.Common.AddClient<{{name}}>(configureClient);
+        Action<HttpClient>? configureClient = null) => global::{{rootNamespace}}.Common.AddClient<{{name}}>(services, configureClient);
 """));
     }
 }

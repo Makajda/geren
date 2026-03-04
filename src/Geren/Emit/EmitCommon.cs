@@ -6,6 +6,7 @@ internal sealed class EmitCommon {
 #nullable enable
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using System;
 
 namespace {{rootNamespace}};
@@ -16,8 +17,9 @@ internal static class Common
         IServiceCollection services,
         Action<HttpClient>? configureClient,
         Action<IHttpClientBuilder>? configureBuilder,
-        bool useStandardResilience,
-        Action<ResilienceHttpClientBuilderOptions>? configureResilience)
+        bool? useResilience,
+        string? resiliencePipelineName,
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>,ResilienceHandlerContext>? configureResilience)
         where TClient : class
     {
         var builder = services.AddHttpClient<TClient>();
@@ -25,10 +27,10 @@ internal static class Common
         if (configureClient is not null)
             builder.ConfigureHttpClient(configureClient);
 
-        if (useStandardResilience)
+        if (useResilience ?? false)
         {
-            if (configureResilience is not null)
-                builder.AddStandardResilienceHandler(configureResilience);
+            if (resiliencePipelineName is not null && configureResilience is not null)
+                builder.AddResilienceHandler(resiliencePipelineName, configureResilience);
             else
                 builder.AddStandardResilienceHandler();
         }
@@ -36,7 +38,10 @@ internal static class Common
         configureBuilder?.Invoke(builder);
     }
 
-    internal static IHttpClientBuilder AddClient<TClient>(Action<HttpClient>? configureClient = null)
+    internal static IHttpClientBuilder AddClient<TClient>(
+        IServiceCollection services,
+        Action<HttpClient>? configureClient = null)
+        where TClient : class
     {
         var builder = services.AddHttpClient<TClient>();
         if (configureClient is not null)
