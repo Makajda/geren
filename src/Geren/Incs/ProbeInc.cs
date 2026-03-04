@@ -14,23 +14,20 @@ internal sealed class ProbeInc {
         Text = text;
     }
 
-    private ProbeInc() => Success = false;
-    private ProbeInc(Diagnostic diagnostic) {
-        Success = false;
-        Diagnostic = diagnostic;
-    }
+    private ProbeInc() { }
+    private ProbeInc(Diagnostic diagnostic) => Diagnostic = diagnostic;
 
     //static
     internal static ProbeInc Skip() => new();
     internal static ProbeInc Take(string filePath, string text) => new(filePath, text);
     internal static ProbeInc Warn(Diagnostic diagnostic) => new(diagnostic);
 
-    internal static ProbeInc Probe(AdditionalText file, CancellationToken ct) {
+    internal static ProbeInc Probe(AdditionalText file, CancellationToken cancellationToken) {
         var filePath = file.Path;
         if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
             return Skip();
 
-        var text = file.GetText(ct)?.ToString();
+        var text = file.GetText(cancellationToken)?.ToString();
         if (string.IsNullOrWhiteSpace(text))
             return Warn(Diagnostic.Create(Givenn.JsonReadError, Location.None, $"JSON file is empty: {filePath}"));
 

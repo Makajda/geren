@@ -19,7 +19,7 @@ internal static class Common
         Action<IHttpClientBuilder>? configureBuilder,
         bool? useResilience,
         string? resiliencePipelineName,
-        Action<ResiliencePipelineBuilder<HttpResponseMessage>,ResilienceHandlerContext>? configureResilience)
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience)
         where TClient : class
     {
         var builder = services.AddHttpClient<TClient>();

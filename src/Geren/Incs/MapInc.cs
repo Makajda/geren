@@ -21,6 +21,6 @@ internal sealed class MapInc {
         ImmutableArray<Diagnostic> diagnostics)
         => new(filePrefix, namespaceFromFile, endpoints, diagnostics);
 
-    internal static MapInc Map(OpenApiDocument doc, string filePath, Compilation compilation)
-        => new MapSession(doc, filePath, compilation).BuildMap();
+    internal static MapInc Map(Compilation compilation, OpenApiDocument doc, string filePath)
+        => new MapSession(compilation, doc, filePath).BuildMap();
 }

@@ -19,7 +19,7 @@ public static class GerenExtensions
         Action<HttpClient>? configureClient = null,
         bool? useResilience = null,
         string? resiliencePipelineName = null,
-        Action<ResiliencePipelineBuilder<HttpResponseMessage>,ResilienceHandlerContext>? configureResilience = null)
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null)
     {
 {{AllReg()}}
         return services;

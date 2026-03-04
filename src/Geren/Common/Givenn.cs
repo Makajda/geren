@@ -84,6 +84,22 @@ internal static class Givenn {
         DiagnosticSeverity.Error,
         true);
 
+    internal static readonly DiagnosticDescriptor MissingMicrosoftExtensionsHttp = new(
+        "GEREN009",
+        "Missing package Microsoft.Extensions.Http",
+        "The project requires a reference to the package 'Microsoft.Extensions.Http'. Please add the NuGet package 'Microsoft.Extensions.Http' to enable HttpClientFactory integration.",
+        "Geren",
+        DiagnosticSeverity.Error,
+        true);
+
+    internal static readonly DiagnosticDescriptor MissingMicrosoftExtensionsHttpResilience = new(
+        "GEREN010",
+        "Missing package Microsoft.Extensions.Http.Resilience",
+        "The project requires a reference to the package 'Microsoft.Extensions.Http.Resilience'. Please add the NuGet package 'Microsoft.Extensions.Http.Resilience' to enable HttpClientFactory integration.",
+        "Geren",
+        DiagnosticSeverity.Error,
+        true);
+
     internal static readonly DiagnosticDescriptor AmbiguousSchemaReference = new(
         "GEREN014",
         "Ambiguous schema reference",

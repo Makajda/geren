@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Geren.Map;
 
-internal sealed class MapSession(OpenApiDocument doc, string filePath, Compilation compilation) {
+internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, string filePath) {
     private readonly ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
     private SchemaTypeName _schemaTypeName = default!; // Initialized in BuildMap to ensure diagnostics are captured
     internal MapInc BuildMap() {
