@@ -3,6 +3,7 @@ namespace Geren.Common;
 internal sealed class EndpointSpec {
     public string Method { get; }
     public string Path { get; }
+    public string SpaceName { get; }
     public string ClassName { get; }
     public string MethodName { get; }
     public string ReturnType { get; }
@@ -14,6 +15,7 @@ internal sealed class EndpointSpec {
     public EndpointSpec(
         string method,
         string path,
+        string spaceName,
         string className,
         string methodName,
         string returnType,
@@ -23,6 +25,7 @@ internal sealed class EndpointSpec {
         ImmutableArray<ParamSpec> queries) {
         Method = method;
         Path = path;
+        SpaceName = spaceName;
         ClassName = className;
         MethodName = methodName;
         ReturnType = returnType;

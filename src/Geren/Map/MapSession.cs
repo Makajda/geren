@@ -20,8 +20,8 @@ internal sealed class MapSession(OpenApiDocument doc, string filePath, Compilati
                 if (method != Givenn.Get && method != Givenn.Post && method != Givenn.Put && method != Givenn.Delete)
                     continue;
 
-                var (className, methodName) = ResolveNames(operation.Value.OperationId, method, normalizedPath);
-                var methodKey = className + "." + methodName;
+                var (spaceName, className, methodName) = ResolveNames(operation.Value.OperationId, method, normalizedPath);
+                var methodKey = spaceName + "." + className + "." + methodName;
                 if (!seenMethodKeys.Add(methodKey)) {
                     _diagnostics.Add(Diagnostic.Create(Givenn.DuplicateMethodName, Location.None, methodName, className, path.Key));
                     continue;
@@ -30,7 +30,7 @@ internal sealed class MapSession(OpenApiDocument doc, string filePath, Compilati
                 _schemaTypeName.Clean();
                 var returnType = OperationReturnType.Resolve(operation.Value, _schemaTypeName);
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value);
-		if(bodyType is null && bodyMediaType is not null)
+                if (bodyType is null && bodyMediaType is not null)
                     continue;
 
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);
@@ -41,13 +41,13 @@ internal sealed class MapSession(OpenApiDocument doc, string filePath, Compilati
                 if (_schemaTypeName.HasFatalEndpointError)
                     continue;
 
-                endpointSpecs.Add(new(method, normalizedPath, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
+                endpointSpecs.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
             }
         }
 
         var filePrefix = CreateHintPrefix(filePath);
-        var namespaceSuffix = Givenn.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
-        return MapInc.Create(filePrefix, namespaceSuffix, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
+        var namespaceFromFile = Givenn.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
+        return MapInc.Create(filePrefix, namespaceFromFile, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
     }
 
     private (ImmutableArray<ParamSpec> Params, ImmutableArray<ParamSpec> Queries) SplitPathAndQueryParameters(
@@ -142,16 +142,22 @@ internal sealed class MapSession(OpenApiDocument doc, string filePath, Compilati
         return sb.ToString();
     }
 
-    private static (string ClassName, string MethodName) ResolveNames(string? operationId, string method, string path) {
-        const string root = "Root";
+    private static (string SpaceName, string ClassName, string MethodName) ResolveNames(string? operationId, string method, string path) {
+        const string spaceDefault = "";
+        const string classNameDefault = "WebApiClient";
+        const string methodNameDefault = "Root";
         string? withName = operationId is null ? null : Givenn.ToLetterOrDigitName(operationId);
         string[] sections = [.. path
             .Trim('/')
             .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
             .Where(static s => !IsPathTemplateSegment(s))];
-        if (sections.Length == 0) return (root, withName ?? method + root);
-        if (sections.Length == 1) return (root, withName ?? method + Givenn.ToLetterOrDigitName(sections[0]));
-        return (Givenn.ToLetterOrDigitName(sections[0]), withName ?? method + Givenn.ToLetterOrDigitName(string.Join("_", sections.Skip(1))));
+        if (sections.Length == 0) return (spaceDefault, classNameDefault, MethodName(methodNameDefault));
+        if (sections.Length == 1) return (spaceDefault, classNameDefault, MethodName(sections[0]));
+        string name0 = Givenn.ToLetterOrDigitName(sections[0]);
+        if (sections.Length == 2) return (spaceDefault, name0, MethodName(sections[1]));
+        return ("." + name0, Givenn.ToLetterOrDigitName(sections[1]), MethodName(string.Join("_", sections.Skip(2))));
+
+        string MethodName(string section) => withName ?? (method + Givenn.ToLetterOrDigitName(section));
     }
 
     private static bool IsPathTemplateSegment(string segment)

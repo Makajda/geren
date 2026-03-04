@@ -1,14 +1,7 @@
 namespace Geren.Emit;
 
-internal sealed class EmitClients {
-    internal static ImmutableArray<(string Name, string Code)> Run(MapInc map, string rootNamespace) {
-        var classes = map.Endpoints.GroupBy(e => e.ClassName, StringComparer.Ordinal);
-        var result = ImmutableArray.CreateBuilder<(string, string)>();
-
-        foreach (var g in classes) {
-            string name = g.Key;
-            var methods = string.Join(Givenn.NewLine + Givenn.NewLine, g.Select(EmitMethod));
-            var code = $$"""
+internal sealed class EmitClient {
+    internal static string Run(IGrouping<object, EndpointSpec> endpoints, string spaceName, string className) => $$"""
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,42 +11,37 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace {{rootNamespace}}.{{map.NamespaceSuffix}};
+namespace {{spaceName}};
 
-public sealed class {{name}}
+public sealed class {{className}}
 {
     private readonly HttpClient _http;
-    public {{name}}(HttpClient http) => _http = http;
+    public {{className}}(HttpClient http) => _http = http;
 
-{{methods}}
+{{string.Join(Givenn.NewLine + Givenn.NewLine, endpoints.Select(EmitMethod))}}
 }
 """;
-            result.Add(($"{name}.g.cs", code));
-        }
 
-        return result.ToImmutable();
-    }
-
-    private static string EmitMethod(EndpointSpec e) {
-        var methodName = e.MethodName;
-        var args = string.Join(", ", e.Params.Concat(e.Queries).Select(p => $"{p.TypeName} {p.Identifier}"));
+    private static string EmitMethod(EndpointSpec endpoint) {
+        var methodName = endpoint.MethodName;
+        var args = string.Join(", ", endpoint.Params.Concat(endpoint.Queries).Select(p => $"{p.TypeName} {p.Identifier}"));
         if (args.Length > 0)
             args += ", ";
 
-        if (e.BodyType is not null && (e.Method == Givenn.Post || e.Method == Givenn.Put || e.Method == Givenn.Delete))
-            args += $"{e.BodyType} body, ";
+        if (endpoint.BodyType is not null && (endpoint.Method == Givenn.Post || endpoint.Method == Givenn.Put || endpoint.Method == Givenn.Delete))
+            args += $"{endpoint.BodyType} body, ";
 
         args += "CancellationToken cancellationToken = default";
         var signature = $"{methodName}({args})";
-        var pathExpr = BuildPathExpression(e);
+        var pathExpr = BuildPathExpression(endpoint);
 
-        if (e.Method == Givenn.Get)
-            return EmitGet(e.ReturnType, signature, pathExpr);
+        if (endpoint.Method == Givenn.Get)
+            return EmitGet(endpoint.ReturnType, signature, pathExpr);
 
-        if (e.Method == Givenn.Delete)
-            return EmitDelete(e, signature, pathExpr);
+        if (endpoint.Method == Givenn.Delete)
+            return EmitDelete(endpoint, signature, pathExpr);
 
-        return EmitPostOrPut(e, signature, pathExpr);
+        return EmitPostOrPut(endpoint, signature, pathExpr);
     }
 
     private static string EmitGet(string returnType, string signature, string pathExpr) {

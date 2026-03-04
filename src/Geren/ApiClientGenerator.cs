@@ -3,18 +3,13 @@ namespace Geren;
 [Generator]
 public sealed class ApiClientGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        //if (!System.Diagnostics.Debugger.IsAttached) System.Diagnostics.Debugger.Launch();
-
-        var rootNamespace = context.AnalyzerConfigOptionsProvider.Select(static (options, _) => {
-            if (options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
-                && !string.IsNullOrWhiteSpace(configured))
-                return configured.Trim();
-            return "Geren";
-        });
+        var rootNamespace = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
+            options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
+                && !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : "Geren");
 
         context.RegisterSourceOutput(rootNamespace, static (spc, ns) => {
-            var bridge = EmitFactoryBridge.Run(ns);
-            spc.AddSource("FactoryBridge.g.cs", SourceText.From(NormalizeEol(bridge), Encoding.UTF8));
+            var bridge = EmitCommon.Run(ns);
+            spc.AddSource("Common.g.cs", SourceText.From(NormalizeEol(bridge), Encoding.UTF8));
         });
 
         // Probe
@@ -27,7 +22,7 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
         context.RegisterSourceOutput(parsed.Where(static p => p.Diagnostic is not null),
             static (spc, p) => spc.ReportDiagnostic(p.Diagnostic!));
 
-        // Map endpoints
+        // Map
         var maped = parsed
             .Where(static p => p.Document is not null && p.FilePath is not null)
             .Combine(context.CompilationProvider)
@@ -39,15 +34,23 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
         var emitInput = maped.Combine(rootNamespace);
         context.RegisterSourceOutput(emitInput, (spc, x) => {
             var map = x.Left;
-            var ns = x.Right;
-            string prefix = $"{map.FilePrefix}.{map.NamespaceSuffix}";
-            var clients = EmitClients.Run(map, ns);
-            foreach (var (name, code) in clients)
-                spc.AddSource($"{prefix}.{name}", SourceText.From(NormalizeEol(code), Encoding.UTF8));
+            string spaceName = $"{x.Right}.{map.NamespaceFromFile}";
+            string prefix = $"{map.FilePrefix}.{map.NamespaceFromFile}";
+            var files = map.Endpoints.GroupBy(e => new { e.SpaceName, e.ClassName });
+            foreach (var file in files) {
+                var code = EmitClient.Run(file, $"{spaceName}{file.Key.SpaceName}", file.Key.ClassName);
+                spc.AddSource($"{prefix}{file.Key.SpaceName}.{file.Key.ClassName}.g.cs", SourceText.From(NormalizeEol(code), Encoding.UTF8));
+            }
 
-            var registrations = EmitRegistrations.Run(ns, map.NamespaceSuffix, map.Endpoints.Select(e => e.ClassName).Distinct());
+            var registrations = EmitRegistrations.Run(x.Right, spaceName,
+                map.Endpoints.Select(e => GetNameWithNamespace(e.SpaceName, e.ClassName)).Distinct());
             spc.AddSource($"{prefix}.Extensions.g.cs", SourceText.From(NormalizeEol(registrations), Encoding.UTF8));
         });
+    }
+
+    private static string GetNameWithNamespace(string spaceName, string className) {
+        string name = spaceName.TrimStart('.');
+        return string.IsNullOrEmpty(name) ? className : $"{name}.{className}";
     }
 
     private static string NormalizeEol(string text) => text.Replace("\r\n", "\n").Replace('\r', '\n');

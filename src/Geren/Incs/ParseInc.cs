@@ -1,4 +1,3 @@
-using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 
 namespace Geren.Incs;
@@ -22,7 +21,7 @@ internal class ParseInc {
     internal static ParseInc Parse(string filePath, string text) {
         try {
             var reader = new OpenApiStringReader();
-            var document = reader.Read(text, out var diagnostic);
+            var document = reader.Read(text.Replace("[]", "__"), out var diagnostic);
 
             if (diagnostic.Errors.Count > 0)
                 return Fail(Diagnostic.Create(Givenn.ParseError, Location.None,

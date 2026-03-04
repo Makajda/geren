@@ -46,19 +46,20 @@ When working on `Geren` itself or chasing analyzer issues you may still use the 
 - Parse stage uses `OpenApiStringReader`.
 - For each input file generator emits:
 - client classes grouped by `ClassName`
-- extension class `GeneratedApiServiceCollectionExtensions`
-- one shared `FactoryBridge` helper
+- extension class `GeneratedExtensions`
+- one shared `Common` helper
 
 ## Naming Contract
 
 - Namespace suffix is derived from file name without extension, sanitized by `ToLetterOrDigitName`.
-- Final namespace is `{RootNamespace}.{NamespaceSuffix}`.
+- Final namespace is `{RootNamespace}.{NamespaceSuffix}.{section0}`.
 - Root namespace is `build_property.Geren_RootNamespace` or `Gereb.Generated` by default.
 - Path sections used for naming exclude template segments (`{...}`).
-- If no non-template sections: class `Root`, method `operationId ?? method + "Root"`.
-- If one non-template section: class `Root`, method `operationId ?? method + section0`.
-- If two or more non-template sections: class `section0`, method `operationId ?? method + join(sections[1..], "_")`.
-- Duplicate generated key `{ClassName}.{MethodName}` produces `GEREN006` and endpoint is skipped.
+- If no non-template sections: class `WebApiClient`, method `operationId ?? method + "Root"`.
+- If one non-template section: class `WebApiClient`, method `operationId ?? method + section0`.
+- If two non-template sections: class `section0`, method `operationId ?? method + sections1`.
+- If three or more non-template sections: .namespace `section0`, class `section1`, method `operationId ?? method + join(sections[2..], "_")`.
+- Duplicate generated key `{SpaceName}.{ClassName}.{MethodName}` produces `GEREN006` and endpoint is skipped.
 
 ## HTTP, Parameters, and Serialization
 
