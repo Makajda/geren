@@ -9,32 +9,35 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
     internal bool HasFatalEndpointError { get; private set; }
     internal bool Clean() => HasFatalEndpointError = false;
 
-    internal string Resolve(OpenApiSchema schema) {
+    internal string Resolve(IOpenApiSchema? schema) {
+        const string defaultType = "string";
         if (schema is null)
-            return "string";
+            return defaultType;
 
         if (TryResolveReferencedSchemaType(schema, out var referenceType))
             return referenceType;
 
-        if (schema.Type == "array") {
-            string itemType = Resolve(schema.Items);
-            return $"System.Collections.Generic.IReadOnlyList<{itemType}>";
-        }
+        if (!schema.Type.HasValue)
+            return defaultType;
 
-        if (schema.Type == "object") return "object";
-        if (schema.Properties is not null && schema.Properties.Count > 0) return "object";
         if (schema.Format == "int64") return "long";
         if (schema.Format == "int32") return "int";
-        if (schema.Type == "boolean") return "bool";
-        if (schema.Type == "number") return "double";
-        if (schema.Type == "integer") return "int";
-        if (schema.Type == "string") return "string";
-        return "string";
+
+        return schema.Type.Value switch {
+            JsonSchemaType.Null => "string",
+            JsonSchemaType.Array => $"System.Collections.Generic.IReadOnlyList<{Resolve(schema.Items)}>",
+            JsonSchemaType.Boolean => "bool",
+            JsonSchemaType.Integer => "int",
+            JsonSchemaType.Number => "double",
+            JsonSchemaType.String => "string",
+            JsonSchemaType.Object => "object",
+            _ => defaultType
+        };
     }
 
-    private bool TryResolveReferencedSchemaType(OpenApiSchema schema, out string typeName) {
+    private bool TryResolveReferencedSchemaType(IOpenApiSchema schema, out string typeName) {
         typeName = string.Empty;
-        if (schema.Reference?.Id is not { Length: > 0 } referenceId)
+        if (schema.Id is not { Length: > 0 } referenceId)
             return false;
 
         var simpleTypeName = Givenn.ToLetterOrDigitName(referenceId);

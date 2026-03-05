@@ -9,7 +9,7 @@ using System;
 
 namespace {{rootNamespace}};
 
-internal static class Common
+internal static class FactoryBridge
 {
     internal static void AddClient<TClient>(
         IServiceCollection services,

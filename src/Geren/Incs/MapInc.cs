@@ -1,13 +1,13 @@
 namespace Geren.Incs;
 
 internal sealed class MapInc {
-    public string FilePrefix { get; }
+    public string HintFilePath { get; }
     public string NamespaceFromFile { get; }
     public ImmutableArray<EndpointSpec> Endpoints { get; }
     public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-    private MapInc(string filePrefix, string namespaceFromFile, ImmutableArray<EndpointSpec> endpoints, ImmutableArray<Diagnostic> diagnostics) {
-        FilePrefix = filePrefix;
+    private MapInc(string hintFilePath, string namespaceFromFile, ImmutableArray<EndpointSpec> endpoints, ImmutableArray<Diagnostic> diagnostics) {
+        HintFilePath = hintFilePath;
         NamespaceFromFile = namespaceFromFile;
         Endpoints = endpoints;
         Diagnostics = diagnostics;
@@ -15,11 +15,11 @@ internal sealed class MapInc {
 
     //static
     internal static MapInc Create(
-        string filePrefix,
+        string hintFilePath,
         string namespaceFromFile,
         ImmutableArray<EndpointSpec> endpoints,
         ImmutableArray<Diagnostic> diagnostics)
-        => new(filePrefix, namespaceFromFile, endpoints, diagnostics);
+        => new(hintFilePath, namespaceFromFile, endpoints, diagnostics);
 
     internal static MapInc Map(Compilation compilation, OpenApiDocument doc, string filePath)
         => new MapSession(compilation, doc, filePath).BuildMap();

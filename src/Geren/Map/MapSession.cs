@@ -10,7 +10,10 @@ internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, s
         var endpointSpecs = ImmutableArray.CreateBuilder<EndpointSpec>();
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var path in doc.Paths) {
-            var normalizedPath = NormalizePathTemplate(path.Key);
+            string normalizedPath = NormalizePathTemplate(path.Key);
+            if (path.Value?.Operations is null)
+                continue;
+
             foreach (var operation in path.Value.Operations) {
                 string key = operation.Key.ToString();
                 if (key.Length < 3)
@@ -33,6 +36,9 @@ internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, s
                 if (bodyType is null && bodyMediaType is not null)
                     continue;
 
+                if (path.Value.Parameters is null && operation.Value.Parameters is null)
+                    continue;
+
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);
                 var (@params, queries) = SplitPathAndQueryParameters(path.Key, effectiveParameters);
                 if (!PathParametersAgainstPath.Validate(path.Key, normalizedPath, @params, _diagnostics))
@@ -45,21 +51,21 @@ internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, s
             }
         }
 
-        var filePrefix = CreateHintPrefix(filePath);
+        var hintFilePath = CreateHintFilePath(filePath);
         var namespaceFromFile = Givenn.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
-        return MapInc.Create(filePrefix, namespaceFromFile, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
+        return MapInc.Create(hintFilePath, namespaceFromFile, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
     }
 
     private (ImmutableArray<ParamSpec> Params, ImmutableArray<ParamSpec> Queries) SplitPathAndQueryParameters(
         string rawPath,
-        ImmutableArray<OpenApiParameter> parameters) {
+        ImmutableArray<IOpenApiParameter> parameters) {
         var pathParams = ImmutableArray.CreateBuilder<ParamSpec>();
         var queryParams = ImmutableArray.CreateBuilder<ParamSpec>();
         var usedParamIdentifiers = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var parameter in parameters) {
-            if (parameter.In is null) {
-                _diagnostics.Add(Diagnostic.Create(Givenn.MissingParamLocation, Location.None, parameter.Name, rawPath));
+            if (parameter is null || parameter.In is null || parameter.Name is null) {
+                _diagnostics.Add(Diagnostic.Create(Givenn.MissingParamLocation, Location.None, parameter?.Name ?? "<noname>", rawPath));
                 continue;
             }
 
@@ -155,7 +161,7 @@ internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, s
         if (sections.Length == 1) return (spaceDefault, classNameDefault, MethodName(sections[0]));
         string name0 = Givenn.ToLetterOrDigitName(sections[0]);
         if (sections.Length == 2) return (spaceDefault, name0, MethodName(sections[1]));
-        return ("." + name0, Givenn.ToLetterOrDigitName(sections[1]), MethodName(string.Join("_", sections.Skip(2))));
+        return (name0, Givenn.ToLetterOrDigitName(sections[1]), MethodName(string.Join("_", sections.Skip(2))));
 
         string MethodName(string section) => withName ?? (method + Givenn.ToLetterOrDigitName(section));
     }
@@ -163,17 +169,17 @@ internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, s
     private static bool IsPathTemplateSegment(string segment)
         => segment.Length > 1 && segment[0] == '{' && segment[segment.Length - 1] == '}';
 
-    private static ImmutableArray<OpenApiParameter> MergeOperationParameters(
-        IList<OpenApiParameter>? pathParameters,
-        IList<OpenApiParameter>? operationParameters) {
-        List<OpenApiParameter> merged = [];
+    private static ImmutableArray<IOpenApiParameter> MergeOperationParameters(
+        IList<IOpenApiParameter>? pathParameters,
+        IList<IOpenApiParameter>? operationParameters) {
+        List<IOpenApiParameter> merged = [];
         Dictionary<string, int> indexByKey = new(StringComparer.Ordinal);
 
         Add(pathParameters, allowOverride: false);
         Add(operationParameters, allowOverride: true);
         return [.. merged];
 
-        void Add(IList<OpenApiParameter>? source, bool allowOverride) {
+        void Add(IList<IOpenApiParameter>? source, bool allowOverride) {
             if (source is null)
                 return;
 
@@ -219,7 +225,7 @@ internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, s
         return candidate;
     }
 
-    private static string CreateHintPrefix(string filePath) {
+    private static string CreateHintFilePath(string filePath) {
         unchecked {
             uint hash = 2166136261;
             foreach (var ch in filePath) {

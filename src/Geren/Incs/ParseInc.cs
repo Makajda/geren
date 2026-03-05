@@ -1,5 +1,3 @@
-using Microsoft.OpenApi.Readers;
-
 namespace Geren.Incs;
 
 internal class ParseInc {
@@ -20,12 +18,14 @@ internal class ParseInc {
 
     internal static ParseInc Parse(string filePath, string text) {
         try {
-            var reader = new OpenApiStringReader();
-            var document = reader.Read(text.Replace("[]", "__"), out var diagnostic);
+            using MemoryStream ms = new(Encoding.UTF8.GetBytes(text.Replace("[]", "__")));
+            var readResult = OpenApiDocument.Load(ms);
+            var errors = readResult.Diagnostic?.Errors ?? [];
+            var document = readResult.Document;
 
-            if (diagnostic.Errors.Count > 0)
+            if (errors.Count > 0)
                 return Fail(Diagnostic.Create(Givenn.ParseError, Location.None,
-                    $"OpenAPI errors in {filePath}: {string.Join("; ", diagnostic.Errors.Select(e => e.Message))}"));
+                    $"OpenAPI errors in {filePath}: {string.Join("; ", errors.Select(e => e.Message))}"));
 
             if (document is null)
                 return Fail(Diagnostic.Create(Givenn.ParseError, Location.None,

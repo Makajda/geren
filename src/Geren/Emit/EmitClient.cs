@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace {{spaceName}};
 
-public sealed class {{className}}
+public sealed partial class {{className}}
 {
     private readonly HttpClient _http;
     public {{className}}(HttpClient http) => _http = http;

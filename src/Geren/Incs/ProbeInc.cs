@@ -29,7 +29,7 @@ internal sealed class ProbeInc {
 
         var text = file.GetText(cancellationToken)?.ToString();
         if (string.IsNullOrWhiteSpace(text))
-            return Warn(Diagnostic.Create(Givenn.JsonReadError, Location.None, $"JSON file is empty: {filePath}"));
+            return Warn(Diagnostic.Create(Givenn.JsonReadError, Location.None, $"File is empty: {filePath}"));
 
         try {
             var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(text), isFinalBlock: true, state: default);

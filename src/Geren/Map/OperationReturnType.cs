@@ -14,7 +14,7 @@ internal static class OperationReturnType {
         }
 
         foreach (var fallbackCode in new[] { "200", "201", "default" }) {
-            if (!TryGetResponseByCode(operation.Responses, fallbackCode, out var fallback))
+            if (operation.Responses is null || !TryGetResponseByCode(operation.Responses, fallbackCode, out var fallback))
                 continue;
 
             var resolved = ResolveResponsePayloadType(fallback, schemaTypeName);
@@ -27,11 +27,11 @@ internal static class OperationReturnType {
         return string.Empty;
     }
 
-    private static string ResolveResponsePayloadType(OpenApiResponse response, SchemaTypeName schemaTypeName) {
+    private static string ResolveResponsePayloadType(IOpenApiResponse response, SchemaTypeName schemaTypeName) {
         if (response.Content is null || response.Content.Count == 0)
             return string.Empty;
 
-        if (response.Content.TryGetValue("application/json", out OpenApiMediaType json))
+        if (response.Content.TryGetValue("application/json", out IOpenApiMediaType json))
             return schemaTypeName.Resolve(json.Schema);
 
         if (response.Content.ContainsKey("text/plain"))
@@ -65,7 +65,7 @@ internal static class OperationReturnType {
         return int.MaxValue;
     }
 
-    private static bool TryGetResponseByCode(OpenApiResponses responses, string code, out OpenApiResponse response) {
+    private static bool TryGetResponseByCode(OpenApiResponses responses, string code, out IOpenApiResponse response) {
         if (responses.TryGetValue(code, out response))
             return true;
 

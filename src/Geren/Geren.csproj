@@ -30,8 +30,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="Microsoft.OpenApi" Version="1.6.28" PrivateAssets="all" GeneratePathProperty="true" />
+		<PackageReference Include="Microsoft.OpenApi" Version="3.4.0" PrivateAssets="all" GeneratePathProperty="true" />
 		<PackageReference Include="SharpYaml" Version="2.1.1" PrivateAssets="all" GeneratePathProperty="true" />
 		<PackageReference Include="System.Text.Json" Version="10.0.3" PrivateAssets="all" GeneratePathProperty="true" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.3" PrivateAssets="all" GeneratePathProperty="true" />
@@ -51,7 +50,6 @@
 
 	<ItemGroup Condition="'$(IsPackable)' == 'true'">
 		<None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgMicrosoft_OpenApi_Readers)\lib\netstandard2.0\Microsoft.OpenApi.Readers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgMicrosoft_OpenApi)\lib\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgSharpYaml)\lib\netstandard2.0\SharpYaml.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />

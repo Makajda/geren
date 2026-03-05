@@ -33,6 +33,5 @@ internal sealed class EndpointSpec {
         BodyMediaType = bodyMediaType;
         Params = @params;
         Queries = queries;
-
     }
 }
