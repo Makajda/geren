@@ -6,4 +6,4 @@
 Rule ID  | Category | Severity | Notes
 ---------|----------|----------|------
 GEREN009 | Geren    | Error    | Missing package Microsoft.Extensions.Http
-GEREN010 | Geren    | Error    | Missing package Microsoft.Extensions.Http.Resilience
+GEREN010 | Geren    | Warning  | Missing package Microsoft.Extensions.Http.Resilience
