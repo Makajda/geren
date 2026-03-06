@@ -16,11 +16,11 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         bool hasExtensions = schema.Extensions is not null;
         if (hasExtensions && schema.Extensions!.TryGetValue("x-generic", out IOpenApiExtension nodeGeneric)) {
             if (nodeGeneric is JsonNodeExtension node)
-                return SchemaTypeGeneric.Resolve(node.Node.GetValue<string>());
+                return SchemaTypeGeneric.Resolve(node.Node.GetValue<string>(), _compilation, _diagnostics);
         }
         else if (hasExtensions && schema.Extensions!.TryGetValue("x-type", out IOpenApiExtension nodeExtension)) {
             if (nodeExtension is JsonNodeExtension node)
-                return SchemaTypeMetadata.Resolve(node.Node.GetValue<string>(), _compilation, _diagnostics);
+                return ResolveMetadataSchemaType(node.Node.GetValue<string>());
         }
         else if (schema is OpenApiSchemaReference schemaReference)
             if (schemaReference.Reference.Id is not null)
@@ -42,42 +42,54 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         return defaultType;
     }
 
+    internal string ResolveMetadataSchemaType(string simpleType) {
+        INamedTypeSymbol? symbol = _compilation.GetTypeByMetadataName(simpleType);
+        if (symbol is not null)
+            return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        if (_reportedUnresolvedSchemaTypes.Add(simpleType))
+            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, simpleType, simpleType));
+
+        return "object";
+    }
+
+    // Further only ResolveReferencedSchemaType
     private string ResolveReferencedSchemaType(string referenceId) {
-        var simpleTypeName = Givenn.ToLetterOrDigitName(referenceId);
-        if (_ambiguousSchemaTypeCache.Contains(simpleTypeName))
+        string simpleType = Givenn.ToLetterOrDigitName(referenceId);
+        if (_ambiguousSchemaTypeCache.Contains(simpleType))
             return "object";
 
-        if (_resolvedSchemaTypeCache.TryGetValue(simpleTypeName, out var cached))
+        if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out var cached))
             return cached ?? "object";
 
         SortedSet<string> candidateNames = new(StringComparer.Ordinal);
 
-        foreach (var symbol in _compilation.GetSymbolsWithName(simpleTypeName, SymbolFilter.Type)
+        foreach (var symbol in _compilation.GetSymbolsWithName(simpleType, SymbolFilter.Type)
             .OfType<INamedTypeSymbol>()
             .OrderBy(static s => s.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), StringComparer.Ordinal)) {
             candidateNames.Add(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
 
-        CollectTypeNamesByName(_compilation.Assembly.GlobalNamespace, simpleTypeName, candidateNames);
+        CollectTypeNamesByName(_compilation.Assembly.GlobalNamespace, simpleType, candidateNames);
         foreach (var assembly in _compilation.SourceModule.ReferencedAssemblySymbols)
-            CollectTypeNamesByName(assembly.GlobalNamespace, simpleTypeName, candidateNames);
+            CollectTypeNamesByName(assembly.GlobalNamespace, simpleType, candidateNames);
 
         if (candidateNames.Count > 1) {
-            _ambiguousSchemaTypeCache.Add(simpleTypeName);
+            _ambiguousSchemaTypeCache.Add(simpleType);
             HasFatalEndpointError = true;
             _diagnostics.Add(Diagnostic.Create(
-                Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleTypeName, FormatAmbiguousMatches(candidateNames)));
+                Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleType, FormatAmbiguousMatches(candidateNames)));
             return "object";
         }
 
         if (candidateNames.Count == 1) {
             string resolved = candidateNames.Min;
-            _resolvedSchemaTypeCache[simpleTypeName] = resolved;
+            _resolvedSchemaTypeCache[simpleType] = resolved;
             return resolved;
         }
 
-        if (_reportedUnresolvedSchemaTypes.Add(simpleTypeName))
-            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleTypeName));
+        if (_reportedUnresolvedSchemaTypes.Add(simpleType))
+            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleType));
 
         return "object";
     }

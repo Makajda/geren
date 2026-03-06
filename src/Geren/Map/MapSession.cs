@@ -70,23 +70,22 @@ internal sealed class MapSession {
             if (inValue == "path") {
                 var identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
                 var paramType = _schemaTypeName.Resolve(parameter.Schema);
-                if (_schemaTypeName.HasFatalEndpointError)
-                    continue;
+                if (!_schemaTypeName.HasFatalEndpointError)
+                    pathParams.Add(new(parameter.Name, identifier, paramType));
 
-                pathParams.Add(new(parameter.Name, identifier, paramType));
                 continue;
             }
 
             if (inValue == "query") {
                 var identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
                 var paramType = _schemaTypeName.Resolve(parameter.Schema);
-                if (_schemaTypeName.HasFatalEndpointError)
-                    continue;
+                if (!_schemaTypeName.HasFatalEndpointError) {
+                    if (IsSupportedQueryType(paramType))
+                        queryParams.Add(new(parameter.Name, identifier, paramType));
+                    else
+                        _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedQueryType, Location.None, parameter.Name, rawPath, paramType));
+                }
 
-                if (IsSupportedQueryType(paramType))
-                    queryParams.Add(new(parameter.Name, identifier, paramType));
-                else
-                    _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedQueryType, Location.None, parameter.Name, rawPath, paramType));
                 continue;
             }
 
@@ -152,7 +151,7 @@ internal sealed class MapSession {
         string? withName = operationId is null ? null : Givenn.ToLetterOrDigitName(operationId);
         string[] sections = [.. path
             .Trim('/')
-            .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+            .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
             .Where(static s => !IsPathTemplateSegment(s))];
         if (sections.Length == 0) return (spaceDefault, classNameDefault, MethodName(methodNameDefault));
         if (sections.Length == 1) return (spaceDefault, classNameDefault, MethodName(sections[0]));

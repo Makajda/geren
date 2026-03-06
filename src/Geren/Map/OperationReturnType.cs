@@ -9,8 +9,8 @@ internal static class OperationReturnType {
             var resolved = ResolveResponsePayloadType(responseEntry.Value, schemaTypeName);
             if (schemaTypeName.HasFatalEndpointError)
                 return string.Empty;
-            if (!string.IsNullOrEmpty(resolved))
-                return resolved;
+
+            return resolved;
         }
 
         foreach (var fallbackCode in new[] { "200", "201", "default" }) {
@@ -18,9 +18,7 @@ internal static class OperationReturnType {
                 continue;
 
             var resolved = ResolveResponsePayloadType(fallback, schemaTypeName);
-            if (schemaTypeName.HasFatalEndpointError)
-                return string.Empty;
-            if (!string.IsNullOrEmpty(resolved))
+            if (!schemaTypeName.HasFatalEndpointError)
                 return resolved;
         }
 

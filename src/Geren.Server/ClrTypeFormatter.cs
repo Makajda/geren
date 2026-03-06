@@ -10,7 +10,7 @@ internal static class ClrTypeFormatter {
     }
 
     private static void AppendType(StringBuilder sb, Type type) {
-        if (_aliases.TryGetValue(type, out var alias)) {
+        if (Aliases.TryGetValue(type, out var alias)) {
             sb.Append(alias);
             return;
         }
@@ -119,7 +119,7 @@ internal static class ClrTypeFormatter {
         sb.Append(')');
     }
 
-    private static readonly Dictionary<Type, string> _aliases = new() {
+    public static readonly Dictionary<Type, string> Aliases = new() {
         { typeof(void), "void" },
         { typeof(bool), "bool" },
         { typeof(byte), "byte" },
@@ -137,7 +137,4 @@ internal static class ClrTypeFormatter {
         { typeof(char), "char" },
         { typeof(object), "object" }
     };
-
-    public static HashSet<string> Aliases =
-        ["bool", "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "float", "double", "decimal", "string", "char"];
 }
