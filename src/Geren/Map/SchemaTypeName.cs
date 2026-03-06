@@ -18,13 +18,10 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
             if (TryResolveReferencedSchemaType(schemaReference, out var referenceType))
                 return referenceType;
 
-        if (!schema.Type.HasValue)
-            return defaultType;
 
         if (schema.Format == "int64") return "long";
         if (schema.Format == "int32") return "int";
-
-        return schema.Type.Value switch {
+        if (schema.Type.HasValue) return schema.Type.Value switch {
             JsonSchemaType.Null => "string",
             JsonSchemaType.Array => $"System.Collections.Generic.IReadOnlyList<{Resolve(schema.Items)}>",
             JsonSchemaType.Boolean => "bool",
@@ -34,6 +31,7 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
             JsonSchemaType.Object => "object",
             _ => defaultType
         };
+        return defaultType;
     }
 
     private bool TryResolveReferencedSchemaType(OpenApiSchemaReference schema, out string typeName) {
