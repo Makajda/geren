@@ -14,8 +14,9 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
         if (schema is null)
             return defaultType;
 
-        if (TryResolveReferencedSchemaType(schema, out var referenceType))
-            return referenceType;
+        if (schema is OpenApiSchemaReference schemaReference)
+            if (TryResolveReferencedSchemaType(schemaReference, out var referenceType))
+                return referenceType;
 
         if (!schema.Type.HasValue)
             return defaultType;
@@ -35,13 +36,26 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
         };
     }
 
-    private bool TryResolveReferencedSchemaType(IOpenApiSchema schema, out string typeName) {
+    private bool TryResolveReferencedSchemaType(OpenApiSchemaReference schema, out string typeName) {
         typeName = string.Empty;
-        if (schema.Id is not { Length: > 0 } referenceId)
-            return false;
+        string? genericName = default!;
+        if (schema.Extensions is not null && schema.Extensions.TryGetValue("x-dotnet-type", out IOpenApiExtension nodeExtension))
+            if (nodeExtension is JsonNodeExtension node)
+                genericName = node.Node.GetValue<string>();
 
-        var simpleTypeName = Givenn.ToLetterOrDigitName(referenceId);
-        var qualifiedTypeName = ResolveKnownCompilationTypeName(simpleTypeName, out var ambiguousMatches);
+        string source, className = default!;
+        if (genericName is null) {
+            if (schema.Reference.Id is null)
+                return false;
+
+            source = schema.Reference.Id;
+            className = Givenn.ToLetterOrDigitName(source);
+        }
+        else {
+            source = className = genericName;
+        }
+
+        var qualifiedTypeName = ResolveKnownCompilationTypeName(className, out var ambiguousMatches);
         if (qualifiedTypeName is not null) {
             typeName = qualifiedTypeName;
             return true;
@@ -49,15 +63,15 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
 
         if (ambiguousMatches is not null) {
             HasFatalEndpointError = true;
-            if (_reportedAmbiguousSchemaTypes.Add(simpleTypeName))
-                _diagnostics.Add(Diagnostic.Create(Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleTypeName, ambiguousMatches));
+            if (_reportedAmbiguousSchemaTypes.Add(className))
+                _diagnostics.Add(Diagnostic.Create(Givenn.AmbiguousSchemaReference, Location.None, source, className, ambiguousMatches));
 
             typeName = "object";
             return true;
         }
 
-        if (_reportedUnresolvedSchemaTypes.Add(simpleTypeName))
-            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleTypeName));
+        if (_reportedUnresolvedSchemaTypes.Add(className))
+            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, source, className));
 
         typeName = "object";
         return true;
@@ -73,7 +87,7 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
         if (_resolvedSchemaTypeCache.TryGetValue(typeName, out var cached))
             return cached;
 
-        var candidateNames = new SortedSet<string>(StringComparer.Ordinal);
+        SortedSet<string> candidateNames = new(StringComparer.Ordinal);
 
         foreach (var symbol in compilation.GetSymbolsWithName(typeName, SymbolFilter.Type)
             .OfType<INamedTypeSymbol>()

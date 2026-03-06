@@ -2,10 +2,10 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Geren.Map;
 
-internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, string filePath) {
+internal sealed class MapSession {
     private readonly ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
     private SchemaTypeName _schemaTypeName = default!; // Initialized in BuildMap to ensure diagnostics are captured
-    internal MapInc BuildMap() {
+    internal MapInc BuildMap(Compilation compilation, OpenApiDocument doc, string filePath) {
         _schemaTypeName = new(compilation, _diagnostics);
         var endpointSpecs = ImmutableArray.CreateBuilder<EndpointSpec>();
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
@@ -34,9 +34,6 @@ internal sealed class MapSession(Compilation compilation, OpenApiDocument doc, s
                 var returnType = OperationReturnType.Resolve(operation.Value, _schemaTypeName);
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value);
                 if (bodyType is null && bodyMediaType is not null)
-                    continue;
-
-                if (path.Value.Parameters is null && operation.Value.Parameters is null)
                     continue;
 
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);

@@ -22,5 +22,5 @@ internal sealed class MapInc {
         => new(hintFilePath, namespaceFromFile, endpoints, diagnostics);
 
     internal static MapInc Map(Compilation compilation, OpenApiDocument doc, string filePath)
-        => new MapSession(compilation, doc, filePath).BuildMap();
+        => new MapSession().BuildMap(compilation, doc, filePath);
 }
