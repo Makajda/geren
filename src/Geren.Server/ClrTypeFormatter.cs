@@ -137,4 +137,7 @@ internal static class ClrTypeFormatter {
         { typeof(char), "char" },
         { typeof(object), "object" }
     };
+
+    public static HashSet<string> Aliases =
+        ["bool", "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "float", "double", "decimal", "string", "char"];
 }

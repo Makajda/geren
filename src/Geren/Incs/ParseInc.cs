@@ -18,7 +18,7 @@ internal class ParseInc {
 
     internal static ParseInc Parse(string filePath, string text) {
         try {
-            using MemoryStream ms = new(Encoding.UTF8.GetBytes(text.Replace("[]", "__")));
+            using MemoryStream ms = new(Encoding.UTF8.GetBytes(text.Replace("[]", "--")));
             var readResult = OpenApiDocument.Load(ms);
             var errors = readResult.Diagnostic?.Errors ?? [];
             var document = readResult.Document;

@@ -1,10 +1,9 @@
 namespace Geren.Map;
 
-internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
+internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
     private readonly Dictionary<string, string?> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, string> _ambiguousSchemaTypeCache = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _ambiguousSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _reportedAmbiguousSchemaTypes = new(StringComparer.Ordinal);
 
     internal bool HasFatalEndpointError { get; private set; }
     internal bool Clean() => HasFatalEndpointError = false;
@@ -14,14 +13,18 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
         if (schema is null)
             return defaultType;
 
-        if (schema is OpenApiSchemaReference schemaReference) {
-            if (schema.Extensions is not null && schema.Extensions.TryGetValue("x-dotnet-type", out IOpenApiExtension nodeExtension)) {
-                if (nodeExtension is JsonNodeExtension node)
-                    return ResolveReferencedSchemaGenericType(node.Node.GetValue<string>());
-            }
-            else if (schemaReference.Reference.Id is not null)
-                return ResolveReferencedSchemaType(schemaReference.Reference.Id);
+        bool hasExtensions = schema.Extensions is not null;
+        if (hasExtensions && schema.Extensions!.TryGetValue("x-generic", out IOpenApiExtension nodeGeneric)) {
+            if (nodeGeneric is JsonNodeExtension node)
+                return SchemaTypeGeneric.Resolve(node.Node.GetValue<string>());
         }
+        else if (hasExtensions && schema.Extensions!.TryGetValue("x-type", out IOpenApiExtension nodeExtension)) {
+            if (nodeExtension is JsonNodeExtension node)
+                return SchemaTypeMetadata.Resolve(node.Node.GetValue<string>(), _compilation, _diagnostics);
+        }
+        else if (schema is OpenApiSchemaReference schemaReference)
+            if (schemaReference.Reference.Id is not null)
+                return ResolveReferencedSchemaType(schemaReference.Reference.Id);
 
         if (schema.Format == "int64") return "long";
         if (schema.Format == "int32") return "int";
@@ -39,64 +42,44 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
         return defaultType;
     }
 
-    private string ResolveReferencedSchemaGenericType(string dotnet_type) {
-        return "object";//todo
-    }
-
     private string ResolveReferencedSchemaType(string referenceId) {
         var simpleTypeName = Givenn.ToLetterOrDigitName(referenceId);
-
-        var qualifiedTypeName = ResolveKnownCompilationTypeName(simpleTypeName, out var ambiguousMatches);
-        if (qualifiedTypeName is not null)
-            return qualifiedTypeName;
-
-        if (ambiguousMatches is not null) {
-            HasFatalEndpointError = true;
-            if (_reportedAmbiguousSchemaTypes.Add(simpleTypeName))
-                _diagnostics.Add(Diagnostic.Create(Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleTypeName, ambiguousMatches));
-
+        if (_ambiguousSchemaTypeCache.Contains(simpleTypeName))
             return "object";
+
+        if (_resolvedSchemaTypeCache.TryGetValue(simpleTypeName, out var cached))
+            return cached ?? "object";
+
+        SortedSet<string> candidateNames = new(StringComparer.Ordinal);
+
+        foreach (var symbol in _compilation.GetSymbolsWithName(simpleTypeName, SymbolFilter.Type)
+            .OfType<INamedTypeSymbol>()
+            .OrderBy(static s => s.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), StringComparer.Ordinal)) {
+            candidateNames.Add(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+        }
+
+        CollectTypeNamesByName(_compilation.Assembly.GlobalNamespace, simpleTypeName, candidateNames);
+        foreach (var assembly in _compilation.SourceModule.ReferencedAssemblySymbols)
+            CollectTypeNamesByName(assembly.GlobalNamespace, simpleTypeName, candidateNames);
+
+        if (candidateNames.Count > 1) {
+            _ambiguousSchemaTypeCache.Add(simpleTypeName);
+            HasFatalEndpointError = true;
+            _diagnostics.Add(Diagnostic.Create(
+                Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleTypeName, FormatAmbiguousMatches(candidateNames)));
+            return "object";
+        }
+
+        if (candidateNames.Count == 1) {
+            string resolved = candidateNames.Min;
+            _resolvedSchemaTypeCache[simpleTypeName] = resolved;
+            return resolved;
         }
 
         if (_reportedUnresolvedSchemaTypes.Add(simpleTypeName))
             _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleTypeName));
 
         return "object";
-    }
-
-    private string? ResolveKnownCompilationTypeName(string typeName, out string? ambiguousMatches) {
-        ambiguousMatches = null;
-        if (_ambiguousSchemaTypeCache.TryGetValue(typeName, out var cachedAmbiguous)) {
-            ambiguousMatches = cachedAmbiguous;
-            return null;
-        }
-
-        if (_resolvedSchemaTypeCache.TryGetValue(typeName, out var cached))
-            return cached;
-
-        SortedSet<string> candidateNames = new(StringComparer.Ordinal);
-
-        foreach (var symbol in compilation.GetSymbolsWithName(typeName, SymbolFilter.Type)
-            .OfType<INamedTypeSymbol>()
-            .OrderBy(static s => s.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), StringComparer.Ordinal)) {
-            candidateNames.Add(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-        }
-
-        CollectTypeNamesByName(compilation.Assembly.GlobalNamespace, typeName, candidateNames);
-        foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols)
-            CollectTypeNamesByName(assembly.GlobalNamespace, typeName, candidateNames);
-
-        if (candidateNames.Count > 1) {
-            ambiguousMatches = FormatAmbiguousMatches(candidateNames);
-            _ambiguousSchemaTypeCache[typeName] = ambiguousMatches;
-            return null;
-        }
-
-        var resolved = candidateNames.Count == 1
-            ? candidateNames.Min
-            : null;
-        _resolvedSchemaTypeCache[typeName] = resolved;
-        return resolved;
     }
 
     private static string FormatAmbiguousMatches(SortedSet<string> candidateNames) {
