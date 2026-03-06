@@ -3,26 +3,6 @@ using System.Text;
 namespace Geren.Server;
 
 internal static class ClrTypeFormatter {
-    private static readonly Dictionary<Type, string> _aliases = new()
-    {
-        { typeof(void), "void" },
-        { typeof(bool), "bool" },
-        { typeof(byte), "byte" },
-        { typeof(sbyte), "sbyte" },
-        { typeof(short), "short" },
-        { typeof(ushort), "ushort" },
-        { typeof(int), "int" },
-        { typeof(uint), "uint" },
-        { typeof(long), "long" },
-        { typeof(ulong), "ulong" },
-        { typeof(float), "float" },
-        { typeof(double), "double" },
-        { typeof(decimal), "decimal" },
-        { typeof(string), "string" },
-        { typeof(char), "char" },
-        { typeof(object), "object" }
-    };
-
     public static string Format(Type type) {
         var sb = new StringBuilder();
         AppendType(sb, type);
@@ -102,17 +82,16 @@ internal static class ClrTypeFormatter {
         if (type.IsNested) {
             AppendNonGeneric(sb, type.DeclaringType!);
             sb.Append('.');
-            sb.Append(type.Name);
         }
         else {
-            if (string.IsNullOrEmpty(type.Namespace))
-                sb.Append(type.Name);
-            else {
+            if (!string.IsNullOrEmpty(type.Namespace)) {
                 sb.Append("global::");
                 sb.Append(type.Namespace);
                 sb.Append('.');
             }
         }
+
+        sb.Append(type.Name);
     }
 
     private static bool IsValueTuple(Type def) =>
@@ -139,4 +118,23 @@ internal static class ClrTypeFormatter {
 
         sb.Append(')');
     }
+
+    private static readonly Dictionary<Type, string> _aliases = new() {
+        { typeof(void), "void" },
+        { typeof(bool), "bool" },
+        { typeof(byte), "byte" },
+        { typeof(sbyte), "sbyte" },
+        { typeof(short), "short" },
+        { typeof(ushort), "ushort" },
+        { typeof(int), "int" },
+        { typeof(uint), "uint" },
+        { typeof(long), "long" },
+        { typeof(ulong), "ulong" },
+        { typeof(float), "float" },
+        { typeof(double), "double" },
+        { typeof(decimal), "decimal" },
+        { typeof(string), "string" },
+        { typeof(char), "char" },
+        { typeof(object), "object" }
+    };
 }

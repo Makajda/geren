@@ -14,13 +14,18 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
         if (schema is null)
             return defaultType;
 
-        if (schema is OpenApiSchemaReference schemaReference)
-            if (TryResolveReferencedSchemaType(schemaReference, out var referenceType))
-                return referenceType;
-
+        if (schema is OpenApiSchemaReference schemaReference) {
+            if (schema.Extensions is not null && schema.Extensions.TryGetValue("x-dotnet-type", out IOpenApiExtension nodeExtension)) {
+                if (nodeExtension is JsonNodeExtension node)
+                    return ResolveReferencedSchemaGenericType(node.Node.GetValue<string>());
+            }
+            else if (schemaReference.Reference.Id is not null)
+                return ResolveReferencedSchemaType(schemaReference.Reference.Id);
+        }
 
         if (schema.Format == "int64") return "long";
         if (schema.Format == "int32") return "int";
+
         if (schema.Type.HasValue) return schema.Type.Value switch {
             JsonSchemaType.Null => "string",
             JsonSchemaType.Array => $"System.Collections.Generic.IReadOnlyList<{Resolve(schema.Items)}>",
@@ -34,45 +39,29 @@ internal class SchemaTypeName(Compilation compilation, ImmutableArray<Diagnostic
         return defaultType;
     }
 
-    private bool TryResolveReferencedSchemaType(OpenApiSchemaReference schema, out string typeName) {
-        typeName = string.Empty;
-        string? genericName = default!;
-        if (schema.Extensions is not null && schema.Extensions.TryGetValue("x-dotnet-type", out IOpenApiExtension nodeExtension))
-            if (nodeExtension is JsonNodeExtension node)
-                genericName = node.Node.GetValue<string>();
+    private string ResolveReferencedSchemaGenericType(string dotnet_type) {
+        return "object";//todo
+    }
 
-        string source, className = default!;
-        if (genericName is null) {
-            if (schema.Reference.Id is null)
-                return false;
+    private string ResolveReferencedSchemaType(string referenceId) {
+        var simpleTypeName = Givenn.ToLetterOrDigitName(referenceId);
 
-            source = schema.Reference.Id;
-            className = Givenn.ToLetterOrDigitName(source);
-        }
-        else {
-            source = className = genericName;
-        }
-
-        var qualifiedTypeName = ResolveKnownCompilationTypeName(className, out var ambiguousMatches);
-        if (qualifiedTypeName is not null) {
-            typeName = qualifiedTypeName;
-            return true;
-        }
+        var qualifiedTypeName = ResolveKnownCompilationTypeName(simpleTypeName, out var ambiguousMatches);
+        if (qualifiedTypeName is not null)
+            return qualifiedTypeName;
 
         if (ambiguousMatches is not null) {
             HasFatalEndpointError = true;
-            if (_reportedAmbiguousSchemaTypes.Add(className))
-                _diagnostics.Add(Diagnostic.Create(Givenn.AmbiguousSchemaReference, Location.None, source, className, ambiguousMatches));
+            if (_reportedAmbiguousSchemaTypes.Add(simpleTypeName))
+                _diagnostics.Add(Diagnostic.Create(Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleTypeName, ambiguousMatches));
 
-            typeName = "object";
-            return true;
+            return "object";
         }
 
-        if (_reportedUnresolvedSchemaTypes.Add(className))
-            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, source, className));
+        if (_reportedUnresolvedSchemaTypes.Add(simpleTypeName))
+            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleTypeName));
 
-        typeName = "object";
-        return true;
+        return "object";
     }
 
     private string? ResolveKnownCompilationTypeName(string typeName, out string? ambiguousMatches) {

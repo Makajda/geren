@@ -33,7 +33,6 @@ When working on `Geren` itself or chasing analyzer issues you may still use the 
 <ItemGroup>
   <ProjectReference Include="..\Geren\Geren.csproj" ReferenceOutputAssembly="false" />
   <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Geren.dll" />
-  <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.Readers.dll" />
   <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" />
   <Analyzer Include="..\Geren\bin\$(Configuration)\netstandard2.0\SharpYaml.dll" />
 </ItemGroup>
@@ -139,7 +138,6 @@ The pipeline verifies that `.nupkg` contains:
 - `analyzers/dotnet/cs/System.Text.Encoding.CodePages.dll`
 - `analyzers/dotnet/cs/System.Text.Encodings.Web.dll`
 - `analyzers/dotnet/cs/System.Threading.Tasks.Extensions.dll`
-- `analyzers/dotnet/cs/Microsoft.OpenApi.Readers.dll`
 - `analyzers/dotnet/cs/Microsoft.OpenApi.dll`
 - `analyzers/dotnet/cs/SharpYaml.dll`
 - `analyzers/dotnet/cs/System.Text.Json.dll`

@@ -81,7 +81,6 @@
 - [ ] `dotnet pack` succeeds for `Geren`.
 - [ ] `.nupkg` contains:
 - [ ] `analyzers/dotnet/cs/Geren.dll`
-- [ ] `analyzers/dotnet/cs/Microsoft.OpenApi.Readers.dll`
 - [ ] `analyzers/dotnet/cs/Microsoft.OpenApi.dll`
 - [ ] `analyzers/dotnet/cs/SharpYaml.dll`
 - [ ] `analyzers/dotnet/cs/System.Text.Json.dll`
