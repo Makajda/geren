@@ -76,7 +76,6 @@ try {
         "analyzers/dotnet/cs/System.Text.Encoding.CodePages.dll",
         "analyzers/dotnet/cs/System.Text.Encodings.Web.dll",
         "analyzers/dotnet/cs/System.Threading.Tasks.Extensions.dll",
-        "analyzers/dotnet/cs/Microsoft.OpenApi.Readers.dll",
         "analyzers/dotnet/cs/Microsoft.OpenApi.dll",
         "analyzers/dotnet/cs/SharpYaml.dll",
         "analyzers/dotnet/cs/System.Text.Json.dll",
