@@ -1,8 +1,10 @@
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace Geren.Map;
 
 internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
-    private readonly Dictionary<string, string?> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _ambiguousSchemaTypeCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 
     internal string Resolve(IOpenApiSchema? schema) {
@@ -13,7 +15,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         bool hasExtensions = schema.Extensions is not null;
         if (hasExtensions && schema.Extensions!.TryGetValue("x-generic", out IOpenApiExtension nodeGeneric)) {
             if (nodeGeneric is JsonNodeExtension node)
-                return SchemaTypeGeneric.Resolve(node.Node.GetValue<string>(), _compilation, _diagnostics);
+                return ResolveGenericTypeByCompile(node.Node.GetValue<string>());
         }
         else if (hasExtensions && schema.Extensions!.TryGetValue("x-type", out IOpenApiExtension nodeExtension)) {
             if (nodeExtension is JsonNodeExtension node)
@@ -40,24 +42,56 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
     }
 
     private string ResolveMetadataSchemaType(string simpleType) {
+        if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
+            return cached;
+
+        string result;
         INamedTypeSymbol? symbol = _compilation.GetTypeByMetadataName(simpleType);
-        if (symbol is not null)
-            return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        if (symbol is null) {
+            result = "object";
+            if (_reportedUnresolvedSchemaTypes.Add(simpleType))
+                _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, simpleType, simpleType));
+        }
+        else
+            result = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
-        if (_reportedUnresolvedSchemaTypes.Add(simpleType))
-            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, simpleType, simpleType));
-
-        return "object";
+        _resolvedSchemaTypeCache[simpleType] = result;
+        return result;
     }
 
-    // Further only ResolveReferencedSchemaType
+    private string ResolveGenericTypeByCompile(string genericType) {
+        if (_resolvedSchemaTypeCache.TryGetValue(genericType, out string cached))
+            return cached;
+
+        var source = $$"""class __TypeProbe {{{genericType}} m;}""";
+        var parseOptions = (CSharpParseOptions)_compilation.SyntaxTrees.First().Options;
+        var tree = CSharpSyntaxTree.ParseText(source, parseOptions, path: "__Geren_TypeProbe.g.cs");
+        var newCompilation = _compilation.AddSyntaxTrees(tree);
+        var model = newCompilation.GetSemanticModel(tree);
+
+        var root = tree.GetRoot();
+        var field = root.DescendantNodes().OfType<FieldDeclarationSyntax>().First();
+        var typeSyntax = field.Declaration.Type;
+        var typeInfo = model.GetTypeInfo(typeSyntax);
+        var type = typeInfo.Type;
+        string result;
+        if (type is null || type is IErrorTypeSymbol || tree.GetDiagnostics().Count() > 0) {// semantic || syntax
+            _diagnostics.Add(Diagnostic.Create(//todo
+                Givenn.AmbiguousSchemaReference, Location.None, "", genericType, "cannot be resolved by the compiler"));
+            result = "object";
+        }
+        else
+            result = genericType;// type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        _resolvedSchemaTypeCache[genericType] = result;
+        return result;
+    }
+
+    // Further only ResolveReferencedSchemaType with GetSymbolsWithName
     private string ResolveReferencedSchemaType(string referenceId) {
         string simpleType = Givenn.ToLetterOrDigitName(referenceId);
-        if (_ambiguousSchemaTypeCache.Contains(simpleType))
-            return "object";
-
-        if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out var cached))
-            return cached ?? "object";
+        if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
+            return cached;
 
         SortedSet<string> candidateNames = new(StringComparer.Ordinal);
 
@@ -71,23 +105,22 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         foreach (var assembly in _compilation.SourceModule.ReferencedAssemblySymbols)
             CollectTypeNamesByName(assembly.GlobalNamespace, simpleType, candidateNames);
 
+        string result;
         if (candidateNames.Count > 1) {
-            _ambiguousSchemaTypeCache.Add(simpleType);
+            result = "object";
             _diagnostics.Add(Diagnostic.Create(
                 Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleType, FormatAmbiguousMatches(candidateNames)));
-            return "object";
         }
-
-        if (candidateNames.Count == 1) {
-            string resolved = candidateNames.Min;
-            _resolvedSchemaTypeCache[simpleType] = resolved;
-            return resolved;
+        else if (candidateNames.Count == 0) {
+            result = "object";
+            if (_reportedUnresolvedSchemaTypes.Add(simpleType))
+                _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleType));
         }
+        else
+            result = candidateNames.Min;
 
-        if (_reportedUnresolvedSchemaTypes.Add(simpleType))
-            _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleType));
-
-        return "object";
+        _resolvedSchemaTypeCache[simpleType] = result;
+        return result;
     }
 
     private static string FormatAmbiguousMatches(SortedSet<string> candidateNames) {
