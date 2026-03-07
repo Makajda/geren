@@ -37,7 +37,7 @@ internal sealed class MapSession {
 
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);
                 var (@params, queries) = SplitPathAndQueryParameters(path.Key, effectiveParameters);
-                if (!PathParametersAgainstPath.Validate(path.Key, normalizedPath, @params, _diagnostics))
+                if (!ValidatePathParametersAgainstPath(path.Key, normalizedPath, @params))
                     continue;
 
                 endpointSpecs.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
@@ -102,6 +102,35 @@ internal sealed class MapSession {
         var mediaType = requestBody.Content.Keys.FirstOrDefault() ?? "<unknown>";
         _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedRequestBody, Location.None, operation.OperationId, mediaType));
         return (null, mediaType);
+    }
+
+    private bool ValidatePathParametersAgainstPath(string rawPath, string normalizedPath, ImmutableArray<ParamSpec> pathParams) {
+        var placeholders = ExtractPathPlaceholderNames(normalizedPath);
+        if (placeholders.Count == 0 && pathParams.Length == 0)
+            return true;
+
+        var placeholderSet = new HashSet<string>(placeholders, StringComparer.Ordinal);
+        var parameterSet = new HashSet<string>(pathParams.Select(static p => p.Name), StringComparer.Ordinal);
+        if (placeholderSet.SetEquals(parameterSet))
+            return true;
+
+        var missingParameters = placeholders
+            .Where(name => !parameterSet.Contains(name))
+            .ToArray();
+        var extraParameters = pathParams
+            .Select(static p => p.Name)
+            .Where(name => !placeholderSet.Contains(name))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        var details = new List<string>(2);
+        if (missingParameters.Length > 0)
+            details.Add("placeholders without path parameter: " + string.Join(", ", missingParameters));
+        if (extraParameters.Length > 0)
+            details.Add("path parameters not found in path: " + string.Join(", ", extraParameters));
+
+        _diagnostics.Add(Diagnostic.Create(Givenn.PathParameterNameMismatch, Location.None, rawPath, string.Join("; ", details)));
+        return false;
     }
 
     //static
@@ -212,6 +241,29 @@ internal sealed class MapSession {
         }
 
         return candidate;
+    }
+
+    private static List<string> ExtractPathPlaceholderNames(string path) {
+        var names = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        int i = 0;
+        while (i < path.Length) {
+            int open = path.IndexOf('{', i);
+            if (open < 0)
+                break;
+
+            int close = path.IndexOf('}', open + 1);
+            if (close < 0)
+                break;
+
+            var name = path.Substring(open + 1, close - open - 1);
+            if (name.Length > 0 && seen.Add(name))
+                names.Add(name);
+
+            i = close + 1;
+        }
+
+        return names;
     }
 
     private static string CreateHintFilePath(string filePath) {
