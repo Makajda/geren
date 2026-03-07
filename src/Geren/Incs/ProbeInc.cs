@@ -29,13 +29,13 @@ internal sealed class ProbeInc {
 
         var text = file.GetText(cancellationToken)?.ToString();
         if (string.IsNullOrWhiteSpace(text))
-            return Warn(Diagnostic.Create(Givenn.JsonReadError, Location.None, $"File is empty: {filePath}"));
+            return Warn(Diagnostic.Create(Dide.JsonReadError, Location.None, $"File is empty: {filePath}"));
 
         try {
             var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(text), isFinalBlock: true, state: default);
 
             if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
-                return Warn(Diagnostic.Create(Givenn.JsonReadError, Location.None, $"Invalid JSON in {filePath}: Root is not JSON object."));
+                return Warn(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid JSON in {filePath}: Root is not JSON object."));
 
             bool hasProperty = false;
             bool hasOpenApiProperty = false;
@@ -51,7 +51,7 @@ internal sealed class ProbeInc {
             }
 
             if (!hasProperty)
-                return Warn(Diagnostic.Create(Givenn.JsonReadError, Location.None, $"Invalid JSON in {filePath}: Object has no properties."));
+                return Warn(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid JSON in {filePath}: Object has no properties."));
 
             if (!hasOpenApiProperty)
                 return Skip();
@@ -59,7 +59,7 @@ internal sealed class ProbeInc {
             return Take(filePath, text!);
         }
         catch (Exception ex) {
-            return Warn(Diagnostic.Create(Givenn.JsonReadError, Location.None, $"Invalid JSON in {filePath}: {ex.Message}"));
+            return Warn(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid JSON in {filePath}: {ex.Message}"));
         }
     }
 }

@@ -26,7 +26,7 @@ internal sealed class MapSession {
                 var (spaceName, className, methodName) = ResolveNames(operation.Value.OperationId, method, normalizedPath);
                 var methodKey = spaceName + "." + className + "." + methodName;
                 if (!seenMethodKeys.Add(methodKey)) {
-                    _diagnostics.Add(Diagnostic.Create(Givenn.DuplicateMethodName, Location.None, methodName, className, path.Key));
+                    _diagnostics.Add(Diagnostic.Create(Dide.DuplicateMethodName, Location.None, methodName, className, path.Key));
                     continue;
                 }
 
@@ -58,7 +58,7 @@ internal sealed class MapSession {
 
         foreach (var parameter in parameters) {
             if (parameter is null || parameter.In is null || parameter.Name is null) {
-                _diagnostics.Add(Diagnostic.Create(Givenn.MissingParamLocation, Location.None, parameter?.Name ?? "<noname>", rawPath));
+                _diagnostics.Add(Diagnostic.Create(Dide.MissingParamLocation, Location.None, parameter?.Name ?? "<noname>", rawPath));
                 continue;
             }
 
@@ -77,12 +77,12 @@ internal sealed class MapSession {
                 if (IsSupportedQueryType(paramType))
                     queryParams.Add(new(parameter.Name, identifier, paramType));
                 else
-                    _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedQueryType, Location.None, parameter.Name, rawPath, paramType));
+                    _diagnostics.Add(Diagnostic.Create(Dide.UnsupportedQueryType, Location.None, parameter.Name, rawPath, paramType));
 
                 continue;
             }
 
-            _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedParamLocation, Location.None, parameter.Name, inValue));
+            _diagnostics.Add(Diagnostic.Create(Dide.UnsupportedParamLocation, Location.None, parameter.Name, inValue));
         }
 
         return (pathParams.ToImmutable(), queryParams.ToImmutable());
@@ -100,7 +100,7 @@ internal sealed class MapSession {
             return ("string", "text/plain");
 
         var mediaType = requestBody.Content.Keys.FirstOrDefault() ?? "<unknown>";
-        _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedRequestBody, Location.None, operation.OperationId, mediaType));
+        _diagnostics.Add(Diagnostic.Create(Dide.UnsupportedRequestBody, Location.None, operation.OperationId, mediaType));
         return (null, mediaType);
     }
 
@@ -129,7 +129,7 @@ internal sealed class MapSession {
         if (extraParameters.Length > 0)
             details.Add("path parameters not found in path: " + string.Join(", ", extraParameters));
 
-        _diagnostics.Add(Diagnostic.Create(Givenn.PathParameterNameMismatch, Location.None, rawPath, string.Join("; ", details)));
+        _diagnostics.Add(Diagnostic.Create(Dide.PathParameterNameMismatch, Location.None, rawPath, string.Join("; ", details)));
         return false;
     }
 

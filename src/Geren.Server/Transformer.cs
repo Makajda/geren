@@ -10,12 +10,12 @@ public sealed class Transformer : IOpenApiSchemaTransformer {
             if (!ClrTypeFormatter.Aliases.ContainsKey(type)) {
                 string key;
                 string value;
-                if (type.IsGenericType) {
-                    key = "x-generic";
+                if (type.IsArray || type.IsGenericType) {
+                    key = "x-compile";
                     value = ClrTypeFormatter.Format(type);
                 }
                 else {
-                    key = "x-type";
+                    key = "x-metadata";
                     value = GetMetadataName(type);
                 }
 

@@ -13,17 +13,17 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
             return defaultType;
 
         bool hasExtensions = schema.Extensions is not null;
-        if (hasExtensions && schema.Extensions!.TryGetValue("x-generic", out IOpenApiExtension nodeGeneric)) {
-            if (nodeGeneric is JsonNodeExtension node)
-                return ResolveGenericTypeByCompile(node.Node.GetValue<string>());
-        }
-        else if (hasExtensions && schema.Extensions!.TryGetValue("x-type", out IOpenApiExtension nodeExtension)) {
+        if (hasExtensions && schema.Extensions!.TryGetValue("x-metadata", out IOpenApiExtension nodeExtension)) {
             if (nodeExtension is JsonNodeExtension node)
-                return ResolveMetadataSchemaType(node.Node.GetValue<string>());
+                return ResolveByMetadata(node.Node.GetValue<string>());
+        }
+        else if (hasExtensions && schema.Extensions!.TryGetValue("x-compile", out IOpenApiExtension nodeGeneric)) {
+            if (nodeGeneric is JsonNodeExtension node)
+                return ResolveByCompile(Givenn.ArraysRestore(node.Node.GetValue<string>()));
         }
         else if (schema is OpenApiSchemaReference schemaReference)
             if (schemaReference.Reference.Id is not null)
-                return ResolveReferencedSchemaType(schemaReference.Reference.Id);
+                return ResolveByReference(schemaReference.Reference.Id);
 
         if (schema.Format == "int64") return "long";
         if (schema.Format == "int32") return "int";
@@ -41,7 +41,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         return defaultType;
     }
 
-    private string ResolveMetadataSchemaType(string simpleType) {
+    private string ResolveByMetadata(string simpleType) {
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
             return cached;
 
@@ -50,7 +50,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         if (symbol is null) {
             result = "object";
             if (_reportedUnresolvedSchemaTypes.Add(simpleType))
-                _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, simpleType, simpleType));
+                _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, "by metadata", simpleType));
         }
         else
             result = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -59,7 +59,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         return result;
     }
 
-    private string ResolveGenericTypeByCompile(string genericType) {
+    private string ResolveByCompile(string genericType) {
         if (_resolvedSchemaTypeCache.TryGetValue(genericType, out string cached))
             return cached;
 
@@ -76,9 +76,9 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         var type = typeInfo.Type;
         string result;
         if (type is null || type is IErrorTypeSymbol || tree.GetDiagnostics().Count() > 0) {// semantic || syntax
-            _diagnostics.Add(Diagnostic.Create(//todo
-                Givenn.AmbiguousSchemaReference, Location.None, "", genericType, "cannot be resolved by the compiler"));
             result = "object";
+            if (_reportedUnresolvedSchemaTypes.Add(genericType))
+                _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, "by compile", genericType));
         }
         else
             result = genericType;// type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -87,8 +87,8 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         return result;
     }
 
-    // Further only ResolveReferencedSchemaType with GetSymbolsWithName
-    private string ResolveReferencedSchemaType(string referenceId) {
+    // Further only ResolveByReference with GetSymbolsWithName
+    private string ResolveByReference(string referenceId) {
         string simpleType = Givenn.ToLetterOrDigitName(referenceId);
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
             return cached;
@@ -109,12 +109,12 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         if (candidateNames.Count > 1) {
             result = "object";
             _diagnostics.Add(Diagnostic.Create(
-                Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleType, FormatAmbiguousMatches(candidateNames)));
+                Dide.AmbiguousSchemaReference, Location.None, referenceId, simpleType, FormatAmbiguousMatches(candidateNames)));
         }
         else if (candidateNames.Count == 0) {
             result = "object";
             if (_reportedUnresolvedSchemaTypes.Add(simpleType))
-                _diagnostics.Add(Diagnostic.Create(Givenn.UnresolvedSchemaReference, Location.None, referenceId, simpleType));
+                _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, referenceId, simpleType));
         }
         else
             result = candidateNames.Min;

@@ -17,10 +17,10 @@ internal class PackeInc {
         bool hasHttp = compilation.GetTypeByMetadataName("Microsoft.Extensions.DependencyInjection.IHttpClientBuilder") is not null;
         bool hasResilience = compilation.GetTypeByMetadataName("Microsoft.Extensions.Http.Resilience.ResilienceHandlerContext") is not null;
         if (!hasHttp)
-            diagnostics.Add(Diagnostic.Create(Givenn.MissingMicrosoftExtensionsHttp, Location.None));
+            diagnostics.Add(Diagnostic.Create(Dide.MissingMicrosoftExtensionsHttp, Location.None));
 
         if (!hasResilience)
-            diagnostics.Add(Diagnostic.Create(Givenn.MissingMicrosoftExtensionsHttpResilience, Location.None));
+            diagnostics.Add(Diagnostic.Create(Dide.MissingMicrosoftExtensionsHttpResilience, Location.None));
 
         return new(hasHttp, hasResilience, diagnostics.ToImmutable());
     }
