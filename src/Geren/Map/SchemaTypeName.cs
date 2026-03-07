@@ -5,9 +5,6 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
     private readonly HashSet<string> _ambiguousSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 
-    internal bool HasFatalEndpointError { get; private set; }
-    internal bool Clean() => HasFatalEndpointError = false;
-
     internal string Resolve(IOpenApiSchema? schema) {
         const string defaultType = "string";
         if (schema is null)
@@ -42,7 +39,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         return defaultType;
     }
 
-    internal string ResolveMetadataSchemaType(string simpleType) {
+    private string ResolveMetadataSchemaType(string simpleType) {
         INamedTypeSymbol? symbol = _compilation.GetTypeByMetadataName(simpleType);
         if (symbol is not null)
             return symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -76,7 +73,6 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
 
         if (candidateNames.Count > 1) {
             _ambiguousSchemaTypeCache.Add(simpleType);
-            HasFatalEndpointError = true;
             _diagnostics.Add(Diagnostic.Create(
                 Givenn.AmbiguousSchemaReference, Location.None, referenceId, simpleType, FormatAmbiguousMatches(candidateNames)));
             return "object";

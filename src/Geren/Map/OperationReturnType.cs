@@ -7,10 +7,8 @@ internal static class OperationReturnType {
             .OrderBy(static r => GetResponsePriority(r.Key))
             .ThenBy(static r => r.Key, StringComparer.Ordinal)) {
             var resolved = ResolveResponsePayloadType(responseEntry.Value, schemaTypeName);
-            if (schemaTypeName.HasFatalEndpointError)
-                return string.Empty;
-
-            return resolved;
+            if (!string.IsNullOrEmpty(resolved))
+                return resolved;
         }
 
         foreach (var fallbackCode in new[] { "200", "201", "default" }) {
@@ -18,7 +16,7 @@ internal static class OperationReturnType {
                 continue;
 
             var resolved = ResolveResponsePayloadType(fallback, schemaTypeName);
-            if (!schemaTypeName.HasFatalEndpointError)
+            if (!string.IsNullOrEmpty(resolved))
                 return resolved;
         }
 

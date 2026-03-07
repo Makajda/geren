@@ -30,7 +30,6 @@ internal sealed class MapSession {
                     continue;
                 }
 
-                _schemaTypeName.Clean();
                 var returnType = OperationReturnType.Resolve(operation.Value, _schemaTypeName);
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value);
                 if (bodyType is null && bodyMediaType is not null)
@@ -39,9 +38,6 @@ internal sealed class MapSession {
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);
                 var (@params, queries) = SplitPathAndQueryParameters(path.Key, effectiveParameters);
                 if (!PathParametersAgainstPath.Validate(path.Key, normalizedPath, @params, _diagnostics))
-                    continue;
-
-                if (_schemaTypeName.HasFatalEndpointError)
                     continue;
 
                 endpointSpecs.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
@@ -70,8 +66,7 @@ internal sealed class MapSession {
             if (inValue == "path") {
                 var identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
                 var paramType = _schemaTypeName.Resolve(parameter.Schema);
-                if (!_schemaTypeName.HasFatalEndpointError)
-                    pathParams.Add(new(parameter.Name, identifier, paramType));
+                pathParams.Add(new(parameter.Name, identifier, paramType));
 
                 continue;
             }
@@ -79,12 +74,10 @@ internal sealed class MapSession {
             if (inValue == "query") {
                 var identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
                 var paramType = _schemaTypeName.Resolve(parameter.Schema);
-                if (!_schemaTypeName.HasFatalEndpointError) {
-                    if (IsSupportedQueryType(paramType))
-                        queryParams.Add(new(parameter.Name, identifier, paramType));
-                    else
-                        _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedQueryType, Location.None, parameter.Name, rawPath, paramType));
-                }
+                if (IsSupportedQueryType(paramType))
+                    queryParams.Add(new(parameter.Name, identifier, paramType));
+                else
+                    _diagnostics.Add(Diagnostic.Create(Givenn.UnsupportedQueryType, Location.None, parameter.Name, rawPath, paramType));
 
                 continue;
             }
