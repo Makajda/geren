@@ -24,7 +24,7 @@ public sealed class Transformer : IOpenApiSchemaTransformer {
                 }
 
                 schema.Extensions ??= new Dictionary<string, IOpenApiExtension>();
-                schema.Extensions.Add(key, new JsonNodeExtension(value));
+                schema.Extensions[key] = new JsonNodeExtension(value);
             }
         }
     }

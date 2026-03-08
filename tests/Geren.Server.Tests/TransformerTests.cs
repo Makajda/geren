@@ -58,6 +58,32 @@ public sealed class TransformerTests {
             .Be("global::Geren.Server.Tests.TransformerTests.Widget[]");
     }
 
+    [Fact]
+    public void ApplySchemaExtensions_should_be_idempotent_for_repeated_calls() {
+        var schema = new OpenApiSchema();
+
+        Transformer.ApplySchemaExtensions(schema, typeof(Widget));
+        Action secondCall = () => Transformer.ApplySchemaExtensions(schema, typeof(Widget));
+
+        secondCall.Should().NotThrow();
+        schema.Extensions.Should().ContainSingle();
+        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.Server.Tests.TransformerTests+Widget");
+    }
+
+    [Fact]
+    public void ApplySchemaExtensions_should_overwrite_existing_extension_value_for_same_key() {
+        var schema = new OpenApiSchema {
+            Extensions = new Dictionary<string, IOpenApiExtension> {
+                ["x-metadata"] = new JsonNodeExtension(JsonValue.Create("Stale.Value")!)
+            }
+        };
+
+        Transformer.ApplySchemaExtensions(schema, typeof(Widget));
+
+        schema.Extensions.Should().ContainSingle();
+        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.Server.Tests.TransformerTests+Widget");
+    }
+
     private static string GetExtensionValue(OpenApiSchema schema, string key) =>
         ((JsonNodeExtension)schema.Extensions![key]).Node.GetValue<string>();
 
