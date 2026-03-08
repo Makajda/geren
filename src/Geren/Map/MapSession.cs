@@ -73,7 +73,7 @@ internal sealed class MapSession {
 
             if (inValue == "query") {
                 var identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
-                var paramType = _schemaTypeName.Resolve(parameter.Schema);
+                var paramType = NormalizeQueryType(_schemaTypeName.Resolve(parameter.Schema), parameter.Required);
                 if (IsSupportedQueryType(paramType))
                     queryParams.Add(new(parameter.Name, identifier, paramType));
                 else
@@ -278,6 +278,32 @@ internal sealed class MapSession {
         }
     }
 
-    private static bool IsSupportedQueryType(string typeName)
+    private static string NormalizeQueryType(string typeName, bool required)
+        => required || typeName.EndsWith("?", StringComparison.Ordinal) ? typeName : typeName + "?";
+
+    private static bool IsSupportedQueryType(string typeName) {
+        var normalizedType = TrimNullable(typeName);
+        if (IsSupportedQueryScalarType(normalizedType))
+            return true;
+
+        return TryGetCollectionElementType(normalizedType, out var elementType)
+            && IsSupportedQueryScalarType(TrimNullable(elementType));
+    }
+
+    private static string TrimNullable(string typeName)
+        => typeName.EndsWith("?", StringComparison.Ordinal) ? typeName.Substring(0, typeName.Length - 1) : typeName;
+
+    private static bool IsSupportedQueryScalarType(string typeName)
         => typeName == "string" || typeName == "int" || typeName == "long" || typeName == "bool" || typeName == "double";
+
+    private static bool TryGetCollectionElementType(string typeName, out string elementType) {
+        const string prefix = "System.Collections.Generic.IReadOnlyList<";
+        if (typeName.StartsWith(prefix, StringComparison.Ordinal) && typeName.EndsWith(">", StringComparison.Ordinal)) {
+            elementType = typeName.Substring(prefix.Length, typeName.Length - prefix.Length - 1);
+            return true;
+        }
+
+        elementType = string.Empty;
+        return false;
+    }
 }

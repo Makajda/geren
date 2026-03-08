@@ -3,6 +3,7 @@ namespace Geren.Emit;
 internal sealed class EmitClient {
     internal static string Run(IGrouping<object, EndpointSpec> endpoints, string spaceName, string className) => $$"""
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
@@ -17,6 +18,8 @@ public sealed partial class {{className}}
 {
     private readonly HttpClient _http;
     public {{className}}(HttpClient http) => _http = http;
+
+{{EmitUrl.EmitHelpers()}}
 
 {{string.Join(Givenn.NewLine + Givenn.NewLine, endpoints.Select(EmitMethod))}}
 }
@@ -33,7 +36,7 @@ public sealed partial class {{className}}
 
         args += "CancellationToken cancellationToken = default";
         var signature = $"{methodName}({args})";
-        var pathExpr = BuildPathExpression(endpoint);
+        var pathExpr = EmitUrl.BuildPathExpression(endpoint);
 
         if (endpoint.Method == Givenn.Get)
             return EmitGet(endpoint.ReturnType, signature, pathExpr);
@@ -147,34 +150,5 @@ public sealed partial class {{className}}
         return await response.Content.ReadFromJsonAsync<{{returnType}}>(cancellationToken);
     }
 """;
-    }
-
-    private static string BuildPathExpression(EndpointSpec e) {
-        string interpolatedPath = e.Path;
-        foreach (var param in e.Params)
-            interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{" + param.Identifier + "}");
-
-        if (e.Queries.Length == 0)
-            return $"$\"{interpolatedPath}\"";
-
-        // Query
-        string queryBuilder = string.Join(Givenn.NewLine, e.Queries.Select(p =>
-            $"        query.Add(\"{p.Name}=\" + Uri.EscapeDataString({BuildQueryValueExpression(p)}));"));
-
-        string result = $"new Func<string>(() =>{Givenn.NewLine}"
-            + "    {" + Givenn.NewLine
-            + "        var query = new List<string>();" + Givenn.NewLine
-            + queryBuilder + Givenn.NewLine
-            + $"        return $\"{interpolatedPath}?{{string.Join(\"&\", query)}}\";{Givenn.NewLine}"
-            + "    })()";
-
-        return result;
-    }
-
-    private static string BuildQueryValueExpression(ParamSpec param) {
-        if (param.TypeName == "bool")
-            return $"{param.Identifier} ? \"true\" : \"false\"";
-
-        return $"Convert.ToString({param.Identifier}, CultureInfo.InvariantCulture) ?? string.Empty";
     }
 }

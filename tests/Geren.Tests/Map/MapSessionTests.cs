@@ -152,7 +152,49 @@ public sealed class MapSessionTests {
         var endpoint = result.Endpoints.Should().ContainSingle().Subject;
 
         endpoint.Queries.Should().ContainSingle();
-        endpoint.Queries.Single().TypeName.Should().Be("string");
+        endpoint.Queries.Single().TypeName.Should().Be("string?");
+    }
+
+    [Fact]
+    public void BuildMap_should_support_nullable_and_array_query_types() {
+        var document = OpenApiDocumentFactory.Load("""
+        {
+          "openapi": "3.0.1",
+          "info": { "title": "Orders", "version": "1.0" },
+          "paths": {
+            "/orders": {
+              "get": {
+                "parameters": [
+                  {
+                    "name": "page",
+                    "in": "query",
+                    "schema": { "type": "integer", "format": "int32" }
+                  },
+                  {
+                    "name": "tags",
+                    "in": "query",
+                    "schema": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": { "description": "ok" }
+                }
+              }
+            }
+          }
+        }
+        """, allowReaderErrors: true);
+
+        var result = new MapSession().BuildMap(TestCompilationFactory.Create(), document, "orders.json");
+        var endpoint = result.Endpoints.Should().ContainSingle().Subject;
+
+        result.Diagnostics.Should().BeEmpty();
+        endpoint.Queries.Select(static query => query.TypeName)
+            .Should()
+            .Equal("int?", "System.Collections.Generic.IReadOnlyList<string>?");
     }
 
     [Fact]

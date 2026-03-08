@@ -52,9 +52,59 @@ public sealed class EmitClientTests {
             "Generated.Pets",
             "PetsClient");
 
-        code.Should().Contain("query.Add(\"includeArchived=\" + Uri.EscapeDataString(includeArchived ? \"true\" : \"false\"));");
-        code.Should().Contain("Convert.ToString(page, CultureInfo.InvariantCulture) ?? string.Empty");
-        code.Should().Contain("return $\"/pets/{petId}?{string.Join(\"&\", query)}\";");
+        code.Should().Contain("private static string BuildRequestUri(string path, Action<List<string>>? configureQuery = null)");
+        code.Should().Contain("private static string FormatPathParameter(object? value)");
+        code.Should().Contain("private static void AddQueryParameter(List<string> query, string name, object? value)");
+        code.Should().Contain("AddQueryParameter(query, \"includeArchived\", includeArchived);");
+        code.Should().Contain("AddQueryParameter(query, \"page\", page);");
+        code.Should().Contain("BuildRequestUri($\"/pets/{FormatPathParameter(petId)}\", query =>");
+        code.Should().Contain("IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture)");
+        code.Should().Contain("return Uri.EscapeDataString(text);");
+    }
+
+    [Fact]
+    public async Task Run_should_escape_path_parameters_and_use_invariant_culture_for_queries() {
+        using var _ = new CultureScope("ru-RU");
+        var endpoint = new EndpointSpec(
+            "Get",
+            "/pets/{slug}",
+            "",
+            "PetsClient",
+            "GetPet",
+            "string",
+            null,
+            null,
+            [new ParamSpec("slug", "slug", "string")],
+            [new ParamSpec("ratio", "ratio", "double?"), new ParamSpec("enabled", "enabled", "bool?")]);
+
+        var uri = await GeneratedClientRuntimeHost.InvokeAsync(endpoint, "a/b c?#", 1.5d, true);
+
+        uri.Should().NotBeNull();
+        uri!.PathAndQuery.Should().Be("/pets/a%2Fb%20c%3F%23?ratio=1.5&enabled=true");
+    }
+
+    [Fact]
+    public async Task Run_should_skip_null_queries_and_repeat_array_values() {
+        var endpoint = new EndpointSpec(
+            "Get",
+            "/pets",
+            "",
+            "PetsClient",
+            "SearchPets",
+            "string",
+            null,
+            null,
+            [],
+            [
+                new ParamSpec("tags", "tags", "System.Collections.Generic.IReadOnlyList<string>?"),
+                new ParamSpec("page", "page", "int?"),
+                new ParamSpec("search", "search", "string?")
+            ]);
+
+        var uri = await GeneratedClientRuntimeHost.InvokeAsync(endpoint, new[] { "red/blue", "white space" }, null, null);
+
+        uri.Should().NotBeNull();
+        uri!.PathAndQuery.Should().Be("/pets?tags=red%2Fblue&tags=white%20space");
     }
 
     private static IGrouping<object, EndpointSpec> Group(params EndpointSpec[] endpoints) =>

@@ -4,6 +4,7 @@ namespace Geren.Tests.TestSupport;
 
 internal static class TestCompilationFactory {
     private static readonly Lazy<ImmutableArray<MetadataReference>> SharedReferences = new(CreateReferences);
+    internal static ImmutableArray<MetadataReference> MetadataReferences => SharedReferences.Value;
 
     internal static CSharpCompilation Create(
         IEnumerable<string>? userSources = null,
