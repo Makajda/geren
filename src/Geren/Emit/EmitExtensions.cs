@@ -11,7 +11,7 @@ namespace {{spaceName}};
 
 public static class Geren{{namespaceFromFile}}Extensions
 {
-    public static IServiceCollection AddGerens(
+    public static IServiceCollection AddGerenClients(
         this IServiceCollection services,
         Action<IHttpClientBuilder>? configureBuilder = null,{{(hasResilience ? ParamsWithResilience : ParamsWithoutResilience)}}
     {
