@@ -1,0 +1,15 @@
+global using FluentAssertions;
+global using Geren.Common;
+global using Geren.Emit;
+global using Geren.Incs;
+global using Geren.Map;
+global using Geren.Tests.TestSupport;
+global using Microsoft.CodeAnalysis;
+global using Microsoft.CodeAnalysis.CSharp;
+global using Microsoft.CodeAnalysis.Diagnostics;
+global using Microsoft.CodeAnalysis.Text;
+global using Microsoft.OpenApi;
+global using System.Collections.Immutable;
+global using System.Text;
+global using System.Text.Json.Nodes;
+global using Xunit;

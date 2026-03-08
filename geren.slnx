@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="src/Geren.Server/Geren.Server.csproj" Id="c08c7a52-cd27-43a9-b0a6-50b4d7b3a8f5" />
   <Project Path="src/Geren/Geren.csproj" />
+  <Project Path="tests/Geren.Server.Tests/Geren.Server.Tests.csproj" />
   <Project Path="tests/Geren.Tests/Geren.Tests.csproj" />
 </Solution>
