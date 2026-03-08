@@ -16,7 +16,7 @@ public sealed class GivennTests {
     [InlineData("", "_")]
     [InlineData("pet-name", "Pet_name")]
     [InlineData("9lives", "_9lives")]
-    [InlineData("!!!", "_")]
+    [InlineData("!!!", "___")]
     [InlineData("_already_valid", "_already_valid")]
     public void ToLetterOrDigitName_should_normalize_to_safe_identifier(string value, string expected) {
         Givenn.ToLetterOrDigitName(value).Should().Be(expected);

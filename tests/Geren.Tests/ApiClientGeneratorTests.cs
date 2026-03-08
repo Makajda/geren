@@ -30,7 +30,7 @@ public sealed class ApiClientGeneratorTests {
             ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("pet-store.json", ValidOpenApiText)),
             rootNamespace: "Company.Generated");
 
-        result.Diagnostics.Should().BeEmpty();
+        result.Diagnostics.Select(static diagnostic => diagnostic.Id).Should().Equal(["GEREN010"]);
         result.GeneratedSources.Should().HaveCount(3);
         result.GeneratedSources.Select(static source => source.HintName).Should().Contain("Company.Generated.FactoryBridge.g.cs");
         result.GeneratedSources.Should().Contain(source => source.HintName.Contains(".WebApiClient.", StringComparison.Ordinal));

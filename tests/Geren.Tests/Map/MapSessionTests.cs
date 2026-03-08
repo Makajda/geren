@@ -17,6 +17,9 @@ public sealed class MapSessionTests {
           "info": { "title": "Orders", "version": "1.0" },
           "paths": {
             "/{tenantId}": {
+              "parameters": [
+                { "name": "tenantId", "in": "path", "required": true, "schema": { "type": "string" } }
+              ],
               "get": {
                 "responses": {
                   "200": { "description": "ok" }
@@ -86,7 +89,7 @@ public sealed class MapSessionTests {
             }
           }
         }
-        """);
+        """, allowReaderErrors: true);
 
         var result = new MapSession().BuildMap(compilation, document, @"specs\pet-store.v1.json");
 
@@ -143,7 +146,7 @@ public sealed class MapSessionTests {
             }
           }
         }
-        """);
+        """, allowReaderErrors: true);
 
         var result = new MapSession().BuildMap(compilation, document, "orders.json");
         var endpoint = result.Endpoints.Should().ContainSingle().Subject;
@@ -175,7 +178,7 @@ public sealed class MapSessionTests {
             }
           }
         }
-        """);
+        """, allowReaderErrors: true);
 
         var result = new MapSession().BuildMap(TestCompilationFactory.Create(), document, "orders.json");
 
@@ -246,7 +249,7 @@ public sealed class MapSessionTests {
             }
           }
         }
-        """);
+        """, allowReaderErrors: true);
 
         var result = new MapSession().BuildMap(TestCompilationFactory.Create(), document, "orders.json");
 

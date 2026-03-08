@@ -167,8 +167,8 @@ public sealed class SchemaTypeNameTests {
         return new SchemaTypeName(TestCompilationFactory.Create(sources), diagnostics);
     }
 
-    private static OpenApiSchema GetReferencedSchema(string text) {
+    private static IOpenApiSchema GetReferencedSchema(string text) {
         var document = OpenApiDocumentFactory.Load(text);
-        return (OpenApiSchema)document.Paths["/pets"].Operations![HttpMethod.Get].Responses!["200"].Content!["application/json"].Schema!;
+        return document.Paths["/pets"].Operations![HttpMethod.Get].Responses!["200"].Content!["application/json"].Schema!;
     }
 }
