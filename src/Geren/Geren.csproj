@@ -5,14 +5,8 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 
-		<IsRoslynAnalyzer>true</IsRoslynAnalyzer>
-		<IncludeBuildOutput>false</IncludeBuildOutput>
-		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-
-		<IsPackable>false</IsPackable>
-		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<PackageId>Geren.OpenApiClientGenerator</PackageId>
+		<IsPackable>true</IsPackable>
+        <PackageId>Geren.OpenApiClientGenerator</PackageId>
 		<Version>0.1.0</Version>
 		<Authors>Makajda</Authors>
 		<Description>Incremental generator for API clients from OpenAPI file</Description>
@@ -23,49 +17,38 @@
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageTags>openapi;source-generator;roslyn;httpclient;api-client</PackageTags>
-		<DevelopmentDependency>true</DevelopmentDependency>
-		<NoPackageAnalysis>true</NoPackageAnalysis>
-		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-	</PropertyGroup>
+
+        <!-- This package is marked in the consumer project as PrivateAssets="all" -->
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <!-- Disable standard package checks -->
+        <NoPackageAnalysis>true</NoPackageAnalysis>
+        
+        <!-- Do not connect to the user's project as a regular link -->
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <!-- The package will not add the generator DLL to the user's project compile-time -->
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <!-- Disable inclusion of dependencies in the package manifest -->
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <!-- Tell the studio that this is an analyzer/generator -->
+        <IsRoslynComponent>true</IsRoslynComponent>
+
+        <IsRoslynAnalyzer>true</IsRoslynAnalyzer>
+        <!-- Activate enhanced verification -->
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <!-- Copy all $(Pkg...) into bin -->
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.OpenApi" Version="3.4.0" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="SharpYaml" Version="2.1.1" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Text.Json" Version="10.0.3" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.3" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Buffers" Version="4.6.1" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Collections.Immutable" Version="9.0.0" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.IO.Pipelines" Version="10.0.3" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Memory" Version="4.6.3" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Numerics.Vectors" Version="4.6.1" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Reflection.Metadata" Version="9.0.0" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Text.Encodings.Web" Version="10.0.3" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" PrivateAssets="all" GeneratePathProperty="true" />
-	</ItemGroup>
+        <PackageReference Include="Microsoft.OpenApi" Version="3.4.0" PrivateAssets="all" GeneratePathProperty="true" />
+        <!-- Required for the generator -->
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+    </ItemGroup>
 
-	<ItemGroup Condition="'$(IsPackable)' == 'true'">
+	<ItemGroup>
 		<None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgMicrosoft_OpenApi)\lib\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSharpYaml)\lib\netstandard2.0\SharpYaml.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgMicrosoft_CodeAnalysis_Analyzers)\analyzers/dotnet/cs/Microsoft.CodeAnalysis.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0\Microsoft.CodeAnalysis.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Buffers)\lib\netstandard2.0\System.Buffers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Collections_Immutable)\lib\netstandard2.0\System.Collections.Immutable.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_IO_Pipelines)\lib\netstandard2.0\System.IO.Pipelines.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Memory)\lib\netstandard2.0\System.Memory.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Numerics_Vectors)\lib\netstandard2.0\System.Numerics.Vectors.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Reflection_Metadata)\lib\netstandard2.0\System.Reflection.Metadata.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Runtime_CompilerServices_Unsafe)\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Text_Encoding_CodePages)\lib\netstandard2.0\System.Text.Encoding.CodePages.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Text_Encodings_Web)\lib\netstandard2.0\System.Text.Encodings.Web.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgSystem_Threading_Tasks_Extensions)\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
 		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
 	</ItemGroup>
