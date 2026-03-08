@@ -44,7 +44,7 @@ internal static class ClrTypeFormatter {
 
     private static void AppendGeneric(StringBuilder sb, Type type) {
         if (type.IsNested) {
-            AppendType(sb, type.DeclaringType!);
+            AppendDeclaringType(sb, type);
             sb.Append('.');
         }
         else if (!string.IsNullOrEmpty(type.Namespace)) {
@@ -76,6 +76,27 @@ internal static class ClrTypeFormatter {
         }
 
         sb.Append('>');
+    }
+
+    private static void AppendDeclaringType(StringBuilder sb, Type type) {
+        var declaringType = type.DeclaringType!;
+        if (!declaringType.IsGenericType) {
+            AppendType(sb, declaringType);
+            return;
+        }
+
+        var declaringDefinition = declaringType.IsGenericTypeDefinition
+            ? declaringType
+            : declaringType.GetGenericTypeDefinition();
+        var declaringArgCount = declaringDefinition.GetGenericArguments().Length;
+        var availableArgs = type.GetGenericArguments();
+        if (availableArgs.Length < declaringArgCount) {
+            AppendType(sb, declaringType);
+            return;
+        }
+
+        var closedDeclaringType = declaringDefinition.MakeGenericType([.. availableArgs.Take(declaringArgCount)]);
+        AppendType(sb, closedDeclaringType);
     }
 
     private static void AppendNonGeneric(StringBuilder sb, Type type) {

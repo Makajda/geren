@@ -2,7 +2,7 @@ namespace Geren.Server.Tests.TestSupport;
 
 internal static class OpenApiSchemaTransformerContextFactory {
     internal static OpenApiSchemaTransformerContext Create(Type type) {
-        var context = (OpenApiSchemaTransformerContext)FormatterServices.GetUninitializedObject(typeof(OpenApiSchemaTransformerContext));
+        var context = (OpenApiSchemaTransformerContext)RuntimeHelpers.GetUninitializedObject(typeof(OpenApiSchemaTransformerContext));
         var jsonTypeInfo = new DefaultJsonTypeInfoResolver().GetTypeInfo(type, new JsonSerializerOptions());
 
         SetBackingField(context, "JsonTypeInfo", jsonTypeInfo);
@@ -13,7 +13,7 @@ internal static class OpenApiSchemaTransformerContextFactory {
     }
 
     internal static OpenApiSchemaTransformerContext CreateWithoutType() {
-        var context = (OpenApiSchemaTransformerContext)FormatterServices.GetUninitializedObject(typeof(OpenApiSchemaTransformerContext));
+        var context = (OpenApiSchemaTransformerContext)RuntimeHelpers.GetUninitializedObject(typeof(OpenApiSchemaTransformerContext));
         SetBackingField(context, "DocumentName", "tests");
         TrySetBackingField(context, "ApplicationServices", null);
         return context;

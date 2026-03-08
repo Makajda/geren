@@ -1,8 +1,10 @@
 global using FluentAssertions;
 global using Geren.Server.Tests.TestSupport;
+global using Microsoft.AspNetCore.OpenApi;
 global using Microsoft.OpenApi;
 global using System.Reflection;
-global using System.Runtime.Serialization;
+global using System.Runtime.CompilerServices;
 global using System.Text.Json;
+global using System.Text.Json.Nodes;
 global using System.Text.Json.Serialization.Metadata;
 global using Xunit;

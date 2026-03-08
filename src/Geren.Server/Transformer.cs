@@ -5,7 +5,11 @@ namespace Geren.Server;
 
 public sealed class Transformer : IOpenApiSchemaTransformer {
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken) {
-        var type = context.JsonTypeInfo?.Type;
+        ApplySchemaExtensions(schema, context.JsonTypeInfo?.Type);
+        return Task.CompletedTask;
+    }
+
+    internal static void ApplySchemaExtensions(OpenApiSchema schema, Type? type) {
         if (type is not null) {
             if (!ClrTypeFormatter.Aliases.ContainsKey(type)) {
                 string key;
@@ -23,8 +27,6 @@ public sealed class Transformer : IOpenApiSchemaTransformer {
                 schema.Extensions.Add(key, new JsonNodeExtension(value));
             }
         }
-
-        return Task.CompletedTask;
     }
 
     private static string GetMetadataName(Type type) {
