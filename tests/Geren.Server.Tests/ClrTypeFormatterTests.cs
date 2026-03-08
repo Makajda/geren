@@ -31,6 +31,13 @@ public sealed class ClrTypeFormatterTests {
         ClrTypeFormatter.Format(typeof((int Id, string Name))).Should().Be("(int, string)");
     }
 
+    [Fact]
+    public void Format_should_flatten_long_value_tuples() {
+        ClrTypeFormatter.Format(typeof((int A, int B, int C, int D, int E, int F, int G, int H, int I)))
+            .Should()
+            .Be("(int, int, int, int, int, int, int, int, int)");
+    }
+
     public sealed class Container<T> {
         public sealed class Nested<TInner>;
     }

@@ -127,18 +127,43 @@ internal static class ClrTypeFormatter {
 
     private static void AppendValueTuple(StringBuilder sb, Type type) {
         sb.Append('(');
+        AppendValueTupleElements(sb, type);
+        sb.Append(')');
+    }
 
+    private static void AppendValueTupleElements(StringBuilder sb, Type type) {
         var args = type.GetGenericArguments();
-
         for (int i = 0; i < args.Length; i++) {
-            if (i > 0)
+            // The 8th generic argument in CLR ValueTuple layout is the nested "rest" tuple.
+            if (i == 7 && args[i].IsGenericType && IsValueTuple(args[i].GetGenericTypeDefinition())) {
+                AppendValueTupleRest(sb, args[i]);
+                continue;
+            }
+
+            if (sb[sb.Length - 1] != '(')
                 sb.Append(", ");
 
             AppendType(sb, args[i]);
         }
-
-        sb.Append(')');
     }
+
+    private static void AppendValueTupleRest(StringBuilder sb, Type restType) {
+        var restArgs = restType.GetGenericArguments();
+        for (int i = 0; i < restArgs.Length; i++) {
+            if (IsNestedValueTupleRest(restArgs[i], i, restArgs.Length)) {
+                AppendValueTupleRest(sb, restArgs[i]);
+                continue;
+            }
+
+            if (sb[sb.Length - 1] != '(')
+                sb.Append(", ");
+
+            AppendType(sb, restArgs[i]);
+        }
+    }
+
+    private static bool IsNestedValueTupleRest(Type type, int index, int arity)
+        => index == arity - 1 && type.IsGenericType && IsValueTuple(type.GetGenericTypeDefinition());
 
     public static readonly Dictionary<Type, string> Aliases = new() {
         { typeof(void), "void" },
