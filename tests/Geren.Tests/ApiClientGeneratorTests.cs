@@ -2,14 +2,11 @@ namespace Geren.Tests;
 
 public sealed class ApiClientGeneratorTests {
     [Fact]
-    public void Initialize_should_report_missing_http_packages_and_not_generate_sources() {
+    public void Initialize_should_not_generate_sources() {
         var result = RunGenerator(
             compilation: TestCompilationFactory.Create(),
-            additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("pets.json", ValidOpenApiText)));
+            additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("empty.json", EmptyOpenApiText)));
 
-        result.Diagnostics.Select(static diagnostic => diagnostic.Id)
-            .Should()
-            .BeEquivalentTo(["GEREN009", "GEREN010"]);
         result.GeneratedSources.Should().BeEmpty();
     }
 
@@ -22,8 +19,7 @@ public sealed class ApiClientGeneratorTests {
                 public sealed class Pet;
                 public sealed class CreatePetRequest;
                 """
-            ],
-            includeHttpClientBuilder: true);
+            ]);
 
         var result = RunGenerator(
             compilation,
@@ -41,14 +37,13 @@ public sealed class ApiClientGeneratorTests {
     }
 
     [Fact]
-    public void Initialize_should_generate_only_factory_bridge_when_json_probe_fails() {
+    public void Initialize_should_not_generate_when_json_probe_fails() {
         var result = RunGenerator(
-            compilation: TestCompilationFactory.Create(includeHttpClientBuilder: true),
+            compilation: TestCompilationFactory.Create(),
             additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("broken.json", "{ not-json }")));
 
         result.Diagnostics.Select(static diagnostic => diagnostic.Id).Should().Contain("GEREN001");
-        result.GeneratedSources.Should().ContainSingle();
-        result.GeneratedSources.Single().HintName.Should().Be("Geren.FactoryBridge.g.cs");
+        result.GeneratedSources.Should().BeEmpty();
     }
 
     [Fact]
@@ -61,7 +56,6 @@ public sealed class ApiClientGeneratorTests {
                 public sealed class CreatePetRequest;
                 """
             ],
-            includeHttpClientBuilder: true,
             includeResilience: true);
 
         var result = RunGenerator(
@@ -102,6 +96,20 @@ public sealed class ApiClientGeneratorTests {
         ImmutableArray<GeneratedSourceModel> GeneratedSources);
 
     private sealed record GeneratedSourceModel(string HintName, string Text);
+
+
+    private const string EmptyOpenApiText = """
+    {
+      "openapi": "3.0.1",
+      "info": { "title": "Empty", "version": "1.0" },
+      "components": {
+        "schemas": {
+          "Pet": { "type": "object" },
+          "CreatePetRequest": { "type": "object" }
+        }
+      }
+    }
+    """;
 
     private const string ValidOpenApiText = """
     {

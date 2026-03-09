@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace Geren.Tests.TestSupport;
@@ -8,7 +9,6 @@ internal static class TestCompilationFactory {
 
     internal static CSharpCompilation Create(
         IEnumerable<string>? userSources = null,
-        bool includeHttpClientBuilder = false,
         bool includeResilience = false) {
         var sources = new List<string> {
             """
@@ -16,16 +16,6 @@ internal static class TestCompilationFactory {
             public sealed class Placeholder;
             """
         };
-
-        if (includeHttpClientBuilder)
-            sources.Add(
-                """
-                namespace Microsoft.Extensions.DependencyInjection;
-
-                public interface IServiceCollection { }
-                public interface IHttpClientBuilder { }
-                """
-            );
 
         if (includeResilience)
             sources.Add(
@@ -64,6 +54,7 @@ internal static class TestCompilationFactory {
 
         AddAssembly(typeof(CSharpCompilation).Assembly);
         AddAssembly(typeof(OpenApiDocument).Assembly);
+        AddAssembly(typeof(IHttpClientBuilder).Assembly);
         AddAssembly(typeof(Enumerable).Assembly);
 
         return [.. references.Values];

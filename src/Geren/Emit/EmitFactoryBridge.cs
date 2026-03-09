@@ -5,8 +5,6 @@ internal sealed class EmitFactoryBridge {
         return $$"""
 #nullable enable
 using Microsoft.Extensions.DependencyInjection;{{(hasResilience ? UsingResilience : string.Empty)}}
-using System;
-using System.Collections;
 using System.Globalization;
 
 namespace {{rootNamespace}};
@@ -86,7 +84,7 @@ using Polly;
         if (value is null)
             return;
 
-        if (value is IEnumerable values && value is not string)
+        if (value is System.Collections.IEnumerable values && value is not string)
         {
             foreach (var item in values)
                 A(query, name, item);

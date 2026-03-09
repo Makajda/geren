@@ -10,10 +10,6 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
             options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
                 && !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : "Geren");
 
-        var allowGeneration = packed.SelectMany(static (p, _) => p.HasHttp ? [true] : ImmutableArray<bool>.Empty);
-        context.RegisterSourceOutput(allowGeneration.Combine(packed).Combine(rootNamespace), static (spc, t) =>
-            spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Left.Right.HasResilience, t.Right)), Encoding.UTF8)));
-
         // Probe
         var probed = context.AdditionalTextsProvider.Combine(packed)
             .Where(n => n.Right.HasHttp)
@@ -34,20 +30,25 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
         context.RegisterSourceOutput(maped.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));
 
-        // Emit
-        context.RegisterSourceOutput(maped.Combine(packed).Combine(rootNamespace), (spc, x) => {
+        // FactoryBridge
+        context.RegisterSourceOutput(maped.Where(n => n.Endpoints.Any()).Combine(packed).Combine(rootNamespace), static (spc, t) =>
+            spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Left.Right.HasResilience, t.Right)), Encoding.UTF8)));
+
+        // Extensions and Clients
+        context.RegisterSourceOutput(maped.Where(n => n.Endpoints.Any()).Combine(packed).Combine(rootNamespace), (spc, x) => {
             var ((map, packe), rootNamespace) = x;
+
             string spaceName = $"{rootNamespace}.{map.NamespaceFromFile}";
+            var extensions = EmitExtensions.Run(packe.HasResilience, rootNamespace, map.NamespaceFromFile, spaceName,
+                map.Endpoints.Select(e => $"{(string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".")}{e.ClassName}").Distinct());
+            spc.AddSource($"{spaceName}.Extensions.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(extensions), Encoding.UTF8));
+
             var files = map.Endpoints.GroupBy(e => new { e.SpaceName, e.ClassName });
             foreach (var file in files) {
                 string fileSpaceName = $"{spaceName}{(string.IsNullOrEmpty(file.Key.SpaceName) ? string.Empty : "." + file.Key.SpaceName)}";
                 var code = EmitClient.Run(file, rootNamespace, fileSpaceName, file.Key.ClassName);
                 spc.AddSource($"{fileSpaceName}.{file.Key.ClassName}.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(code), Encoding.UTF8));
             }
-
-            var extensions = EmitExtensions.Run(packe.HasResilience, rootNamespace, map.NamespaceFromFile, spaceName,
-                map.Endpoints.Select(e => $"{(string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".")}{e.ClassName}").Distinct());
-            spc.AddSource($"{spaceName}.Extensions.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(extensions), Encoding.UTF8));
         });
     }
 

@@ -6,7 +6,6 @@ namespace Geren.Tests.TestSupport;
 internal static class GeneratedClientRuntimeHost {
     internal static async Task<Uri?> InvokeAsync(EndpointSpec endpoint, params object?[] arguments) {
         var usingsCode = """
-global using Microsoft.Extensions.DependencyInjection;
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;
