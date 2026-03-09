@@ -1,16 +1,9 @@
 namespace Geren.Emit;
 
 internal sealed class EmitClient {
-    internal static string Run(IGrouping<object, EndpointSpec> endpoints, string spaceName, string className) => $$"""
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Net.Http;
+    internal static string Run(IGrouping<object, EndpointSpec> endpoints, string rootNamespace, string spaceName, string className) => $$"""
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using static {{rootNamespace}}.FactoryBridge;
 
 namespace {{spaceName}};
 
@@ -18,8 +11,6 @@ public sealed partial class {{className}}
 {
     private readonly HttpClient _http;
     public {{className}}(HttpClient http) => _http = http;
-
-{{EmitUrl.EmitHelpers()}}
 
 {{string.Join(Givenn.NewLine + Givenn.NewLine, endpoints.Select(EmitMethod))}}
 }
@@ -34,10 +25,8 @@ public sealed partial class {{className}}
         if (endpoint.BodyType is not null && (endpoint.Method == Givenn.Post || endpoint.Method == Givenn.Put || endpoint.Method == Givenn.Delete))
             args += $"{endpoint.BodyType} body, ";
 
-        args += "CancellationToken cancellationToken = default";
-        var signature = $"{methodName}({args})";
-        var pathExpr = EmitUrl.BuildPathExpression(endpoint);
-
+        var signature = $"{methodName}({args}CancellationToken cancellationToken = default)";
+        var pathExpr = BuildPathExpression(endpoint);
         if (endpoint.Method == Givenn.Get)
             return EmitGet(endpoint.ReturnType, signature, pathExpr);
 
@@ -149,6 +138,25 @@ public sealed partial class {{className}}
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<{{returnType}}>(cancellationToken);
     }
+""";
+    }
+    private static string BuildPathExpression(EndpointSpec endpoint) {
+        string interpolatedPath = endpoint.Path;
+        foreach (var param in endpoint.Params)
+            interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{V(" + param.Identifier + ")}");
+
+        string pathExpr = $"$\"{interpolatedPath}\"";
+        if (endpoint.Queries.Length == 0)
+            return pathExpr;
+
+        string queryBuilder = string.Join(Givenn.NewLine, endpoint.Queries.Select(static p =>
+            $"            A(query, \"{p.Name}\", {p.Identifier});"));
+
+        return $$"""
+BuildRequestUri({{pathExpr}}, query =>
+        {
+{{queryBuilder}}
+        })
 """;
     }
 }

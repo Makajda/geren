@@ -41,7 +41,7 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
             var files = map.Endpoints.GroupBy(e => new { e.SpaceName, e.ClassName });
             foreach (var file in files) {
                 string fileSpaceName = $"{spaceName}{(string.IsNullOrEmpty(file.Key.SpaceName) ? string.Empty : "." + file.Key.SpaceName)}";
-                var code = EmitClient.Run(file, fileSpaceName, file.Key.ClassName);
+                var code = EmitClient.Run(file, rootNamespace, fileSpaceName, file.Key.ClassName);
                 spc.AddSource($"{fileSpaceName}.{file.Key.ClassName}.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(code), Encoding.UTF8));
             }
 

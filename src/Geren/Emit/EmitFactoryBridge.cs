@@ -6,6 +6,8 @@ internal sealed class EmitFactoryBridge {
 #nullable enable
 using Microsoft.Extensions.DependencyInjection;{{(hasResilience ? UsingResilience : string.Empty)}}
 using System;
+using System.Collections;
+using System.Globalization;
 
 namespace {{rootNamespace}};
 
@@ -36,6 +38,8 @@ internal static class FactoryBridge
 
         return builder;
     }
+
+{{EmitHelpers()}}
 }
 """;
     }
@@ -64,4 +68,42 @@ using Polly;
                 builder.AddStandardResilienceHandler();
         }
 """ + Givenn.NewLine;
+
+    private static string EmitHelpers() => $$"""
+    internal static string BuildRequestUri(string path, Action<List<string>>? configureQuery = null)
+    {
+        if (configureQuery is null)
+            return path;
+
+        var query = new List<string>();
+        configureQuery(query);
+        return query.Count == 0 ? path : path + "?" + string.Join("&", query);
+    }
+
+    // AddQueryParameter
+    internal static void A(List<string> query, string name, object? value)
+    {
+        if (value is null)
+            return;
+
+        if (value is IEnumerable values && value is not string)
+        {
+            foreach (var item in values)
+                A(query, name, item);
+
+            return;
+        }
+
+        query.Add(name + "=" + V(value));
+    }
+
+    // FormatPathValue
+    internal static string V(object? value)=> Uri.EscapeDataString(
+        value switch
+        {
+            bool boolean => boolean ? "true" : "false",
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty
+        });
+""";
 }

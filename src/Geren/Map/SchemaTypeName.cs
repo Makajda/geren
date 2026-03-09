@@ -81,7 +81,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
                 _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, "by compile", genericType));
         }
         else
-            result = genericType;// type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            result = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
         _resolvedSchemaTypeCache[genericType] = result;
         return result;

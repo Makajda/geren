@@ -7,6 +7,7 @@ public sealed class EmitClientTests {
             new EndpointSpec("Get", "/status", "", "StatusClient", "GetStatus", "", null, null, [], []),
             new EndpointSpec("Get", "/status/text", "", "StatusClient", "GetStatusText", "string", null, null, [], []),
             new EndpointSpec("Get", "/status/json", "", "StatusClient", "GetStatusJson", "global::Contracts.StatusDto", null, null, [], [])),
+            "Generated",
             "Generated.Status",
             "StatusClient");
 
@@ -25,6 +26,7 @@ public sealed class EmitClientTests {
             new EndpointSpec("Post", "/pets", "", "PetsClient", "CreatePet", "global::Contracts.Pet", "global::Contracts.CreatePetRequest", "application/json", [], []),
             new EndpointSpec("Put", "/pets/{id}", "", "PetsClient", "ReplacePet", "", "string", "text/plain",
                 [new ParamSpec("id", "id", "int")], [])),
+            "Generated",
             "Generated.Pets",
             "PetsClient");
 
@@ -49,17 +51,13 @@ public sealed class EmitClientTests {
                 null,
                 [new ParamSpec("petId", "petId", "int")],
                 [new ParamSpec("includeArchived", "includeArchived", "bool"), new ParamSpec("page", "page", "long")])),
+            "Generated",
             "Generated.Pets",
             "PetsClient");
 
-        code.Should().Contain("private static string BuildRequestUri(string path, Action<List<string>>? configureQuery = null)");
-        code.Should().Contain("private static string FormatPathParameter(object? value)");
-        code.Should().Contain("private static void AddQueryParameter(List<string> query, string name, object? value)");
-        code.Should().Contain("AddQueryParameter(query, \"includeArchived\", includeArchived);");
-        code.Should().Contain("AddQueryParameter(query, \"page\", page);");
-        code.Should().Contain("BuildRequestUri($\"/pets/{FormatPathParameter(petId)}\", query =>");
-        code.Should().Contain("IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture)");
-        code.Should().Contain("return Uri.EscapeDataString(text);");
+        code.Should().Contain("using static Generated.FactoryBridge;");
+        code.Should().Contain("V(petId)");
+        code.Should().Contain("A(query, \"includeArchived\", includeArchived);");
     }
 
     [Fact]

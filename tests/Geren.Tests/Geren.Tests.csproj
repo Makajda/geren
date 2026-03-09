@@ -16,6 +16,7 @@
         <PackageReference Include="xunit.analyzers" Version="1.22.0" PrivateAssets="all" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" PrivateAssets="all" />
 
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
         <PackageReference Include="Microsoft.OpenApi" Version="3.4.0" PrivateAssets="all" />
     </ItemGroup>
 

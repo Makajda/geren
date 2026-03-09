@@ -5,15 +5,29 @@ namespace Geren.Tests.TestSupport;
 
 internal static class GeneratedClientRuntimeHost {
     internal static async Task<Uri?> InvokeAsync(EndpointSpec endpoint, params object?[] arguments) {
+        var usingsCode = """
+global using Microsoft.Extensions.DependencyInjection;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Threading;
+global using System.Threading.Tasks;
+""";
+        var factoryBridgeCode = EmitFactoryBridge.Run(false, "Company.Generated");
         var clientCode = EmitClient.Run(
             new[] { endpoint }.GroupBy(static item => (object)new { item.SpaceName, item.ClassName }).Single(),
-            "Generated.Runtime",
+            "Company.Generated",
+            "Company.Generated.Runtime",
             endpoint.ClassName);
 
         var syntaxTree = CSharpSyntaxTree.ParseText(clientCode, new CSharpParseOptions(LanguageVersion.Preview), path: "GeneratedClient.g.cs");
+        var syntaxTreeUsings = CSharpSyntaxTree.ParseText(usingsCode, new CSharpParseOptions(LanguageVersion.Preview), path: "Usings.g.cs");
+        var syntaxTreeFactoryBridge = CSharpSyntaxTree.ParseText(factoryBridgeCode, new CSharpParseOptions(LanguageVersion.Preview), path: "FactoryBridge.g.cs");
+
         var compilation = CSharpCompilation.Create(
             assemblyName: $"GeneratedClient_{Guid.NewGuid():N}",
-            syntaxTrees: [syntaxTree],
+            syntaxTrees: [syntaxTreeUsings, syntaxTreeFactoryBridge, syntaxTree],
             references: TestCompilationFactory.MetadataReferences,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
@@ -25,7 +39,7 @@ internal static class GeneratedClientRuntimeHost {
         var loadContext = new AssemblyLoadContext($"GeneratedClient_{Guid.NewGuid():N}", isCollectible: true);
         try {
             var assembly = loadContext.LoadFromStream(peStream);
-            var clientType = assembly.GetType($"Generated.Runtime.{endpoint.ClassName}")!;
+            var clientType = assembly.GetType($"Company.Generated.Runtime.{endpoint.ClassName}")!;
             var method = clientType.GetMethod(endpoint.MethodName, BindingFlags.Instance | BindingFlags.Public)!;
 
             var handler = new RuntimeRecordingHandler();
