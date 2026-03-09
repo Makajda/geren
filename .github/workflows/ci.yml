@@ -26,12 +26,15 @@ jobs:
       - name: Build
         run: dotnet build .\geren.slnx -c Release --no-restore -nologo
 
-      - name: Test
+      - name: Test Geren
         run: dotnet test .\tests\Geren.Tests\Geren.Tests.csproj -c Release --no-build -nologo
 
-      - name: Pack and Validate Analyzer Dependencies
+      - name: Test Geren.Server
+        run: dotnet test .\tests\Geren.Server.Tests\Geren.Server.Tests.csproj -c Release --no-build -nologo
+
+      - name: Pack and Validate NuGet Packages
         shell: pwsh
-        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -EnablePackageAnalysis
+        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -EnablePackageAnalysis -NoBuild
 
       - name: Upload NuGet Artifact
         uses: actions/upload-artifact@v4

@@ -20,14 +20,14 @@ OpenApi extensions with x-compile and x-metadata schema transformers
     <ProjectReference Include="..\SharedDto\SharedDto.csproj" />
 	<PackageReference Include="Geren.OpenApi.Server" Version="0.2.0" />
 
-	<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
-
 	<PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3">
 		<PrivateAssets>all</PrivateAssets>
 		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	</PackageReference>
 </ItemGroup>
 ```
+
+`Geren.OpenApi.Server` brings `Microsoft.AspNetCore.OpenApi` transitively.
 
 In consumer client project prefer the packaged analyzer and only surface your OpenAPI files:
 ```xml
@@ -116,9 +116,16 @@ If the property is not set, the default root namespace is `Gereb.Generated`.
 - `GEREN014` Ambiguous schema reference (`Error`)
 - `GEREN015` Path placeholder and parameter name mismatch (`Error`)
 
+## NuGet Packages
+
+The repository publishes two NuGet packages:
+
+- `Geren.OpenApiClientGenerator`
+- `Geren.OpenApi.Server`
+
 ## NuGet Pipeline
 
-Build/pack with analyzer dependency validation:
+Build/pack both packages with package content validation:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-NuGetPipeline.ps1
@@ -129,6 +136,11 @@ Enable package analysis (CI/release mode):
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-NuGetPipeline.ps1 -EnablePackageAnalysis
 ```
+
+The pipeline validates these package layouts:
+
+- `Geren.OpenApiClientGenerator`: `analyzers/dotnet/cs/Geren.dll`, `analyzers/dotnet/cs/Microsoft.OpenApi.dll`, `README.md`, `LICENSE.txt`
+- `Geren.OpenApi.Server`: `lib/net10.0/Geren.Server.dll`, `README.md`, `LICENSE.txt`
 
 NuGet publish workflow:
 - CI release file: `.github/workflows/release.yml`
