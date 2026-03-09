@@ -6,12 +6,12 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
 
-        <IsPackable>false</IsPackable>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>Geren.OpenApi.Server</PackageId>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <Authors>Makajda</Authors>
-        <Description>OpenApi extensions with x-dotnet-type and schema transformers</Description>
+        <Description>OpenApi extensions with x-compile and x-metadata schema transformers</Description>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageProjectUrl>https://github.com/Makajda/geren</PackageProjectUrl>
@@ -33,6 +33,11 @@
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>Geren.Server.Tests</_Parameter1>
         </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+        <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
     </ItemGroup>
 
 </Project>

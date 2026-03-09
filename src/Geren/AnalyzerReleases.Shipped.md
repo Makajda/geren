@@ -15,5 +15,7 @@ GEREN005 | Geren    | Error    | Unsupported request body
 GEREN006 | Geren    | Error    | DuplicateMethodName
 GEREN007 | Geren    | Error    | Unresolved schema reference
 GEREN008 | Geren    | Error    | Missing parameter location
+GEREN009 | Geren    | Error    | Missing package Microsoft.Extensions.Http
+GEREN010 | Geren    | Warning  | Missing package Microsoft.Extensions.Http.Resilience
 GEREN014 | Geren    | Error    | Ambiguous schema reference
 GEREN015 | Geren    | Error    | Path placeholder and parameter name mismatch
