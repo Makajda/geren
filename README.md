@@ -1,4 +1,4 @@
-# Geren OpenAPI Incremental Generator
+# Geren OpenAPI Incremental Generator for Blazor
 
 `Geren` generates typed `HttpClient` clients from OpenAPI `.json` files (`AdditionalFiles`) at compile time.
 
@@ -29,7 +29,17 @@ OpenApi extensions with x-compile and x-metadata schema transformers
 
 `Geren.OpenApi.Server` brings `Microsoft.AspNetCore.OpenApi` transitively.
 
+In Program.cs
+
+```
+builder.Services.AddOpenApi(options => options.AddSchemaTransformer<Geren.Server.Transformer>());
+```
+```
+app.MapOpenApi();
+```
+
 In consumer client project prefer the packaged analyzer and only surface your OpenAPI files:
+
 ```xml
 <ItemGroup>
     <AdditionalFiles Include="..\my-open-api.json" />
