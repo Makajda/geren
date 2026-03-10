@@ -1,10 +1,12 @@
 namespace Geren.Emit;
 
 internal sealed class EmitFactoryBridge {
-    internal static string Run(bool hasResilience, string rootNamespace) {
+    internal static string Run(string rootNamespace) {
         return $$"""
 #nullable enable
-using Microsoft.Extensions.DependencyInjection;{{(hasResilience ? UsingResilience : string.Empty)}}
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using System.Globalization;
 
 namespace {{rootNamespace}};
@@ -13,7 +15,11 @@ internal static class FactoryBridge
 {
     internal static void AddClient<TClient>(
         IServiceCollection services,
-        Action<HttpClient>? configureClient,{{(hasResilience ? ParamsWithResilience : ParamsWithoutResilience)}}
+        Action<HttpClient>? configureClient,
+        Action<IHttpClientBuilder>? configureBuilder,
+        bool? useResilience,
+        string? resiliencePipelineName,
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience)
         where TClient : class
     {
         var builder = services.AddHttpClient<TClient>();
@@ -21,7 +27,14 @@ internal static class FactoryBridge
         if (configureClient is not null)
             builder.ConfigureHttpClient(configureClient);
 
-{{(hasResilience ? ChunkResilience : string.Empty)}}
+        if (useResilience ?? false)
+        {
+            if (resiliencePipelineName is not null && configureResilience is not null)
+                builder.AddResilienceHandler(resiliencePipelineName, configureResilience);
+            else
+                builder.AddStandardResilienceHandler();
+        }
+        
         configureBuilder?.Invoke(builder);
     }
 
@@ -41,31 +54,6 @@ internal static class FactoryBridge
 }
 """;
     }
-
-    private static string UsingResilience => Givenn.NewLine + $$"""
-using Microsoft.Extensions.Http.Resilience;
-using Polly;
-""";
-
-    private static string ParamsWithResilience => Givenn.NewLine + $$"""
-        Action<IHttpClientBuilder>? configureBuilder,
-        bool? useResilience,
-        string? resiliencePipelineName,
-        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience)
-""";
-
-    private static string ParamsWithoutResilience => Givenn.NewLine + $$"""
-        Action<IHttpClientBuilder>? configureBuilder)
-""";
-    private static string ChunkResilience => $$"""
-        if (useResilience ?? false)
-        {
-            if (resiliencePipelineName is not null && configureResilience is not null)
-                builder.AddResilienceHandler(resiliencePipelineName, configureResilience);
-            else
-                builder.AddStandardResilienceHandler();
-        }
-""" + Givenn.NewLine;
 
     private static string EmitHelpers() => $$"""
     internal static string BuildRequestUri(string path, Action<List<string>>? configureQuery = null)

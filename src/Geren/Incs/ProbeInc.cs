@@ -27,11 +27,11 @@ internal sealed class ProbeInc {
         if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
             return Skip();
 
-        var text = file.GetText(cancellationToken)?.ToString();
-        if (string.IsNullOrWhiteSpace(text))
-            return Warn(Diagnostic.Create(Dide.JsonReadError, Location.None, $"File is empty: {filePath}"));
-
         try {
+            var text = file.GetText(cancellationToken)?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return Skip();
+
             var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(text), isFinalBlock: true, state: default);
 
             if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)

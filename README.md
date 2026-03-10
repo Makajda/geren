@@ -4,33 +4,36 @@
 
 ## Quick Start
 
-For a simple example and a quick start, place the server, client and SharedDto project folders in the same folder.
-
 In consumer server project:
-OpenApi extensions with x-compile and x-metadata schema transformers
-```xml
-<PropertyGroup>
-	<OpenApiDocumentsDirectory>..</OpenApiDocumentsDirectory>
-	<OpenApiGenerateDocumentsOptions>--file-name my-open-api</OpenApiGenerateDocumentsOptions>
-</PropertyGroup>
-```
 
+Extensions with x-compile and x-metadata schema transformers
 ```xml
 <ItemGroup>
-    <ProjectReference Include="..\SharedDto\SharedDto.csproj" />
-	<PackageReference Include="Geren.OpenApi.Server" Version="0.2.1" />
+    <PackageReference Include="Geren.OpenApi.Server" Version="0.2.3" />
 
-	<PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3">
-		<PrivateAssets>all</PrivateAssets>
-		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
 </ItemGroup>
 ```
 
-`Geren.OpenApi.Server` brings `Microsoft.AspNetCore.OpenApi` transitively.
+Specify the file name and location
+```xml
+<PropertyGroup>
+    <OpenApiDocumentsDirectory>..</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--file-name my-open-api</OpenApiGenerateDocumentsOptions>
+</PropertyGroup>
+```
+
+Eliminates possible error CS9137 appears Microsoft.AspNetCore.OpenApi.SourceGenerators
+```xml
+<PropertyGroup>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
+</PropertyGroup>
+```
 
 In Program.cs
-
 ```
 builder.Services.AddOpenApi(options => options.AddSchemaTransformer<Geren.Server.Transformer>());
 ```
@@ -39,28 +42,28 @@ app.MapOpenApi();
 ```
 
 In consumer client project prefer the packaged analyzer and only surface your OpenAPI files:
-
 ```xml
 <ItemGroup>
     <AdditionalFiles Include="..\my-open-api.json" />
-    <ProjectReference Include="..\SharedDto\SharedDto.csproj" />
-    <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.2.1" PrivateAssets="all" />
+
+    <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.2.3">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
 </ItemGroup>
 ```
 
-Optionally override the generated namespace:
+Optionally override in server project the generated namespace (default is `Geren`):
 
 ```xml
 <PropertyGroup>
-  <Geren_RootNamespace>MyCompany.Generated</Geren_RootNamespace>
+    <Geren_RootNamespace>MyCompany.Generated</Geren_RootNamespace>
 </PropertyGroup>
 
 <ItemGroup>
-  <CompilerVisibleProperty Include="Geren_RootNamespace" />
+    <CompilerVisibleProperty Include="Geren_RootNamespace" />
 </ItemGroup>
 ```
-
-If the property is not set, the default root namespace is `Geren`.
 
 ## Generation Contract
 
@@ -121,8 +124,6 @@ If the property is not set, the default root namespace is `Geren`.
 - `GEREN006` Duplicate generated method name (`Error`)
 - `GEREN007` Unresolved schema reference (`Error`)
 - `GEREN008` Missing parameter location
-- `GEREN009` Missing package Microsoft.Extensions.Http (`Error`)
-- `GEREN010` Missing package Microsoft.Extensions.Http.Resilience (`Warning`)
 - `GEREN014` Ambiguous schema reference (`Error`)
 - `GEREN015` Path placeholder and parameter name mismatch (`Error`)
 
@@ -149,5 +150,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-NuGetPipeline.ps1 -Ena
 
 The pipeline validates these package layouts:
 
-- `Geren.OpenApiClientGenerator`: `analyzers/dotnet/cs/Geren.dll`, `analyzers/dotnet/cs/Microsoft.OpenApi.dll`, `README.md`, `LICENSE.txt`
 - `Geren.OpenApi.Server`: `lib/net10.0/Geren.Server.dll`, `README.md`, `LICENSE.txt`
+- `Geren.OpenApiClientGenerator`: 
+    `analyzers/dotnet/cs/Geren.dll`,
+    `analyzers/dotnet/cs/Microsoft.OpenApi.dll`,
+    `analyzers/dotnet/cs/Microsoft.Extensions.Http.dll`,
+    `analyzers/dotnet/cs/Microsoft.Extensions.Http.Resilience.dll`,
+    `README.md`,
+    `LICENSE.txt`

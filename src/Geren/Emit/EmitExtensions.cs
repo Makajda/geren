@@ -1,10 +1,12 @@
 namespace Geren.Emit;
 
 internal static class EmitExtensions {
-    internal static string Run(bool hasResilience, string rootNamespace, string namespaceFromFile, string spaceName, IEnumerable<string> names) {
+    internal static string Run(string rootNamespace, string namespaceFromFile, string spaceName, IEnumerable<string> names) {
         return $$"""
 #nullable enable
-using Microsoft.Extensions.DependencyInjection;{{(hasResilience ? UsingResilience : string.Empty)}}
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using System;
 
 namespace {{spaceName}};
@@ -13,9 +15,12 @@ public static class Geren{{namespaceFromFile}}Extensions
 {
     public static IServiceCollection AddGerenClients(
         this IServiceCollection services,
-        Action<IHttpClientBuilder>? configureBuilder = null,{{(hasResilience ? ParamsWithResilience : ParamsWithoutResilience)}}
-    {
-{{AllReg(hasResilience ? ", useResilience, resiliencePipelineName, configureResilience" : string.Empty)}}
+        Action<IHttpClientBuilder>? configureBuilder = null,
+        Action<HttpClient>? configureClient = null,
+        bool? useResilience = null,
+        string? resiliencePipelineName = null,
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null) {
+{{AllReg()}}
         return services;
     }
 
@@ -23,8 +28,8 @@ public static class Geren{{namespaceFromFile}}Extensions
 }
 """;
 
-        string AllReg(string chunkResilience) => string.Join(Givenn.NewLine, names.Select(name => $$"""
-        global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient, configureBuilder{{chunkResilience}});
+        string AllReg() => string.Join(Givenn.NewLine, names.Select(name => $$"""
+        global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient, configureBuilder, useResilience, resiliencePipelineName, configureResilience);
 """));
 
         // Registration for each class
@@ -33,20 +38,4 @@ public static class Geren{{namespaceFromFile}}Extensions
         Action<HttpClient>? configureClient = null) => global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient);
 """));
     }
-
-    private static string UsingResilience => Givenn.NewLine + $$"""
-using Microsoft.Extensions.Http.Resilience;
-using Polly;
-""";
-
-    private static string ParamsWithResilience => Givenn.NewLine + $$"""
-        Action<HttpClient>? configureClient = null,
-        bool? useResilience = null,
-        string? resiliencePipelineName = null,
-        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null)
-""";
-
-    private static string ParamsWithoutResilience => Givenn.NewLine + $$"""
-        Action<HttpClient>? configureClient = null)
-""";
 }

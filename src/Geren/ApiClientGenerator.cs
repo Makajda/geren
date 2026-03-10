@@ -3,17 +3,13 @@ namespace Geren;
 [Generator]
 public sealed class ApiClientGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        var packed = context.CompilationProvider.Select(static (compilation, _) => PackeInc.Validate(compilation));
-        context.RegisterSourceOutput(packed.SelectMany((p, _) => p.Diagnostics), static (spc, d) => spc.ReportDiagnostic(d));
-
         var rootNamespace = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
             options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
                 && !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : "Geren");
 
         // Probe
-        var probed = context.AdditionalTextsProvider.Combine(packed)
-            .Where(n => n.Right.HasHttp)
-            .Select(static (text, cancellationToken) => ProbeInc.Probe(text.Left, cancellationToken));
+        var probed = context.AdditionalTextsProvider
+            .Select(static (text, cancellationToken) => ProbeInc.Probe(text, cancellationToken));
         context.RegisterSourceOutput(probed.Where(p => p.Diagnostic is not null),
             static (spc, p) => spc.ReportDiagnostic(p.Diagnostic!));
 
@@ -31,15 +27,15 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
             static (spc, r) => spc.ReportDiagnostic(r));
 
         // FactoryBridge
-        context.RegisterSourceOutput(maped.Where(n => n.Endpoints.Any()).Combine(packed).Combine(rootNamespace), static (spc, t) =>
-            spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Left.Right.HasResilience, t.Right)), Encoding.UTF8)));
+        context.RegisterSourceOutput(maped.Where(n => n.Endpoints.Any()).Combine(rootNamespace), static (spc, t) =>
+            spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8)));
 
         // Extensions and Clients
-        context.RegisterSourceOutput(maped.Where(n => n.Endpoints.Any()).Combine(packed).Combine(rootNamespace), (spc, x) => {
-            var ((map, packe), rootNamespace) = x;
+        context.RegisterSourceOutput(maped.Where(n => n.Endpoints.Any()).Combine(rootNamespace), (spc, x) => {
+            var (map, rootNamespace) = x;
 
             string spaceName = $"{rootNamespace}.{map.NamespaceFromFile}";
-            var extensions = EmitExtensions.Run(packe.HasResilience, rootNamespace, map.NamespaceFromFile, spaceName,
+            var extensions = EmitExtensions.Run(rootNamespace, map.NamespaceFromFile, spaceName,
                 map.Endpoints.Select(e => $"{(string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".")}{e.ClassName}").Distinct());
             spc.AddSource($"{spaceName}.Extensions.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(extensions), Encoding.UTF8));
 

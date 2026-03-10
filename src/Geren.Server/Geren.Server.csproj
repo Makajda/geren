@@ -9,7 +9,7 @@
         <IsPackable>true</IsPackable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>Geren.OpenApi.Server</PackageId>
-        <Version>0.2.1</Version>
+        <Version>0.2.3</Version>
         <Authors>Makajda</Authors>
         <Description>OpenApi extensions with x-compile and x-metadata schema transformers</Description>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -24,7 +24,6 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
     </ItemGroup>
 
     <ItemGroup>

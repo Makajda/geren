@@ -6,6 +6,9 @@ namespace Geren.Tests.TestSupport;
 internal static class GeneratedClientRuntimeHost {
     internal static async Task<Uri?> InvokeAsync(EndpointSpec endpoint, params object?[] arguments) {
         var usingsCode = """
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Http.Resilience;
+global using Polly;
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;
@@ -13,7 +16,7 @@ global using System.Net.Http;
 global using System.Threading;
 global using System.Threading.Tasks;
 """;
-        var factoryBridgeCode = EmitFactoryBridge.Run(false, "Company.Generated");
+        var factoryBridgeCode = EmitFactoryBridge.Run("Company.Generated");
         var clientCode = EmitClient.Run(
             new[] { endpoint }.GroupBy(static item => (object)new { item.SpaceName, item.ClassName }).Single(),
             "Company.Generated",

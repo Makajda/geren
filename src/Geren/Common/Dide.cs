@@ -63,22 +63,6 @@ internal static class Dide {
         DiagnosticSeverity.Error,
         true);
 
-    internal static readonly DiagnosticDescriptor MissingMicrosoftExtensionsHttp = new(
-        "GEREN009",
-        "Missing package Microsoft.Extensions.Http",
-        "Please add the NuGet package 'Microsoft.Extensions.Http' to enable HttpClientFactory integration",
-        "Geren",
-        DiagnosticSeverity.Error,
-        true);
-
-    internal static readonly DiagnosticDescriptor MissingMicrosoftExtensionsHttpResilience = new(
-        "GEREN010",
-        "Missing package Microsoft.Extensions.Http.Resilience",
-        "Please add the NuGet package 'Microsoft.Extensions.Http.Resilience' to enable Resilience integration",
-        "Geren",
-        DiagnosticSeverity.Warning,
-        true);
-
     internal static readonly DiagnosticDescriptor AmbiguousSchemaReference = new(
         "GEREN014",
         "Ambiguous schema reference",
