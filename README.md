@@ -18,7 +18,7 @@ OpenApi extensions with x-compile and x-metadata schema transformers
 ```xml
 <ItemGroup>
     <ProjectReference Include="..\SharedDto\SharedDto.csproj" />
-	<PackageReference Include="Geren.OpenApi.Server" Version="0.2.0" />
+	<PackageReference Include="Geren.OpenApi.Server" Version="0.2.1" />
 
 	<PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3">
 		<PrivateAssets>all</PrivateAssets>
@@ -44,7 +44,7 @@ In consumer client project prefer the packaged analyzer and only surface your Op
 <ItemGroup>
     <AdditionalFiles Include="..\my-open-api.json" />
     <ProjectReference Include="..\SharedDto\SharedDto.csproj" />
-    <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.2.0" PrivateAssets="all" />
+    <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.2.1" PrivateAssets="all" />
 </ItemGroup>
 ```
 
@@ -151,8 +151,3 @@ The pipeline validates these package layouts:
 
 - `Geren.OpenApiClientGenerator`: `analyzers/dotnet/cs/Geren.dll`, `analyzers/dotnet/cs/Microsoft.OpenApi.dll`, `README.md`, `LICENSE.txt`
 - `Geren.OpenApi.Server`: `lib/net10.0/Geren.Server.dll`, `README.md`, `LICENSE.txt`
-
-NuGet publish workflow:
-- CI release file: `.github/workflows/release.yml`
-- Trigger: push tag `v*` (for example `v0.2.0`) or manual `workflow_dispatch`
-- Required repository secret: `NUGET_API_KEY`

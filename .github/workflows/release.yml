@@ -84,7 +84,16 @@ jobs:
             throw "Repository secret NUGET_API_KEY is not set."
           }
 
-          dotnet nuget push "artifacts/nuget/*.nupkg" `
-            --source "https://api.nuget.org/v3/index.json" `
-            --api-key $env:NUGET_API_KEY `
-            --skip-duplicate
+          $packages = Get-ChildItem -Path "artifacts/nuget" -Filter "*.nupkg" -File |
+            Where-Object { $_.Name -notlike "*.symbols.nupkg" }
+
+          if ($packages.Count -eq 0) {
+            throw "No NuGet packages found in artifacts/nuget."
+          }
+
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName `
+              --source "https://api.nuget.org/v3/index.json" `
+              --api-key $env:NUGET_API_KEY `
+              --skip-duplicate
+          }
