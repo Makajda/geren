@@ -60,7 +60,7 @@ Optionally override the generated namespace:
 </ItemGroup>
 ```
 
-If the property is not set, the default root namespace is `Gereb.Generated`.
+If the property is not set, the default root namespace is `Geren`.
 
 ## Generation Contract
 
@@ -76,7 +76,7 @@ If the property is not set, the default root namespace is `Gereb.Generated`.
 
 - Namespace suffix is derived from file name without extension, sanitized by `ToLetterOrDigitName`.
 - Final namespace is `{RootNamespace}.{NamespaceSuffix}.{section0}`.
-- Root namespace is `build_property.Geren_RootNamespace` or `Gereb.Generated` by default.
+- Root namespace is `build_property.Geren_RootNamespace` or `Geren` by default.
 - Path sections used for naming exclude template segments (`{...}`).
 - If no non-template sections: class `WebApiClient`, method `operationId ?? method + "Root"`.
 - If one non-template section: class `WebApiClient`, method `operationId ?? method + section0`.
