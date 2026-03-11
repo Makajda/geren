@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using System.Reflection;
 
 namespace Geren.Tests.TestSupport;
@@ -8,23 +9,13 @@ internal static class TestCompilationFactory {
     internal static ImmutableArray<MetadataReference> MetadataReferences => SharedReferences.Value;
 
     internal static CSharpCompilation Create(
-        IEnumerable<string>? userSources = null,
-        bool includeResilience = false) {
+        IEnumerable<string>? userSources = null) {
         var sources = new List<string> {
             """
             namespace TestHost;
             public sealed class Placeholder;
             """
         };
-
-        if (includeResilience)
-            sources.Add(
-                """
-                namespace Microsoft.Extensions.Http.Resilience;
-
-                public sealed class ResilienceHandlerContext { }
-                """
-            );
 
         if (userSources is not null)
             sources.AddRange(userSources);
@@ -55,6 +46,7 @@ internal static class TestCompilationFactory {
         AddAssembly(typeof(CSharpCompilation).Assembly);
         AddAssembly(typeof(OpenApiDocument).Assembly);
         AddAssembly(typeof(IHttpClientBuilder).Assembly);
+        AddAssembly(typeof(ResilienceHandlerContext).Assembly);
         AddAssembly(typeof(Enumerable).Assembly);
 
         return [.. references.Values];

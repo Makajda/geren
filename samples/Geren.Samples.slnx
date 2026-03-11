@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Server/Geren.Samples.Server.csproj" />
+  <Project Path="Client/Geren.Samples.Client.csproj" />
+  <Project Path="Console/Geren.Samples.Console.csproj" />
+</Solution>

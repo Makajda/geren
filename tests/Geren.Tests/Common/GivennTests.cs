@@ -1,3 +1,5 @@
+using Geren.Generator.Common;
+
 namespace Geren.Tests.Common;
 
 public sealed class GivennTests {

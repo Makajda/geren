@@ -3,7 +3,8 @@ param(
     [string]$OutputDir = "artifacts/nuget",
     [string]$Version = "",
     [switch]$EnablePackageAnalysis,
-    [switch]$NoBuild
+    [switch]$NoBuild,
+    [string]$RestoreConfigFile = ""
 )
 
 Set-StrictMode -Version Latest
@@ -105,6 +106,20 @@ function Test-PackageEntries {
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
+$resolvedRestoreConfigFile = ""
+if (-not [string]::IsNullOrWhiteSpace($RestoreConfigFile)) {
+    if ([System.IO.Path]::IsPathRooted($RestoreConfigFile)) {
+        $resolvedRestoreConfigFile = $RestoreConfigFile
+    }
+    else {
+        $resolvedRestoreConfigFile = Join-Path $repoRoot $RestoreConfigFile
+    }
+
+    if (-not (Test-Path -LiteralPath $resolvedRestoreConfigFile)) {
+        throw "RestoreConfigFile '$resolvedRestoreConfigFile' does not exist."
+    }
+}
+
 if ([System.IO.Path]::IsPathRooted($OutputDir)) {
     $resolvedOutputDir = $OutputDir
 }
@@ -118,7 +133,7 @@ $packages = @(
     [pscustomobject]@{
         Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren/Geren.csproj")
         RequiredEntries = @(
-            "analyzers/dotnet/cs/Geren.dll",
+            "analyzers/dotnet/cs/Geren.Generator.dll",
             "analyzers/dotnet/cs/Microsoft.OpenApi.dll",
             "README.md",
             "LICENSE.txt"
@@ -145,6 +160,10 @@ foreach ($package in $packages) {
             "-p:IsPackable=true"
         )
 
+        if (-not [string]::IsNullOrWhiteSpace($resolvedRestoreConfigFile)) {
+            $buildArgs += "-p:RestoreConfigFile=$resolvedRestoreConfigFile"
+        }
+
         if (-not [string]::IsNullOrWhiteSpace($Version)) {
             $buildArgs += "-p:Version=$Version"
         }
@@ -164,6 +183,10 @@ foreach ($package in $packages) {
         "-p:ContinuousIntegrationBuild=true",
         "-p:IsPackable=true"
     )
+
+    if (-not [string]::IsNullOrWhiteSpace($resolvedRestoreConfigFile)) {
+        $packArgs += "-p:RestoreConfigFile=$resolvedRestoreConfigFile"
+    }
 
     if ($NoBuild) {
         $packArgs += "--no-build"

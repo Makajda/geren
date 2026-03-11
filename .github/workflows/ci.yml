@@ -21,7 +21,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore .\geren.slnx -nologo
+        run: dotnet restore .\geren.slnx -nologo --configfile .\.github\nuget\NuGet.config
 
       - name: Build
         run: dotnet build .\geren.slnx -c Release --no-restore -nologo
@@ -34,7 +34,7 @@ jobs:
 
       - name: Pack and Validate NuGet Packages
         shell: pwsh
-        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -EnablePackageAnalysis -NoBuild
+        run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -EnablePackageAnalysis -NoBuild -RestoreConfigFile .\.github\nuget\NuGet.config
 
       - name: Upload NuGet Artifact
         uses: actions/upload-artifact@v4

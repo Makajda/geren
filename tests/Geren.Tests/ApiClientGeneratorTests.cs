@@ -1,3 +1,5 @@
+using Geren.Generator;
+
 namespace Geren.Tests;
 
 public sealed class ApiClientGeneratorTests {
@@ -5,7 +7,7 @@ public sealed class ApiClientGeneratorTests {
     public void Initialize_should_not_generate_sources() {
         var result = RunGenerator(
             compilation: TestCompilationFactory.Create(),
-            additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("empty.json", EmptyOpenApiText)));
+            additionalTexts: [new InMemoryAdditionalText("empty.json", EmptyOpenApiText)]);
 
         result.GeneratedSources.Should().BeEmpty();
     }
@@ -23,7 +25,7 @@ public sealed class ApiClientGeneratorTests {
 
         var result = RunGenerator(
             compilation,
-            ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("pet-store.json", ValidOpenApiText)),
+            [new InMemoryAdditionalText("pet-store.json", ValidOpenApiText)],
             rootNamespace: "Company.Generated");
 
         result.GeneratedSources.Should().HaveCount(3);
@@ -39,7 +41,7 @@ public sealed class ApiClientGeneratorTests {
     public void Initialize_should_not_generate_when_json_probe_fails() {
         var result = RunGenerator(
             compilation: TestCompilationFactory.Create(),
-            additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("broken.json", "{ not-json }")));
+            additionalTexts: [new InMemoryAdditionalText("broken.json", "{ not-json }")]);
 
         result.Diagnostics.Select(static diagnostic => diagnostic.Id).Should().Contain("GEREN001");
         result.GeneratedSources.Should().BeEmpty();
@@ -54,12 +56,11 @@ public sealed class ApiClientGeneratorTests {
                 public sealed class Pet;
                 public sealed class CreatePetRequest;
                 """
-            ],
-            includeResilience: true);
+            ]);
 
         var result = RunGenerator(
             compilation,
-            ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("pet-store.json", ValidOpenApiText)));
+            [new InMemoryAdditionalText("pet-store.json", ValidOpenApiText)]);
 
         result.Diagnostics.Should().BeEmpty();
         result.GeneratedSources.Should().Contain(source => source.Text.Contains("AddStandardResilienceHandler"));
