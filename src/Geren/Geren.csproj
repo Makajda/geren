@@ -7,7 +7,7 @@
 
 		<IsPackable>true</IsPackable>
         <PackageId>Geren.OpenApiClientGenerator</PackageId>
-		<Version>0.2.4</Version>
+		<Version>0.2.7</Version>
 		<Authors>Makajda</Authors>
 		<Description>Incremental generator for API clients from OpenAPI file</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -18,8 +18,7 @@
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageTags>openapi;source-generator;roslyn;httpclient;api-client</PackageTags>
 
-        <!-- Include a tiny build output so transitive dependencies become compile references. -->
-        <!-- (Otherwise generated code that uses Microsoft.Extensions.Http* and Polly may fail to compile.) -->
+        <!-- Include a tiny build output so transitive dependencies become compile references -->
         <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
 

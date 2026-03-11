@@ -5,7 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/hello": {
+    "/your_namespace/your_type/hello": {
       "get": {
         "tags": [
           "Geren.Samples.Server"
@@ -13,9 +13,83 @@
         "operationId": "GetHello",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleDto"
+                }
+              }
+            }
           }
         }
+      }
+    },
+    "/your_namespace/your_type/hello-generic/{value}": {
+      "get": {
+        "tags": [
+          "Geren.Samples.Server"
+        ],
+        "parameters": [
+          {
+            "name": "value",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericDtoOfint"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GenericDtoOfint": {
+        "required": [
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        },
+        "x-compile": "global::Geren.Samples.Dto.GenericDto<int>"
+      },
+      "SimpleDto": {
+        "required": [
+          "greeting"
+        ],
+        "type": "object",
+        "properties": {
+          "greeting": {
+            "type": "string"
+          }
+        },
+        "x-metadata": "Geren.Samples.Dto.SimpleDto"
       }
     }
   },

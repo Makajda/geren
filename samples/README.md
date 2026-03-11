@@ -3,7 +3,6 @@
 This folder contains a minimal end-to-end example:
 
 - `Server`: ASP.NET Core minimal API that can generate an OpenAPI JSON document into `samples/openapi/sample.json`.
-- `Client`: Blazor WebAssembly app that includes `samples/openapi/sample.json` as `AdditionalFiles` and generates typed clients at build time.
 - `Console`: Console app that includes `samples/openapi/sample.json` as `AdditionalFiles` and calls the generated client.
 
 ## Build Prerequisites
@@ -34,12 +33,6 @@ dotnet run --project .\samples\Server\Geren.Samples.Server.csproj --urls http://
 ```
 
 Run the client:
-
-```powershell
-dotnet run --project .\samples\Client\Geren.Samples.Client.csproj
-```
-
-Run the console app:
 
 ```powershell
 dotnet run --project .\samples\Console\Geren.Samples.Console.csproj

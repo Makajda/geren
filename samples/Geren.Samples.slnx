@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="SharedDto/Geren.Samples.SharedDto.csproj" />
   <Project Path="Server/Geren.Samples.Server.csproj" />
   <Project Path="Console/Geren.Samples.Console.csproj" />
 </Solution>

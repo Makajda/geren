@@ -10,7 +10,11 @@ builder.Services.AddGerenClients(configureClient: http => {
 
 using var host = builder.Build();
 
-var api = host.Services.GetRequiredService<Api>();
-var message = await api.GetHello(CancellationToken.None);
-Console.WriteLine(message);
+var client = host.Services.GetRequiredService<Geren.Sample.Your_namespace.Your_type>();
+
+var simpleMessage = await client.GetHello();
+var genericMessage = await client.GetHello_generic(42);
+
+Console.WriteLine(simpleMessage.Greeting);
+Console.WriteLine(genericMessage.Data);
 
