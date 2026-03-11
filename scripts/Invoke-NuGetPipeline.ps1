@@ -146,7 +146,7 @@ $packages = @(
     [pscustomobject]@{
         Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren/Geren.csproj")
         RequiredEntries = @(
-            "lib/netstandard2.0/Geren.dll",
+            "lib/net10.0/Geren.dll",
             "analyzers/dotnet/cs/Geren.Generator.dll",
             "analyzers/dotnet/cs/Microsoft.OpenApi.dll",
             "README.md",

@@ -1,15 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
+ 	<PropertyGroup>
+ 		<TargetFramework>netstandard2.0</TargetFramework>
+ 		<ImplicitUsings>enable</ImplicitUsings>
+ 		<LangVersion>latest</LangVersion>
+ 		<Nullable>enable</Nullable>
 
         <IsRoslynAnalyzer>true</IsRoslynAnalyzer>
         <!-- Tell the IDE this is an analyzer/source generator project -->
-		<IsRoslynComponent>true</IsRoslynComponent>
+ 		<IsRoslynComponent>true</IsRoslynComponent>
         <!-- Activate enhanced verification -->
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+        <!-- Copy Microsoft.OpenApi.dll to output so the meta-package can pack it without $(Pkg...) properties. -->
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
         <!-- This package is marked in the consumer project as PrivateAssets="all" -->
         <DevelopmentDependency>true</DevelopmentDependency>
