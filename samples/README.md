@@ -48,7 +48,11 @@ dotnet run --project .\samples\Console\Geren.Samples.Console.csproj
 ## Notes
 
 - The client uses `samples/openapi/sample.json` (committed) so it can build even before the server is run.
-- Rebuilding the server updates `samples/openapi/sample.json` via MSBuild OpenAPI document generation settings in the server project.
+
+## Regenerate OpenAPI JSON
+
+`samples/Server/Geren.Samples.Server.csproj` is configured to write OpenAPI JSON into `samples/openapi/sample.json`.
+To refresh it, build or run the server project and then rebuild the client/console projects.
 
 ## Using NuGet.org Instead Of Local Artifacts
 

@@ -9,7 +9,7 @@
         <IsPackable>true</IsPackable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>Geren.OpenApi.Server</PackageId>
-        <Version>0.2.3</Version>
+        <Version>0.2.4</Version>
         <Authors>Makajda</Authors>
         <Description>OpenApi extensions with x-compile and x-metadata schema transformers</Description>
         <PackageReadmeFile>README.md</PackageReadmeFile>

@@ -4,8 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddGerenClients(configureClient: http =>
-{
+builder.Services.AddGerenClients(configureClient: http => {
     http.BaseAddress = new Uri("http://localhost:5000");
 });
 

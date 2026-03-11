@@ -21,8 +21,6 @@ It ships as a Roslyn source generator (analyzer), so it runs during `dotnet buil
 
 ## Quick Start
 
-If you already have an OpenAPI JSON file, skip to "Client: Generate the API client".
-
 ## Samples
 
 See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON, Blazor WebAssembly client consumes it via `AdditionalFiles` and generates typed clients).
@@ -33,7 +31,7 @@ See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON,
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApi.Server" Version="0.2.3" />
+  <PackageReference Include="Geren.OpenApi.Server" Version="0.2.4" />
   <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3" PrivateAssets="all" />
 </ItemGroup>
 ```
@@ -70,7 +68,7 @@ app.MapOpenApi();
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.2.3" PrivateAssets="all" />
+  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.2.4" PrivateAssets="all" />
 </ItemGroup>
 ```
 
