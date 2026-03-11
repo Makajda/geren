@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
+		<TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
@@ -18,7 +18,8 @@
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageTags>openapi;source-generator;roslyn;httpclient;api-client</PackageTags>
 
-        <!-- Meta-package: analyzers + dependencies, no lib/ref assets -->
+        <!-- Include a tiny build output so transitive dependencies become compile references. -->
+        <!-- (Otherwise generated code that uses Microsoft.Extensions.Http* and Polly may fail to compile.) -->
         <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
 

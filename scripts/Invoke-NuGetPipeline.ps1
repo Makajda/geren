@@ -22,12 +22,25 @@ function Get-ProjectPackageMetadata {
     $targetFramework = $null
 
     foreach ($propertyGroup in $projectXml.Project.PropertyGroup) {
-        if ([string]::IsNullOrWhiteSpace($packageId) -and -not [string]::IsNullOrWhiteSpace($propertyGroup.PackageId)) {
-            $packageId = $propertyGroup.PackageId
+        $packageIdNode = $propertyGroup.SelectSingleNode("PackageId")
+        if ([string]::IsNullOrWhiteSpace($packageId) -and $packageIdNode -and -not [string]::IsNullOrWhiteSpace($packageIdNode.InnerText)) {
+            $packageId = $packageIdNode.InnerText
         }
 
-        if ([string]::IsNullOrWhiteSpace($targetFramework) -and -not [string]::IsNullOrWhiteSpace($propertyGroup.TargetFramework)) {
-            $targetFramework = $propertyGroup.TargetFramework
+        if ([string]::IsNullOrWhiteSpace($targetFramework)) {
+            $tfmNode = $propertyGroup.SelectSingleNode("TargetFramework")
+            if ($tfmNode -and -not [string]::IsNullOrWhiteSpace($tfmNode.InnerText)) {
+                $targetFramework = $tfmNode.InnerText
+            }
+            else {
+                $tfmsNode = $propertyGroup.SelectSingleNode("TargetFrameworks")
+                if ($tfmsNode -and -not [string]::IsNullOrWhiteSpace($tfmsNode.InnerText)) {
+                    $first = $tfmsNode.InnerText.Split(";", [System.StringSplitOptions]::RemoveEmptyEntries) | Select-Object -First 1
+                    if (-not [string]::IsNullOrWhiteSpace($first)) {
+                        $targetFramework = $first.Trim()
+                    }
+                }
+            }
         }
     }
 
@@ -133,6 +146,7 @@ $packages = @(
     [pscustomobject]@{
         Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren/Geren.csproj")
         RequiredEntries = @(
+            "lib/netstandard2.0/Geren.dll",
             "analyzers/dotnet/cs/Geren.Generator.dll",
             "analyzers/dotnet/cs/Microsoft.OpenApi.dll",
             "README.md",
