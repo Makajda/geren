@@ -361,5 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-# PowerShell module analysis cache (can be created in CWD)
+#codex
 Microsoft/Windows/PowerShell/ModuleAnalysisCache
+.dotnet_cli_home

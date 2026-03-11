@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
@@ -17,16 +17,6 @@
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageTags>openapi;source-generator;roslyn;httpclient;api-client</PackageTags>
-
-        <!-- This package is marked in the consumer project as PrivateAssets="all" -->
-        <DevelopmentDependency>true</DevelopmentDependency>
-        <!-- Disable standard package checks -->
-        <NoPackageAnalysis>true</NoPackageAnalysis>
-        
-        <!-- Do not connect to the user's project as a regular link -->
-        <IncludeBuildOutput>false</IncludeBuildOutput>
-        <!-- The package will not add the generator DLL to the user's project compile-time -->
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
         <!-- Meta-package: analyzers + dependencies, no lib/ref assets -->
         <NoWarn>$(NoWarn);NU5128</NoWarn>
