@@ -1,0 +1,6 @@
+<Project>
+	<PropertyGroup>
+		<BaseIntermediateOutputPath >..\..\bin\server-test-obj\</BaseIntermediateOutputPath>
+		<BaseOutputPath >..\..\bin\server-test-bin\</BaseOutputPath>
+	</PropertyGroup>
+</Project>

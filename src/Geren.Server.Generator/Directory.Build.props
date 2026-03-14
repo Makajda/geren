@@ -1,0 +1,6 @@
+<Project>
+	<PropertyGroup>
+		<BaseIntermediateOutputPath >..\..\bin\server-generator-obj\</BaseIntermediateOutputPath>
+		<BaseOutputPath >..\..\bin\server-generator-bin\</BaseOutputPath>
+	</PropertyGroup>
+</Project>
