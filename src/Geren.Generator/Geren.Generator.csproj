@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
  	<PropertyGroup>
  		<TargetFramework>netstandard2.0</TargetFramework>
  		<ImplicitUsings>enable</ImplicitUsings>
@@ -10,19 +11,14 @@
  		<IsRoslynComponent>true</IsRoslynComponent>
         <!-- Activate enhanced verification -->
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-
         <!-- Copy Microsoft.OpenApi.dll to output so the meta-package can pack it without $(Pkg...) properties. -->
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-
         <!-- This package is marked in the consumer project as PrivateAssets="all" -->
         <DevelopmentDependency>true</DevelopmentDependency>
-        <!-- Disable standard package checks -->
-        <NoPackageAnalysis>true</NoPackageAnalysis>
     </PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.OpenApi" Version="3.4.0" PrivateAssets="all" />
-		<!-- Required for the generator -->
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
 	</ItemGroup>
@@ -32,4 +28,5 @@
 			<_Parameter1>Geren.Tests</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
+   
 </Project>
