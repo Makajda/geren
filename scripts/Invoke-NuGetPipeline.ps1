@@ -144,19 +144,19 @@ New-Item -ItemType Directory -Path $resolvedOutputDir -Force | Out-Null
 
 $packages = @(
     [pscustomobject]@{
-        Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren/Geren.csproj")
+        Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren.Client/Geren.Client.csproj")
         RequiredEntries = @(
-            "lib/net10.0/Geren.dll",
-            "analyzers/dotnet/cs/Geren.Generator.dll",
+            "lib/net10.0/Geren.Client.dll",
+            "analyzers/dotnet/cs/Geren.Client.Generator.dll",
             "analyzers/dotnet/cs/Microsoft.OpenApi.dll",
             "README.md",
             "LICENSE.txt"
         )
     },
     [pscustomobject]@{
-        Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren.Server/Geren.Server.csproj")
+        Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren.OpenApi.Server/Geren.OpenApi.Server.csproj")
         RequiredEntries = @(
-            "lib/net10.0/Geren.Server.dll",
+            "lib/net10.0/Geren.OpenApi.Server.dll",
             "README.md",
             "LICENSE.txt"
         )

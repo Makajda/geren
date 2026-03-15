@@ -1,8 +1,8 @@
 <Solution>
-  <Project Path="src/Geren.Generator/Geren.Generator.csproj" />
-  <Project Path="src/Geren.Server.Generator/Geren.Server.Generator.csproj" Id="5a112332-ed13-46ae-8c9a-c2914ee31764" />
-  <Project Path="src/Geren.Server/Geren.Server.csproj" />
-  <Project Path="src/Geren/Geren.csproj" />
-  <Project Path="tests/Geren.Server.Tests/Geren.Server.Tests.csproj" />
-  <Project Path="tests/Geren.Tests/Geren.Tests.csproj" />
+  <Project Path="src/Geren.Client/Geren.Client.csproj" />
+  <Project Path="src/Geren.Client.Generator/Geren.Client.Generator.csproj" />
+  <Project Path="src/Geren.Server.Generator/Geren.Server.Generator.csproj" />
+  <Project Path="src/Geren.OpenApi.Server/Geren.OpenApi.Server.csproj" />
+  <Project Path="tests/Geren.Client.Generator.Tests/Geren.Client.Generator.Tests.csproj" />
+  <Project Path="tests/Geren.OpenApi.Server.Tests/Geren.OpenApi.Server.Tests.csproj" />
 </Solution>

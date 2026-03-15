@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
 
         <IsPackable>true</IsPackable>
-        <PackageId>Geren.Server.Generator</PackageId>
+        <PackageId>Geren.ServerGenerator</PackageId>
         <Version>0.2.7</Version>
         <Authors>Makajda</Authors>
         <Description>Incremental generator for API clients from minimal API</Description>
@@ -34,7 +34,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\Geren.Server.Generator\bin\$(Configuration)\netstandard2.0\Geren.Server.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\..\bin\server-generator-bin\$(Configuration)\netstandard2.0\Geren.Server.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
         <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
     </ItemGroup>

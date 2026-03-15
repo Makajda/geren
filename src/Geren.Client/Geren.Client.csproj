@@ -26,12 +26,12 @@
      </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Geren.Generator\Geren.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\Geren.Client.Generator\Geren.Client.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 	<ItemGroup>
-        <None Include="..\Geren.Generator\bin\$(Configuration)\netstandard2.0\Geren.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="..\Geren.Generator\bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\..\bin\client-generator-bin\$(Configuration)\netstandard2.0\Geren.Client.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\..\bin\client-generator-bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
 		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
 	</ItemGroup>

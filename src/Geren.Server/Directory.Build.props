@@ -1,6 +1,0 @@
-<Project>
-	<PropertyGroup>
-		<BaseIntermediateOutputPath >..\..\bin\server-obj\</BaseIntermediateOutputPath>
-		<BaseOutputPath >..\..\bin\server-bin\</BaseOutputPath>
-	</PropertyGroup>
-</Project>

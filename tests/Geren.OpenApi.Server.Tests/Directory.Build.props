@@ -1,0 +1,6 @@
+<Project>
+	<PropertyGroup>
+		<BaseIntermediateOutputPath >..\..\bin\openapi-server-test-obj\</BaseIntermediateOutputPath>
+		<BaseOutputPath >..\..\bin\openapi-server-test-bin\</BaseOutputPath>
+	</PropertyGroup>
+</Project>
