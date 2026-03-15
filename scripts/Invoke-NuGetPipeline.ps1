@@ -160,6 +160,14 @@ $packages = @(
             "README.md",
             "LICENSE.txt"
         )
+    },
+    [pscustomobject]@{
+        Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren.Server.Generator/Geren.Server.Generator.csproj")
+        RequiredEntries = @(
+            "analyzers/dotnet/cs/Geren.Server.Generator.dll",
+            "README.md",
+            "LICENSE.txt"
+        )
     }
 )
 

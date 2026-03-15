@@ -1,8 +1,12 @@
 <Solution>
+
   <Project Path="src/Geren.Client/Geren.Client.csproj" />
   <Project Path="src/Geren.Client.Generator/Geren.Client.Generator.csproj" />
-  <Project Path="src/Geren.Server.Generator/Geren.Server.Generator.csproj" />
-  <Project Path="src/Geren.OpenApi.Server/Geren.OpenApi.Server.csproj" />
   <Project Path="tests/Geren.Client.Generator.Tests/Geren.Client.Generator.Tests.csproj" />
+
+  <Project Path="src/Geren.OpenApi.Server/Geren.OpenApi.Server.csproj" />
   <Project Path="tests/Geren.OpenApi.Server.Tests/Geren.OpenApi.Server.Tests.csproj" />
+
+  <Project Path="src/Geren.Server.Generator/Geren.Server.Generator.csproj" />
+  <Project Path="tests/Geren.Server.Generator.Tests/Geren.Server.Generator.Tests.csproj" />
 </Solution>
