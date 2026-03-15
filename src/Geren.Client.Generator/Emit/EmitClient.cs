@@ -1,4 +1,4 @@
-namespace Geren.Generator.Emit;
+namespace Geren.Client.Generator.Emit;
 
 internal sealed class EmitClient {
     internal static string Run(IGrouping<object, EndpointSpec> endpoints, string rootNamespace, string spaceName, string className) => $$"""
@@ -12,7 +12,7 @@ public sealed partial class {{className}}
     private readonly HttpClient _http;
     public {{className}}(HttpClient http) => _http = http;
 
-{{string.Join(Givenn.NewLine + Givenn.NewLine, endpoints.Select(EmitMethod))}}
+{{string.Join(Givencg.NewLine + Givencg.NewLine, endpoints.Select(EmitMethod))}}
 }
 """;
 
@@ -22,15 +22,15 @@ public sealed partial class {{className}}
         if (args.Length > 0)
             args += ", ";
 
-        if (endpoint.BodyType is not null && (endpoint.Method == Givenn.Post || endpoint.Method == Givenn.Put || endpoint.Method == Givenn.Delete))
+        if (endpoint.BodyType is not null && (endpoint.Method == Givencg.Post || endpoint.Method == Givencg.Put || endpoint.Method == Givencg.Delete))
             args += $"{endpoint.BodyType} body, ";
 
         var signature = $"{methodName}({args}CancellationToken cancellationToken = default)";
         var pathExpr = BuildPathExpression(endpoint);
-        if (endpoint.Method == Givenn.Get)
+        if (endpoint.Method == Givencg.Get)
             return EmitGet(endpoint.ReturnType, signature, pathExpr);
 
-        if (endpoint.Method == Givenn.Delete)
+        if (endpoint.Method == Givencg.Delete)
             return EmitDelete(endpoint, signature, pathExpr);
 
         return EmitPostOrPut(endpoint, signature, pathExpr);
@@ -149,7 +149,7 @@ public sealed partial class {{className}}
         if (endpoint.Queries.Length == 0)
             return pathExpr;
 
-        string queryBuilder = string.Join(Givenn.NewLine, endpoint.Queries.Select(static p =>
+        string queryBuilder = string.Join(Givencg.NewLine, endpoint.Queries.Select(static p =>
             $"            A(query, \"{p.Name}\", {p.Identifier});"));
 
         return $$"""

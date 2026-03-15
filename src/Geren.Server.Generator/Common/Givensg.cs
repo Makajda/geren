@@ -1,4 +1,4 @@
 namespace Geren.Server.Generator.Common;
 
-internal static class Givenn {
+internal static class Givensg {
 }

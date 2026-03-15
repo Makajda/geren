@@ -1,4 +1,4 @@
-namespace Geren.Generator.Common;
+namespace Geren.Client.Generator.Common;
 
 internal static class Dide {
     internal static readonly DiagnosticDescriptor JsonReadError = new(

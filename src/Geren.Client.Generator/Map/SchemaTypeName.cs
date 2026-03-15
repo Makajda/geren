@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Geren.Generator.Map;
+namespace Geren.Client.Generator.Map;
 
 internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
@@ -19,7 +19,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         }
         else if (hasExtensions && schema.Extensions!.TryGetValue("x-compile", out IOpenApiExtension nodeGeneric)) {
             if (nodeGeneric is JsonNodeExtension node)
-                return ResolveByCompile(Givenn.ArraysRestore(node.Node.GetValue<string>()));
+                return ResolveByCompile(Givencg.ArraysRestore(node.Node.GetValue<string>()));
         }
         else if (schema is OpenApiSchemaReference schemaReference)
             if (schemaReference.Reference.Id is not null)
@@ -89,7 +89,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
 
     // Further only ResolveByReference with GetSymbolsWithName
     private string ResolveByReference(string referenceId) {
-        string simpleType = Givenn.ToLetterOrDigitName(referenceId);
+        string simpleType = Givencg.ToLetterOrDigitName(referenceId);
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
             return cached;
 

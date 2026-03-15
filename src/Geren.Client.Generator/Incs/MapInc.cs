@@ -1,4 +1,4 @@
-namespace Geren.Generator.Incs;
+namespace Geren.Client.Generator.Incs;
 
 internal sealed class MapInc {
     public string HintFilePath { get; }

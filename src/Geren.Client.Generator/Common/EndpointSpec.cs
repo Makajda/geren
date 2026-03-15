@@ -1,4 +1,4 @@
-namespace Geren.Generator.Common;
+namespace Geren.Client.Generator.Common;
 
 internal sealed class EndpointSpec {
     public string Method { get; }

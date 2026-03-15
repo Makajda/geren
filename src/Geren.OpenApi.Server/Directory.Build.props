@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<BaseIntermediateOutputPath >..\..\bin\openapi-server-obj\</BaseIntermediateOutputPath>
-		<BaseOutputPath >..\..\bin\openapi-server-bin\</BaseOutputPath>
+		<BaseIntermediateOutputPath >..\..\bin\obj-openapi-server\</BaseIntermediateOutputPath>
+		<BaseOutputPath >..\..\bin\bin-openapi-server\</BaseOutputPath>
 	</PropertyGroup>
 </Project>

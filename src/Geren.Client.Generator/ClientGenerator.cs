@@ -1,4 +1,4 @@
-namespace Geren.Generator;
+namespace Geren.Client.Generator;
 
 [Generator]
 public sealed class ApiClientGenerator : IIncrementalGenerator {
@@ -20,14 +20,14 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
 
         // Map
         var maped = parsed
-            .Where(static p => p.Document is not null && p.FilePath is not null)
+            .Where(static p => p.Success)
             .Combine(context.CompilationProvider)
             .Select(static (x, _) => MapInc.Map(x.Right, x.Left.Document!, x.Left.FilePath!));
         context.RegisterSourceOutput(maped.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));
 
         // FactoryBridge
-        context.RegisterSourceOutput(maped.Where(n => n.Endpoints.Any()).Combine(rootNamespace), static (spc, t) =>
+        context.RegisterSourceOutput(maped.Where(n => !n.Endpoints.IsEmpty).Combine(rootNamespace), static (spc, t) =>
             spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8)));
 
         // Extensions and Clients

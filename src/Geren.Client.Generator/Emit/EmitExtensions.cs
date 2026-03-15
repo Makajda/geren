@@ -1,4 +1,4 @@
-namespace Geren.Generator.Emit;
+namespace Geren.Client.Generator.Emit;
 
 internal static class EmitExtensions {
     internal static string Run(string rootNamespace, string namespaceFromFile, string spaceName, IEnumerable<string> names) {
@@ -28,12 +28,12 @@ public static class Geren{{namespaceFromFile}}Extensions
 }
 """;
 
-        string AllReg() => string.Join(Givenn.NewLine, names.Select(name => $$"""
+        string AllReg() => string.Join(Givencg.NewLine, names.Select(name => $$"""
         global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient, configureBuilder, useResilience, resiliencePipelineName, configureResilience);
 """));
 
         // Registration for each class
-        string SingleReg() => string.Join(Givenn.NewLine + Givenn.NewLine, names.Select(name => $$"""
+        string SingleReg() => string.Join(Givencg.NewLine + Givencg.NewLine, names.Select(name => $$"""
     public static IHttpClientBuilder AddGeren{{name.Replace(".", "_")}}(this IServiceCollection services,
         Action<HttpClient>? configureClient = null) => global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient);
 """));

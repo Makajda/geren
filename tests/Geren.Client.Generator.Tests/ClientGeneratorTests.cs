@@ -1,4 +1,4 @@
-using Geren.Generator;
+using Geren.Client.Generator;
 
 namespace Geren.Tests;
 

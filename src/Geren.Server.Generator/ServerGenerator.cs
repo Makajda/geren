@@ -1,4 +1,4 @@
-namespace Geren.Generator;
+namespace Geren.Server.Generator;
 
 [Generator]
 public sealed class ServerGenerator : IIncrementalGenerator {

@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Geren.Generator.Map;
+namespace Geren.Client.Generator.Map;
 
 internal sealed class MapSession {
     private readonly ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
@@ -20,7 +20,7 @@ internal sealed class MapSession {
                     continue;
 
                 var method = char.ToUpperInvariant(key[0]) + key.Substring(1).ToLowerInvariant();
-                if (method != Givenn.Get && method != Givenn.Post && method != Givenn.Put && method != Givenn.Delete)
+                if (method != Givencg.Get && method != Givencg.Post && method != Givencg.Put && method != Givencg.Delete)
                     continue;
 
                 var (spaceName, className, methodName) = ResolveNames(operation.Value.OperationId, method, normalizedPath);
@@ -45,7 +45,7 @@ internal sealed class MapSession {
         }
 
         var hintFilePath = CreateHintFilePath(filePath);
-        var namespaceFromFile = Givenn.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
+        var namespaceFromFile = Givencg.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
         return MapInc.Create(hintFilePath, namespaceFromFile, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
     }
 
@@ -170,18 +170,18 @@ internal sealed class MapSession {
         const string spaceDefault = "";
         const string classNameDefault = "WebApiClient";
         const string methodNameDefault = "Root";
-        string? withName = operationId is null ? null : Givenn.ToLetterOrDigitName(operationId);
+        string? withName = operationId is null ? null : Givencg.ToLetterOrDigitName(operationId);
         string[] sections = [.. path
             .Trim('/')
             .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
             .Where(static s => !IsPathTemplateSegment(s))];
         if (sections.Length == 0) return (spaceDefault, classNameDefault, MethodName(methodNameDefault));
         if (sections.Length == 1) return (spaceDefault, classNameDefault, MethodName(sections[0]));
-        string name0 = Givenn.ToLetterOrDigitName(sections[0]);
+        string name0 = Givencg.ToLetterOrDigitName(sections[0]);
         if (sections.Length == 2) return (spaceDefault, name0, MethodName(sections[1]));
-        return (name0, Givenn.ToLetterOrDigitName(sections[1]), MethodName(string.Join("_", sections.Skip(2))));
+        return (name0, Givencg.ToLetterOrDigitName(sections[1]), MethodName(string.Join("_", sections.Skip(2))));
 
-        string MethodName(string section) => withName ?? (method + Givenn.ToLetterOrDigitName(section));
+        string MethodName(string section) => withName ?? (method + Givencg.ToLetterOrDigitName(section));
     }
 
     private static bool IsPathTemplateSegment(string segment)
@@ -224,7 +224,7 @@ internal sealed class MapSession {
     }
 
     private static string ToParameterIdentifier(string name, HashSet<string> usedIdentifiers) {
-        var baseIdentifier = Givenn.ToLetterOrDigitName(name);
+        var baseIdentifier = Givencg.ToLetterOrDigitName(name);
         if (baseIdentifier.Length == 0 || baseIdentifier == "_")
             baseIdentifier = "p";
 

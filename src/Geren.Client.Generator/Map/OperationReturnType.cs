@@ -1,4 +1,4 @@
-namespace Geren.Generator.Map;
+namespace Geren.Client.Generator.Map;
 
 internal static class OperationReturnType {
     internal static string Resolve(OpenApiOperation operation, SchemaTypeName schemaTypeName) {

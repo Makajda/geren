@@ -1,7 +1,7 @@
-global using Geren.Generator.Common;
-global using Geren.Generator.Emit;
-global using Geren.Generator.Incs;
-global using Geren.Generator.Map;
+global using Geren.Client.Generator.Common;
+global using Geren.Client.Generator.Emit;
+global using Geren.Client.Generator.Incs;
+global using Geren.Client.Generator.Map;
 global using Microsoft.CodeAnalysis;
 global using Microsoft.CodeAnalysis.Text;
 global using Microsoft.OpenApi;

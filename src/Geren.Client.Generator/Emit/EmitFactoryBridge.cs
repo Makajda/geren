@@ -1,4 +1,4 @@
-namespace Geren.Generator.Emit;
+namespace Geren.Client.Generator.Emit;
 
 internal sealed class EmitFactoryBridge {
     internal static string Run(string rootNamespace) {

@@ -6,7 +6,7 @@ It ships as a Roslyn source generator (analyzer), so it runs during `dotnet buil
 ## Packages
 
 - `Geren.OpenApiClientGenerator`
-  - The source generator (as `analyzers/dotnet/cs/Geren.Generator.dll`).
+  - The source generator (as `analyzers/dotnet/cs/Geren.Client.Generator.dll`).
   - Dependencies required by the generated code (for example `Microsoft.Extensions.Http` and `Microsoft.Extensions.Http.Resilience`).
   - Recommended to reference as `PrivateAssets="all"` so it does not flow to downstream packages.
 - `Geren.OpenApi.Server`
@@ -191,4 +191,4 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-NuGetPipeline.ps1 -Ena
 The pipeline validates these package layouts:
 
 - `Geren.OpenApi.Server`: `lib/net10.0/Geren.Server.dll`, `README.md`, `LICENSE.txt`
-- `Geren.OpenApiClientGenerator`: `analyzers/dotnet/cs/Geren.Generator.dll`, `analyzers/dotnet/cs/Microsoft.OpenApi.dll`, `README.md`, `LICENSE.txt`
+- `Geren.OpenApiClientGenerator`: `analyzers/dotnet/cs/Geren.Client.Generator.dll`, `analyzers/dotnet/cs/Microsoft.OpenApi.dll`, `README.md`, `LICENSE.txt`
