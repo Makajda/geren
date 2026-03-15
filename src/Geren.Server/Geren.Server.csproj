@@ -18,20 +18,11 @@
         <RepositoryType>git</RepositoryType>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <PackageTags>openapi;source-generator;roslyn;httpclient;api-client</PackageTags>
+        <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Geren.Server.Generator\Geren.Server.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="..\Geren.Generator\bin\$(Configuration)\netstandard2.0\Geren.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
-        <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
     </ItemGroup>
 
     <ItemGroup>

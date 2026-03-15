@@ -6,13 +6,24 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
 
+        <IsPackable>true</IsPackable>
+        <PackageId>Geren.Server.Generator</PackageId>
+        <Version>0.2.7</Version>
+        <Authors>Makajda</Authors>
+        <Description>Incremental generator for API clients from minimal API</Description>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <PackageProjectUrl>https://github.com/Makajda/geren</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Makajda/geren</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <PackageTags>openapi;source-generator;roslyn;httpclient;api-client</PackageTags>
+
         <IsRoslynAnalyzer>true</IsRoslynAnalyzer>
         <!-- Tell the IDE this is an analyzer/source generator project -->
         <IsRoslynComponent>true</IsRoslynComponent>
         <!-- Activate enhanced verification -->
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-        <!-- Copy Microsoft.OpenApi.dll to output so the meta-package can pack it without $(Pkg...) properties. -->
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <!-- This package is marked in the consumer project as PrivateAssets="all" -->
         <DevelopmentDependency>true</DevelopmentDependency>
     </PropertyGroup>
@@ -20,6 +31,12 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\Geren.Server.Generator\bin\$(Configuration)\netstandard2.0\Geren.Server.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+        <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
     </ItemGroup>
 
 </Project>
