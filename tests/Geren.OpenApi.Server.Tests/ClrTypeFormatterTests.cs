@@ -1,4 +1,4 @@
-namespace Geren.Server.Tests;
+namespace Geren.OpenApi.Server.Tests;
 
 public sealed class ClrTypeFormatterTests {
     [Fact]
@@ -23,7 +23,7 @@ public sealed class ClrTypeFormatterTests {
 
         ClrTypeFormatter.Format(typeof(Container<int>.Nested<long>))
             .Should()
-            .Be("global::Geren.Server.Tests.ClrTypeFormatterTests.Container<int>.Nested<long>");
+            .Be("global::Geren.OpenApi.Server.Tests.ClrTypeFormatterTests.Container<int>.Nested<long>");
     }
 
     [Fact]

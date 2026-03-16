@@ -364,3 +364,4 @@ FodyWeavers.xsd
 #codex
 Microsoft/Windows/PowerShell/ModuleAnalysisCache
 .dotnet_cli_home
+.dotnet_home

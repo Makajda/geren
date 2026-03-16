@@ -1,4 +1,4 @@
-namespace Geren.Server.Tests;
+namespace Geren.OpenApi.Server.Tests;
 
 public sealed class TransformerTests {
     [Fact]
@@ -26,7 +26,7 @@ public sealed class TransformerTests {
         Transformer.ApplySchemaExtensions(schema, typeof(Widget));
 
         schema.Extensions.Should().ContainKey("x-metadata");
-        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.Server.Tests.TransformerTests+Widget");
+        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.OpenApi.Server.Tests.TransformerTests+Widget");
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class TransformerTests {
         Transformer.ApplySchemaExtensions(schema, typeof(Outer.Inner));
 
         schema.Extensions.Should().ContainKey("x-metadata");
-        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.Server.Tests.TransformerTests+Outer+Inner");
+        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.OpenApi.Server.Tests.TransformerTests+Outer+Inner");
     }
 
     [Fact]
@@ -50,12 +50,12 @@ public sealed class TransformerTests {
         genericSchema.Extensions.Should().ContainKey("x-compile");
         GetExtensionValue(genericSchema, "x-compile")
             .Should()
-            .Be("global::System.Collections.Generic.List<global::Geren.Server.Tests.TransformerTests.Widget>");
+            .Be("global::System.Collections.Generic.List<global::Geren.OpenApi.Server.Tests.TransformerTests.Widget>");
 
         arraySchema.Extensions.Should().ContainKey("x-compile");
         GetExtensionValue(arraySchema, "x-compile")
             .Should()
-            .Be("global::Geren.Server.Tests.TransformerTests.Widget[]");
+            .Be("global::Geren.OpenApi.Server.Tests.TransformerTests.Widget[]");
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class TransformerTests {
 
         secondCall.Should().NotThrow();
         schema.Extensions.Should().ContainSingle();
-        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.Server.Tests.TransformerTests+Widget");
+        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.OpenApi.Server.Tests.TransformerTests+Widget");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public sealed class TransformerTests {
         Transformer.ApplySchemaExtensions(schema, typeof(Widget));
 
         schema.Extensions.Should().ContainSingle();
-        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.Server.Tests.TransformerTests+Widget");
+        GetExtensionValue(schema, "x-metadata").Should().Be("Geren.OpenApi.Server.Tests.TransformerTests+Widget");
     }
 
     private static string GetExtensionValue(OpenApiSchema schema, string key) =>

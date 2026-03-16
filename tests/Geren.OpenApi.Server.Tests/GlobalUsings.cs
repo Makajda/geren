@@ -1,5 +1,5 @@
 global using FluentAssertions;
-global using Geren.Server.Tests.TestSupport;
+global using Geren.Server;
 global using Microsoft.AspNetCore.OpenApi;
 global using Microsoft.OpenApi;
 global using System.Reflection;

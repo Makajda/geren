@@ -1,4 +1,4 @@
-namespace Geren.Server.Tests.TestSupport;
+namespace Geren.OpenApi.Server.Tests.TestSupport;
 
 internal static class OpenApiSchemaTransformerContextFactory {
     internal static OpenApiSchemaTransformerContext Create(Type type) {

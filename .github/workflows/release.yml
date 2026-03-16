@@ -65,9 +65,6 @@ jobs:
       - name: Test Geren.OpenApi.Server
         run: dotnet test .\tests\Geren.OpenApi.Server.Tests\Geren.OpenApi.Server.Tests.csproj -c Release --no-build -nologo
 
-      - name: Test Geren.Server.Generator
-        run: dotnet test .\tests\Geren.Server.Generator.Tests\Geren.Server.Generator.Tests.csproj -c Release --no-build -nologo
-
       - name: Pack and Validate NuGet Packages
         shell: pwsh
         run: .\scripts\Invoke-NuGetPipeline.ps1 -Configuration Release -OutputDir artifacts/nuget -Version ${{ steps.version.outputs.version }} -EnablePackageAnalysis -NoBuild -RestoreConfigFile .\.github\nuget\NuGet.config
