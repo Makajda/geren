@@ -1,8 +1,9 @@
 namespace Geren.Client.Generator;
 
 [Generator]
-public sealed class ApiClientGenerator : IIncrementalGenerator {
+public sealed class Generator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
+        //if (!System.Diagnostics.Debugger.IsAttached) System.Diagnostics.Debugger.Launch();
         var rootNamespace = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
             options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
                 && !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : "Geren");
@@ -27,11 +28,13 @@ public sealed class ApiClientGenerator : IIncrementalGenerator {
             static (spc, r) => spc.ReportDiagnostic(r));
 
         // FactoryBridge
-        context.RegisterSourceOutput(maped.Where(n => !n.Endpoints.IsEmpty).Combine(rootNamespace), static (spc, t) =>
-            spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8)));
+        context.RegisterSourceOutput(maped.Where(static n => !n.Endpoints.IsEmpty).Collect().Combine(rootNamespace), static (spc, t) => {
+            if (t.Left.Any())
+                spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8));
+        });
 
         // Extensions and Clients
-        context.RegisterSourceOutput(maped.Where(n => !n.Endpoints.IsEmpty).Combine(rootNamespace), (spc, x) => {
+        context.RegisterSourceOutput(maped.Where(static n => !n.Endpoints.IsEmpty).Combine(rootNamespace), (spc, x) => {
             var (map, rootNamespace) = x;
 
             string spaceName = $"{rootNamespace}.{map.NamespaceFromFile}";

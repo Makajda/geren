@@ -9,9 +9,9 @@ internal sealed class ProbeInc {
     internal Diagnostic? Diagnostic { get; }
 
     private ProbeInc(string filePath, string text) {
-        Success = true;
         FilePath = filePath;
         Text = text;
+        Success = true;
     }
 
     private ProbeInc() { }
@@ -28,11 +28,11 @@ internal sealed class ProbeInc {
             return Skip();
 
         try {
-            var text = file.GetText(cancellationToken)?.ToString();
+            string? text = file.GetText(cancellationToken)?.ToString();
             if (string.IsNullOrWhiteSpace(text))
                 return Diag(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid JSON in {filePath}: File is empty."));
 
-            var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(text), isFinalBlock: true, state: default);
+            Utf8JsonReader reader = new(Encoding.UTF8.GetBytes(text), isFinalBlock: true, state: default);
 
             if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
                 return Diag(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid JSON in {filePath}: Root is not JSON object."));
@@ -42,7 +42,7 @@ internal sealed class ProbeInc {
             while (reader.Read()) {
                 if (reader.TokenType == JsonTokenType.PropertyName && reader.CurrentDepth == 1) {
                     hasProperty = true;
-                    var propertyName = reader.GetString();
+                    string? propertyName = reader.GetString();
                     if (string.Equals(propertyName, "openapi", StringComparison.Ordinal)) {
                         hasOpenApiProperty = true;
                         break;

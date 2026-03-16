@@ -8,7 +8,7 @@
 
         <IsPackable>true</IsPackable>
         <PackageId>Geren.OpenApiClientGenerator</PackageId>
-		<Version>0.2.7</Version>
+		<Version>0.2.8</Version>
 		<Authors>Makajda</Authors>
 		<Description>Incremental generator for API clients from OpenAPI file</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -30,8 +30,8 @@
     </ItemGroup>
 
 	<ItemGroup>
-        <None Include="..\..\bin\client-generator-bin\$(Configuration)\netstandard2.0\Geren.Client.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="..\..\bin\client-generator-bin\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\..\bin\bin-client-generator\$(Configuration)\netstandard2.0\Geren.Client.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\..\bin\bin-client-generator\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
 		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
 	</ItemGroup>

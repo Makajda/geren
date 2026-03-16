@@ -19,18 +19,18 @@ internal sealed class MapSession {
                 if (key.Length < 3)
                     continue;
 
-                var method = char.ToUpperInvariant(key[0]) + key.Substring(1).ToLowerInvariant();
+                string method = char.ToUpperInvariant(key[0]) + key.Substring(1).ToLowerInvariant();
                 if (method != Givencg.Get && method != Givencg.Post && method != Givencg.Put && method != Givencg.Delete)
                     continue;
 
                 var (spaceName, className, methodName) = ResolveNames(operation.Value.OperationId, method, normalizedPath);
-                var methodKey = spaceName + "." + className + "." + methodName;
+                string methodKey = spaceName + "." + className + "." + methodName;
                 if (!seenMethodKeys.Add(methodKey)) {
                     _diagnostics.Add(Diagnostic.Create(Dide.DuplicateMethodName, Location.None, methodName, className, path.Key));
                     continue;
                 }
 
-                var returnType = OperationReturnType.Resolve(operation.Value, _schemaTypeName);
+                string returnType = OperationReturnType.Resolve(operation.Value, _schemaTypeName);
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value);
                 if (bodyType is null && bodyMediaType is not null)
                     continue;
@@ -44,9 +44,9 @@ internal sealed class MapSession {
             }
         }
 
-        var hintFilePath = CreateHintFilePath(filePath);
-        var namespaceFromFile = Givencg.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
-        return MapInc.Create(hintFilePath, namespaceFromFile, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
+        string hintFilePath = CreateHintFilePath(filePath);
+        string namespaceFromFile = Givencg.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
+        return new(hintFilePath, namespaceFromFile, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
     }
 
     private (ImmutableArray<ParamSpec> Params, ImmutableArray<ParamSpec> Queries) SplitPathAndQueryParameters(
@@ -62,18 +62,18 @@ internal sealed class MapSession {
                 continue;
             }
 
-            var inValue = parameter.In.Value.ToString().ToLowerInvariant();
+            string inValue = parameter.In.Value.ToString().ToLowerInvariant();
             if (inValue == "path") {
-                var identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
-                var paramType = _schemaTypeName.Resolve(parameter.Schema);
+                string identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
+                string paramType = _schemaTypeName.Resolve(parameter.Schema);
                 pathParams.Add(new(parameter.Name, identifier, paramType));
 
                 continue;
             }
 
             if (inValue == "query") {
-                var identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
-                var paramType = NormalizeQueryType(_schemaTypeName.Resolve(parameter.Schema), parameter.Required);
+                string identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
+                string paramType = NormalizeQueryType(_schemaTypeName.Resolve(parameter.Schema), parameter.Required);
                 if (IsSupportedQueryType(paramType))
                     queryParams.Add(new(parameter.Name, identifier, paramType));
                 else
@@ -99,7 +99,7 @@ internal sealed class MapSession {
         if (requestBody.Content.ContainsKey("text/plain"))
             return ("string", "text/plain");
 
-        var mediaType = requestBody.Content.Keys.FirstOrDefault() ?? "<unknown>";
+        string mediaType = requestBody.Content.Keys.FirstOrDefault() ?? "<unknown>";
         _diagnostics.Add(Diagnostic.Create(Dide.UnsupportedRequestBody, Location.None, operation.OperationId, mediaType));
         return (null, mediaType);
     }
@@ -154,7 +154,7 @@ internal sealed class MapSession {
                 break;
             }
 
-            var inner = path.Substring(i + 1, closeIndex - i - 1);
+            string inner = path.Substring(i + 1, closeIndex - i - 1);
             var colonIndex = inner.IndexOf(':');
             if (colonIndex >= 0)
                 inner = inner.Substring(0, colonIndex);
@@ -224,7 +224,7 @@ internal sealed class MapSession {
     }
 
     private static string ToParameterIdentifier(string name, HashSet<string> usedIdentifiers) {
-        var baseIdentifier = Givencg.ToLetterOrDigitName(name);
+        string baseIdentifier = Givencg.ToLetterOrDigitName(name);
         if (baseIdentifier.Length == 0 || baseIdentifier == "_")
             baseIdentifier = "p";
 
@@ -233,7 +233,7 @@ internal sealed class MapSession {
             || SyntaxFacts.GetContextualKeywordKind(baseIdentifier) != SyntaxKind.None)
             baseIdentifier += "_";
 
-        var candidate = baseIdentifier;
+        string candidate = baseIdentifier;
         var index = 2;
         while (!usedIdentifiers.Add(candidate)) {
             candidate = baseIdentifier + "_" + index;
@@ -256,7 +256,7 @@ internal sealed class MapSession {
             if (close < 0)
                 break;
 
-            var name = path.Substring(open + 1, close - open - 1);
+            string name = path.Substring(open + 1, close - open - 1);
             if (name.Length > 0 && seen.Add(name))
                 names.Add(name);
 
@@ -282,11 +282,11 @@ internal sealed class MapSession {
         => required || typeName.EndsWith("?", StringComparison.Ordinal) ? typeName : typeName + "?";
 
     private static bool IsSupportedQueryType(string typeName) {
-        var normalizedType = TrimNullable(typeName);
+        string normalizedType = TrimNullable(typeName);
         if (IsSupportedQueryScalarType(normalizedType))
             return true;
 
-        return TryGetCollectionElementType(normalizedType, out var elementType)
+        return TryGetCollectionElementType(normalizedType, out string elementType)
             && IsSupportedQueryScalarType(TrimNullable(elementType));
     }
 

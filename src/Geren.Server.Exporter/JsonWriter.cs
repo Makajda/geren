@@ -1,4 +1,3 @@
-using Geren.SpecExporter;
 using System.Text;
 using System.Text.Json;
 
@@ -6,19 +5,18 @@ namespace Geren.Server.Exporter;
 
 internal static class JsonWriter {
     public static string Write(List<Extractor.EndpointModel> endpoints) {
-        using var stream = new MemoryStream(capacity: 32 * 1024);
-        using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = false })) {
+        using MemoryStream stream = new(capacity: 32 * 1024);
+        using (Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = false })) {
             writer.WriteStartObject();
             writer.WriteString("schema", "geren-minimal-api-spec");
             writer.WriteNumber("version", 1);
 
             writer.WritePropertyName("endpoints");
             writer.WriteStartArray();
-            for (var i = 0; i < endpoints.Count; i++) {
+            for (var i = 0; i < endpoints.Count; i++)
                 WriteEndpoint(writer, endpoints[i]);
-            }
-            writer.WriteEndArray();
 
+            writer.WriteEndArray();
             writer.WriteEndObject();
         }
 
@@ -30,35 +28,33 @@ internal static class JsonWriter {
 
         writer.WritePropertyName("httpMethods");
         writer.WriteStartArray();
-        for (var i = 0; i < endpoint.HttpMethods.Length; i++) {
+        for (var i = 0; i < endpoint.HttpMethods.Length; i++)
             writer.WriteStringValue(endpoint.HttpMethods[i]);
-        }
+
         writer.WriteEndArray();
 
         writer.WriteString("routeTemplate", endpoint.RouteTemplate);
 
         writer.WritePropertyName("routeParameters");
         writer.WriteStartArray();
-        for (var i = 0; i < endpoint.RouteParameters.Length; i++) {
+        for (var i = 0; i < endpoint.RouteParameters.Length; i++)
             writer.WriteStringValue(endpoint.RouteParameters[i]);
-        }
+
         writer.WriteEndArray();
 
         writer.WriteString("handler", endpoint.Handler);
 
         writer.WritePropertyName("parameters");
         writer.WriteStartArray();
-        for (var i = 0; i < endpoint.Parameters.Length; i++) {
+        for (var i = 0; i < endpoint.Parameters.Length; i++)
             WriteParameter(writer, endpoint.Parameters[i]);
-        }
+
         writer.WriteEndArray();
 
-        if (endpoint.ReturnType is null) {
+        if (endpoint.ReturnType is null)
             writer.WriteNull("returnType");
-        }
-        else {
+        else
             writer.WriteString("returnType", endpoint.ReturnType);
-        }
 
         writer.WriteEndObject();
     }
