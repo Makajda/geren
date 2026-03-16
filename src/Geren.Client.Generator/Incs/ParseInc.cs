@@ -1,21 +1,8 @@
 namespace Geren.Client.Generator.Incs;
 
-internal class ParseInc {
-    internal OpenApiDocument? Document { get; }
-    internal string? FilePath { get; }
-    internal bool Success { get; }
-    internal Diagnostic? Diagnostic { get; }
-
-    private ParseInc(OpenApiDocument? document, string? filePath, Diagnostic? diagnostic) {
-        Document = document;
-        FilePath = filePath;
-        Diagnostic = diagnostic;
-        Success = true;
-    }
-
-    //static
-    private static ParseInc Ok(OpenApiDocument doc, string filePath) => new(doc, filePath, null);
-    private static ParseInc Diag(Diagnostic diagnostic) => new(null, null, diagnostic);
+internal sealed record ParseInc(OpenApiDocument? Document = null, string? FilePath = null, bool Success = false, Diagnostic? Diagnostic = null) {
+    private static ParseInc Ok(OpenApiDocument doc, string filePath) => new(doc, filePath, true);
+    private static ParseInc Diag(Diagnostic diagnostic) => new(null, null, false, diagnostic);
 
     internal static ParseInc Parse(string filePath, string text) {
         try {

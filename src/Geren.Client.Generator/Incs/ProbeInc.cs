@@ -2,25 +2,10 @@ using System.Text.Json;
 
 namespace Geren.Client.Generator.Incs;
 
-internal sealed class ProbeInc {
-    internal string? FilePath { get; }
-    internal string? Text { get; }
-    internal bool Success { get; }
-    internal Diagnostic? Diagnostic { get; }
-
-    private ProbeInc(string filePath, string text) {
-        FilePath = filePath;
-        Text = text;
-        Success = true;
-    }
-
-    private ProbeInc() { }
-    private ProbeInc(Diagnostic diagnostic) => Diagnostic = diagnostic;
-
-    //static
+internal sealed record ProbeInc(string? FilePath = null, string? Text = null, bool Success = false, Diagnostic? Diagnostic = null) {
     private static ProbeInc Skip() => new();
-    private static ProbeInc Take(string filePath, string text) => new(filePath, text);
-    private static ProbeInc Diag(Diagnostic diagnostic) => new(diagnostic);
+    private static ProbeInc Take(string filePath, string text) => new(filePath, text, true);
+    private static ProbeInc Diag(Diagnostic diagnostic) => new(null, null, false, diagnostic);
 
     internal static ProbeInc Probe(AdditionalText file, CancellationToken cancellationToken) {
         var filePath = file.Path;
