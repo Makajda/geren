@@ -3,7 +3,6 @@ namespace Geren.Client.Generator;
 [Generator]
 public sealed class Generator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        //if (!System.Diagnostics.Debugger.IsAttached) System.Diagnostics.Debugger.Launch();
         var rootNamespace = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
             options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
                 && !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : "Geren");

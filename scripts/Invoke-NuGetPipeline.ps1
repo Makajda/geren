@@ -160,6 +160,17 @@ $packages = @(
             "README.md",
             "LICENSE.txt"
         )
+    },
+    [pscustomobject]@{
+        Metadata = Get-ProjectPackageMetadata -ProjectPath (Join-Path $repoRoot "src/Geren.Server.Exporter/Geren.Server.Exporter.csproj")
+        RequiredEntries = @(
+            "tools/net10.0/any/DotnetToolSettings.xml",
+            "tools/net10.0/any/Geren.Server.Exporter.dll",
+            "tools/net10.0/any/Geren.Server.Exporter.deps.json",
+            "tools/net10.0/any/Geren.Server.Exporter.runtimeconfig.json",
+            "README.md",
+            "LICENSE.txt"
+        )
     }
 )
 
@@ -234,31 +245,3 @@ foreach ($package in $packages) {
 }
 
 Write-Host "NuGet pipeline completed successfully."
-
-
-$exporterProjectPath = Join-Path $repoRoot "src/Geren.Server.Exporter/Geren.Server.Exporter.csproj"
-if (-not $NoBuild) {
-    $buildExporterArgs = @(
-        "build", $exporterProjectPath,
-        "-c", $Configuration,
-        "-nologo",
-        "-p:ContinuousIntegrationBuild=true",
-        "-p:IsPackable=false"
-    )
-
-    if (-not [string]::IsNullOrWhiteSpace($resolvedRestoreConfigFile)) {
-        $buildExporterArgs += "-p:RestoreConfigFile=$resolvedRestoreConfigFile"
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($Version)) {
-        $buildExporterArgs += "-p:Version=$Version"
-    }
-
-    Write-Host "Building tool 'Geren.Server.Exporter' from '$exporterProjectPath'..."
-    & dotnet @buildExporterArgs
-    if ($LASTEXITCODE -ne 0) {
-        throw "dotnet build failed for tool 'Geren.Server.Exporter' with exit code $LASTEXITCODE."
-    }
-}
-
-Write-Host "Exporter pipeline completed successfully."
