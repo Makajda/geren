@@ -71,7 +71,7 @@ public sealed class ApiClientGeneratorTests {
         CSharpCompilation compilation,
         ImmutableArray<AdditionalText> additionalTexts,
         string? rootNamespace = null) {
-        var generator = new ApiClientGenerator();
+        var generator = new Generator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(
             generators: [generator.AsSourceGenerator()],
             additionalTexts: additionalTexts,
