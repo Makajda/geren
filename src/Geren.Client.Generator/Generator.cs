@@ -22,7 +22,8 @@ public sealed class Generator : IIncrementalGenerator {
         var maped = parsed
             .Where(static p => p.Success)
             .Combine(context.CompilationProvider)
-            .Select(static (x, _) => MapInc.Map(x.Right, x.Left.Document!, x.Left.FilePath!));
+            .Combine(rootNamespace)
+            .Select(static (x, _) => MapInc.Map(x.Left.Right, x.Right, x.Left.Left.Document!, x.Left.Left.FilePath!));
         context.RegisterSourceOutput(maped.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));
 
@@ -36,14 +37,21 @@ public sealed class Generator : IIncrementalGenerator {
         context.RegisterSourceOutput(maped.Where(static n => !n.Endpoints.IsEmpty).Combine(rootNamespace), (spc, x) => {
             var (map, rootNamespace) = x;
 
-            string spaceName = $"{rootNamespace}.{map.NamespaceFromFile}";
-            var extensions = EmitExtensions.Run(rootNamespace, map.NamespaceFromFile, spaceName,
-                map.Endpoints.Select(e => $"{(string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".")}{e.ClassName}").Distinct());
-            spc.AddSource($"{spaceName}.Extensions.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(extensions), Encoding.UTF8));
+            string spaceFromName = $"{rootNamespace}.{map.NamespaceFromFile}";
+
+            if (map.UnresolvedSchemaTypes.Any()) {
+                var unresolvedTypes = EmitUnresolvedTypes.Run(spaceFromName, map.UnresolvedSchemaTypes);
+                spc.AddSource($"{spaceFromName}.UnresolvedTypes.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(unresolvedTypes), Encoding.UTF8));
+            }
+
+            var extensions = EmitExtensions.Run(rootNamespace, map.NamespaceFromFile, spaceFromName,
+                map.Endpoints.Select(e => $"{(string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".")}{e.ClassName}")
+                .Distinct(StringComparer.Ordinal));
+            spc.AddSource($"{spaceFromName}.Extensions.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(extensions), Encoding.UTF8));
 
             var files = map.Endpoints.GroupBy(e => new { e.SpaceName, e.ClassName });
             foreach (var file in files) {
-                string fileSpaceName = $"{spaceName}{(string.IsNullOrEmpty(file.Key.SpaceName) ? string.Empty : "." + file.Key.SpaceName)}";
+                string fileSpaceName = $"{spaceFromName}{(string.IsNullOrEmpty(file.Key.SpaceName) ? string.Empty : "." + file.Key.SpaceName)}";
                 var code = EmitClient.Run(file, rootNamespace, fileSpaceName, file.Key.ClassName);
                 spc.AddSource($"{fileSpaceName}.{file.Key.ClassName}.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(code), Encoding.UTF8));
             }

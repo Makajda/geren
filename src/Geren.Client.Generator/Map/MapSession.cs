@@ -5,8 +5,9 @@ namespace Geren.Client.Generator.Map;
 internal sealed class MapSession {
     private readonly ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
     private SchemaTypeName _schemaTypeName = default!; // Initialized in BuildMap to ensure diagnostics are captured
-    internal MapInc BuildMap(Compilation compilation, OpenApiDocument doc, string filePath) {
-        _schemaTypeName = new(compilation, _diagnostics);
+    internal MapInc BuildMap(Compilation compilation, string rootNamespace, OpenApiDocument doc, string filePath) {
+        string namespaceFromFile = Givencg.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
+        _schemaTypeName = new($"{rootNamespace}.{namespaceFromFile}", compilation, _diagnostics);
         var endpointSpecs = ImmutableArray.CreateBuilder<EndpointSpec>();
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var path in doc.Paths) {
@@ -44,9 +45,12 @@ internal sealed class MapSession {
             }
         }
 
-        string hintFilePath = CreateHintFilePath(filePath);
-        string namespaceFromFile = Givencg.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
-        return new(hintFilePath, namespaceFromFile, endpointSpecs.ToImmutable(), _diagnostics.ToImmutable());
+        return new(
+            CreateHintFilePath(filePath),
+            namespaceFromFile,
+            endpointSpecs.ToImmutable(),
+            _diagnostics.ToImmutable(),
+            _schemaTypeName.GetUnresolvedSchemaTypes());
     }
 
     private (ImmutableArray<ParamSpec> Params, ImmutableArray<ParamSpec> Queries) SplitPathAndQueryParameters(

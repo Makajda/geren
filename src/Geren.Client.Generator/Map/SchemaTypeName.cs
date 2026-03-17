@@ -3,9 +3,18 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Geren.Client.Generator.Map;
 
-internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
+internal class SchemaTypeName(string _rootFileNamespace, Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
+
+    internal ImmutableArray<UnresolvedSchemaType> GetUnresolvedSchemaTypes() =>
+        _unresolvedByPlaceholder.Count == 0
+            ? []
+            : [.. _unresolvedByPlaceholder.Values
+                .OrderBy(static t => t.Kind, StringComparer.Ordinal)
+                .ThenBy(static t => t.Requested, StringComparer.Ordinal)
+                .ThenBy(static t => t.PlaceholderTypeName, StringComparer.Ordinal)];
 
     internal string Resolve(IOpenApiSchema? schema) {
         const string defaultType = "string";
@@ -41,6 +50,25 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         return defaultType;
     }
 
+    private string GetOrCreatePlaceholderTypeName(string kind, string requested, string? details = null) {
+        string name = "__GerenUnresolvedType_" + ComputeStableHash12($"{kind}:{requested}");
+        if (!_unresolvedByPlaceholder.ContainsKey(name)) {
+            _unresolvedByPlaceholder[name] = new UnresolvedSchemaType(
+                PlaceholderTypeName: name,
+                Kind: kind,
+                Requested: requested,
+                Details: details);
+        }
+        else if (details is not null) {
+            var existing = _unresolvedByPlaceholder[name];
+            if (existing.Details is null) {
+                _unresolvedByPlaceholder[name] = existing with { Details = details };
+            }
+        }
+
+        return $"global::{_rootFileNamespace}.{name}";
+    }
+
     private string ResolveByMetadata(string simpleType) {
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
             return cached;
@@ -48,9 +76,10 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         string result;
         INamedTypeSymbol? symbol = _compilation.GetTypeByMetadataName(simpleType);
         if (symbol is null) {
-            result = "object";
             if (_reportedUnresolvedSchemaTypes.Add(simpleType))
                 _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, "by metadata", simpleType));
+
+            result = GetOrCreatePlaceholderTypeName(kind: "metadata", requested: simpleType);
         }
         else
             result = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -76,7 +105,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         var type = typeInfo.Type;
         string result;
         if (type is null || type is IErrorTypeSymbol || tree.GetDiagnostics().Count() > 0) {// semantic || syntax
-            result = "object";
+            result = GetOrCreatePlaceholderTypeName(kind: "compile", requested: genericType);
             if (_reportedUnresolvedSchemaTypes.Add(genericType))
                 _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, "by compile", genericType));
         }
@@ -87,7 +116,7 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
         return result;
     }
 
-    // Further only ResolveByReference with GetSymbolsWithName
+    // ResolveByReference with GetSymbolsWithName
     private string ResolveByReference(string referenceId) {
         string simpleType = Givencg.ToLetterOrDigitName(referenceId);
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
@@ -107,12 +136,19 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
 
         string result;
         if (candidateNames.Count > 1) {
-            result = "object";
+            string message = FormatAmbiguousMatches(candidateNames);
+            result = GetOrCreatePlaceholderTypeName(
+                kind: "ambiguous",
+                requested: simpleType,
+                details: $"referenceId: {referenceId}; matches: {message}");
             _diagnostics.Add(Diagnostic.Create(
-                Dide.AmbiguousSchemaReference, Location.None, referenceId, simpleType, FormatAmbiguousMatches(candidateNames)));
+                Dide.AmbiguousSchemaReference, Location.None, referenceId, simpleType, message));
         }
         else if (candidateNames.Count == 0) {
-            result = "object";
+            result = GetOrCreatePlaceholderTypeName(
+                kind: "reference",
+                requested: simpleType,
+                details: $"referenceId: {referenceId}");
             if (_reportedUnresolvedSchemaTypes.Add(simpleType))
                 _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, referenceId, simpleType));
         }
@@ -150,5 +186,22 @@ internal class SchemaTypeName(Compilation _compilation, ImmutableArray<Diagnosti
 
         foreach (var nested in typeSymbol.GetTypeMembers())
             CollectTypeNamesByName(nested, typeName, output);
+    }
+
+    // For PlaceholderTypeName
+    private static string ComputeStableHash12(string value) {
+        // FNV-1a 64-bit over UTF-16 chars (stable across runtimes for the same string)
+        const ulong offsetBasis = 14695981039346656037UL;
+        const ulong prime = 1099511628211UL;
+
+        ulong hash = offsetBasis;
+        for (var i = 0; i < value.Length; i++) {
+            hash ^= value[i];
+            hash *= prime;
+        }
+
+        // 12 hex chars = 48 bits; keep it short for readability
+        var shortHash = hash & 0xFFFFFFFFFFFFUL;
+        return shortHash.ToString("X12");
     }
 }

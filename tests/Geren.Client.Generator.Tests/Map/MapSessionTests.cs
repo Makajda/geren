@@ -1,4 +1,4 @@
-namespace Geren.Tests.Map;
+namespace Geren.Client.Generator.Tests.Map;
 
 public sealed class MapSessionTests {
     [Fact]
@@ -91,7 +91,7 @@ public sealed class MapSessionTests {
         }
         """, allowReaderErrors: true);
 
-        var result = new MapSession().BuildMap(compilation, document, @"specs\pet-store.v1.json");
+        var result = new MapSession().BuildMap(compilation, "Company.Generated", document, @"specs\pet-store.v1.json");
 
         result.NamespaceFromFile.Should().Be("Pet_store_v1");
         result.HintFilePath.Should().StartWith("h");
@@ -148,7 +148,7 @@ public sealed class MapSessionTests {
         }
         """, allowReaderErrors: true);
 
-        var result = new MapSession().BuildMap(compilation, document, "orders.json");
+        var result = new MapSession().BuildMap(compilation, "Company.Generated", document, "orders.json");
         var endpoint = result.Endpoints.Should().ContainSingle().Subject;
 
         endpoint.Queries.Should().ContainSingle();
@@ -188,7 +188,7 @@ public sealed class MapSessionTests {
         }
         """, allowReaderErrors: true);
 
-        var result = new MapSession().BuildMap(TestCompilationFactory.Create(), document, "orders.json");
+        var result = new MapSession().BuildMap(TestCompilationFactory.Create(), "Company.Generated", document, "orders.json");
         var endpoint = result.Endpoints.Should().ContainSingle().Subject;
 
         result.Diagnostics.Should().BeEmpty();
@@ -222,7 +222,7 @@ public sealed class MapSessionTests {
         }
         """, allowReaderErrors: true);
 
-        var result = new MapSession().BuildMap(TestCompilationFactory.Create(), document, "orders.json");
+        var result = new MapSession().BuildMap(TestCompilationFactory.Create(), "Company.Generated", document, "orders.json");
 
         result.Endpoints.Should().HaveCount(1);
         result.Diagnostics.Select(static diagnostic => diagnostic.Id).Should().Contain("GEREN006");
@@ -293,7 +293,7 @@ public sealed class MapSessionTests {
         }
         """, allowReaderErrors: true);
 
-        var result = new MapSession().BuildMap(TestCompilationFactory.Create(), document, "orders.json");
+        var result = new MapSession().BuildMap(TestCompilationFactory.Create(), "Company.Generated", document, "orders.json");
 
         result.Endpoints.Should().HaveCount(3);
         result.Diagnostics.Select(static diagnostic => diagnostic.Id)

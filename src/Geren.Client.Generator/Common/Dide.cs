@@ -52,7 +52,7 @@ internal static class Dide {
         "Unresolved schema reference",
         "Schema reference '{0}' resolved to type '{1}' which was not found in compilation",
         "Geren",
-        DiagnosticSeverity.Error,
+        DiagnosticSeverity.Warning,
         true);
 
     internal static readonly DiagnosticDescriptor MissingParamLocation = new(

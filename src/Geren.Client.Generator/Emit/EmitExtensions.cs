@@ -11,7 +11,7 @@ using System;
 
 namespace {{spaceName}};
 
-public static class Geren{{namespaceFromFile}}Extensions
+public static class {{namespaceFromFile}}Extensions
 {
     public static IServiceCollection AddGerenClients(
         this IServiceCollection services,

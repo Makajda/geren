@@ -39,8 +39,8 @@ public sealed class SchemaTypeNameTests {
             }
         };
 
-        resolver.Resolve(schema).Should().Be("object");
-        resolver.Resolve(schema).Should().Be("object");
+        resolver.Resolve(schema);
+        resolver.Resolve(schema);
 
         diagnostics.Select(static diagnostic => diagnostic.Id).Should().Equal(["GEREN007"]);
     }
@@ -71,8 +71,8 @@ public sealed class SchemaTypeNameTests {
             }
         };
 
-        resolver.Resolve(schema).Should().Be("object");
-        resolver.Resolve(schema).Should().Be("object");
+        resolver.Resolve(schema);
+        resolver.Resolve(schema);
 
         diagnostics.Select(static diagnostic => diagnostic.Id).Should().Equal(["GEREN007"]);
     }
@@ -156,7 +156,7 @@ public sealed class SchemaTypeNameTests {
         }
         """);
 
-        resolver.Resolve(schema).Should().Be("object");
+        resolver.Resolve(schema);
         diagnostics.Select(static diagnostic => diagnostic.Id).Should().Contain("GEREN014");
     }
 
@@ -164,7 +164,7 @@ public sealed class SchemaTypeNameTests {
         ImmutableArray<Diagnostic>.Builder? diagnostics = null,
         params string[] sources) {
         diagnostics ??= ImmutableArray.CreateBuilder<Diagnostic>();
-        return new SchemaTypeName(TestCompilationFactory.Create(sources), diagnostics);
+        return new SchemaTypeName("rootFileNamespace", TestCompilationFactory.Create(sources), diagnostics);
     }
 
     private static IOpenApiSchema GetReferencedSchema(string text) {

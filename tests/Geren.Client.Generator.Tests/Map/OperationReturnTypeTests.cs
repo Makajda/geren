@@ -79,5 +79,5 @@ public sealed class OperationReturnTypeTests {
     }
 
     private static SchemaTypeName CreateSchemaTypeName() =>
-        new(TestCompilationFactory.Create(), ImmutableArray.CreateBuilder<Diagnostic>());
+        new("rootFileNamespace", TestCompilationFactory.Create(), ImmutableArray.CreateBuilder<Diagnostic>());
 }
