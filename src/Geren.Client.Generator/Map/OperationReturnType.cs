@@ -1,12 +1,12 @@
 namespace Geren.Client.Generator.Map;
 
 internal static class OperationReturnType {
-    internal static string Resolve(OpenApiOperation operation, SchemaTypeName schemaTypeName) {
+    internal static string Resolve(OpenApiOperation operation, TypeNameResolver typeNameResolver) {
         foreach (var responseEntry in operation.Responses
             .Where(static r => Is2xxStatusCode(r.Key))
             .OrderBy(static r => GetResponsePriority(r.Key))
             .ThenBy(static r => r.Key, StringComparer.Ordinal)) {
-            var resolved = ResolveResponsePayloadType(responseEntry.Value, schemaTypeName);
+            var resolved = ResolveResponsePayloadType(responseEntry.Value, typeNameResolver);
             if (!string.IsNullOrEmpty(resolved))
                 return resolved;
         }
@@ -15,7 +15,7 @@ internal static class OperationReturnType {
             if (operation.Responses is null || !TryGetResponseByCode(operation.Responses, fallbackCode, out var fallback))
                 continue;
 
-            var resolved = ResolveResponsePayloadType(fallback, schemaTypeName);
+            var resolved = ResolveResponsePayloadType(fallback, typeNameResolver);
             if (!string.IsNullOrEmpty(resolved))
                 return resolved;
         }
@@ -23,12 +23,12 @@ internal static class OperationReturnType {
         return string.Empty;
     }
 
-    private static string ResolveResponsePayloadType(IOpenApiResponse response, SchemaTypeName schemaTypeName) {
+    private static string ResolveResponsePayloadType(IOpenApiResponse response, TypeNameResolver typeNameResolver) {
         if (response.Content is null || response.Content.Count == 0)
             return string.Empty;
 
         if (response.Content.TryGetValue("application/json", out IOpenApiMediaType json))
-            return schemaTypeName.Resolve(json.Schema);
+            return typeNameResolver.Resolve(json.Schema);
 
         if (response.Content.ContainsKey("text/plain"))
             return "string";

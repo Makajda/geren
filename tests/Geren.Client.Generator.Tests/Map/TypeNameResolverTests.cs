@@ -1,6 +1,6 @@
 namespace Geren.Tests.Map;
 
-public sealed class SchemaTypeNameTests {
+public sealed class TypeNameResolverTests {
     [Fact]
     public void Resolve_should_map_primitives_and_arrays() {
         var resolver = CreateResolver();
@@ -160,11 +160,11 @@ public sealed class SchemaTypeNameTests {
         diagnostics.Select(static diagnostic => diagnostic.Id).Should().Contain("GEREN014");
     }
 
-    private static SchemaTypeName CreateResolver(
+    private static TypeNameResolver CreateResolver(
         ImmutableArray<Diagnostic>.Builder? diagnostics = null,
         params string[] sources) {
         diagnostics ??= ImmutableArray.CreateBuilder<Diagnostic>();
-        return new SchemaTypeName("rootFileNamespace", TestCompilationFactory.Create(sources), diagnostics);
+        return new TypeNameResolver("rootFileNamespace", TestCompilationFactory.Create(sources), diagnostics);
     }
 
     private static IOpenApiSchema GetReferencedSchema(string text) {

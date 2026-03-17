@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Geren.Client.Generator.Map;
 
-internal class SchemaTypeName(string _rootFileNamespace, Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
+internal class TypeNameResolver(string _rootFileNamespace, Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);

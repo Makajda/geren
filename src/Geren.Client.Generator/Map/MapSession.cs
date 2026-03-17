@@ -4,10 +4,10 @@ namespace Geren.Client.Generator.Map;
 
 internal sealed class MapSession {
     private readonly ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
-    private SchemaTypeName _schemaTypeName = default!; // Initialized in BuildMap to ensure diagnostics are captured
+    private TypeNameResolver _typeNameResolver = default!; // Initialized in BuildMap to ensure diagnostics are captured
     internal MapInc BuildMap(Compilation compilation, string rootNamespace, OpenApiDocument doc, string filePath) {
         string namespaceFromFile = Givencg.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
-        _schemaTypeName = new($"{rootNamespace}.{namespaceFromFile}", compilation, _diagnostics);
+        _typeNameResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _diagnostics);
         var endpointSpecs = ImmutableArray.CreateBuilder<EndpointSpec>();
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var path in doc.Paths) {
@@ -31,7 +31,7 @@ internal sealed class MapSession {
                     continue;
                 }
 
-                string returnType = OperationReturnType.Resolve(operation.Value, _schemaTypeName);
+                string returnType = OperationReturnType.Resolve(operation.Value, _typeNameResolver);
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value);
                 if (bodyType is null && bodyMediaType is not null)
                     continue;
@@ -50,7 +50,7 @@ internal sealed class MapSession {
             namespaceFromFile,
             endpointSpecs.ToImmutable(),
             _diagnostics.ToImmutable(),
-            _schemaTypeName.GetUnresolvedSchemaTypes());
+            _typeNameResolver.GetUnresolvedSchemaTypes());
     }
 
     private (ImmutableArray<ParamSpec> Params, ImmutableArray<ParamSpec> Queries) SplitPathAndQueryParameters(
@@ -69,7 +69,7 @@ internal sealed class MapSession {
             string inValue = parameter.In.Value.ToString().ToLowerInvariant();
             if (inValue == "path") {
                 string identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
-                string paramType = _schemaTypeName.Resolve(parameter.Schema);
+                string paramType = _typeNameResolver.Resolve(parameter.Schema);
                 pathParams.Add(new(parameter.Name, identifier, paramType));
 
                 continue;
@@ -77,7 +77,7 @@ internal sealed class MapSession {
 
             if (inValue == "query") {
                 string identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
-                string paramType = NormalizeQueryType(_schemaTypeName.Resolve(parameter.Schema), parameter.Required);
+                string paramType = NormalizeQueryType(_typeNameResolver.Resolve(parameter.Schema), parameter.Required);
                 if (IsSupportedQueryType(paramType))
                     queryParams.Add(new(parameter.Name, identifier, paramType));
                 else
@@ -98,7 +98,7 @@ internal sealed class MapSession {
             return (null, null);
 
         if (requestBody.Content.TryGetValue("application/json", out var json))
-            return (_schemaTypeName.Resolve(json.Schema), "application/json");
+            return (_typeNameResolver.Resolve(json.Schema), "application/json");
 
         if (requestBody.Content.ContainsKey("text/plain"))
             return ("string", "text/plain");

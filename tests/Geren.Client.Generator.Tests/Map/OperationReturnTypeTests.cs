@@ -22,7 +22,7 @@ public sealed class OperationReturnTypeTests {
             }
         };
 
-        var returnType = OperationReturnType.Resolve(operation, CreateSchemaTypeName());
+        var returnType = OperationReturnType.Resolve(operation, CreateTypeNameResolver());
 
         returnType.Should().Be("string");
     }
@@ -40,7 +40,7 @@ public sealed class OperationReturnTypeTests {
             }
         };
 
-        OperationReturnType.Resolve(operation, CreateSchemaTypeName()).Should().Be("string");
+        OperationReturnType.Resolve(operation, CreateTypeNameResolver()).Should().Be("string");
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class OperationReturnTypeTests {
             }
         };
 
-        OperationReturnType.Resolve(operation, CreateSchemaTypeName()).Should().Be("bool");
+        OperationReturnType.Resolve(operation, CreateTypeNameResolver()).Should().Be("bool");
     }
 
     [Fact]
@@ -75,9 +75,9 @@ public sealed class OperationReturnTypeTests {
             }
         };
 
-        OperationReturnType.Resolve(operation, CreateSchemaTypeName()).Should().BeEmpty();
+        OperationReturnType.Resolve(operation, CreateTypeNameResolver()).Should().BeEmpty();
     }
 
-    private static SchemaTypeName CreateSchemaTypeName() =>
+    private static TypeNameResolver CreateTypeNameResolver() =>
         new("rootFileNamespace", TestCompilationFactory.Create(), ImmutableArray.CreateBuilder<Diagnostic>());
 }
