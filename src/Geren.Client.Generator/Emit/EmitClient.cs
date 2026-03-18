@@ -17,21 +17,20 @@ public sealed partial class {{className}}
 """;
 
     private static string EmitMethod(Mapoint endpoint) {
-        var (point, returnType, bodyType, _) = endpoint;
-        var methodName = point.MethodName;
-        var args = string.Join(", ", endpoint.Params.Concat(point.Queries).Select(p => $"{p.Type} {p.Identifier}"));
+        var methodName = endpoint.MethodName;
+        var args = string.Join(", ", endpoint.Params.Concat(endpoint.Queries).Select(p => $"{p.Type} {p.Identifier}"));
         if (args.Length > 0)
             args += ", ";
 
-        if (bodyType is not null && (point.Method == Given.Post || point.Method == Given.Put || point.Method == Given.Delete))
-            args += $"{bodyType} body, ";
+        if (endpoint.BodyType is not null && (endpoint.Method == Given.Post || endpoint.Method == Given.Put || endpoint.Method == Given.Delete))
+            args += $"{endpoint.BodyType} body, ";
 
         var signature = $"{methodName}({args}CancellationToken cancellationToken = default)";
         var pathExpr = BuildPathExpression(endpoint);
-        if (point.Method == Given.Get)
-            return EmitGet(returnType, signature, pathExpr);
+        if (endpoint.Method == Given.Get)
+            return EmitGet(endpoint.ReturnType, signature, pathExpr);
 
-        if (point.Method == Given.Delete)
+        if (endpoint.Method == Given.Delete)
             return EmitDelete(endpoint, signature, pathExpr);
 
         return EmitPostOrPut(endpoint, signature, pathExpr);
@@ -70,7 +69,7 @@ public sealed partial class {{className}}
 
     private static string EmitDelete(Mapoint endpoint, string signature, string pathExpr) {
         string send;
-        if (endpoint.Point.BodyMediaType == "application/json")
+        if (endpoint.BodyMediaType == "application/json")
             send = $$"""
         using var request = new HttpRequestMessage(HttpMethod.Delete, {{pathExpr}})
         {
@@ -78,7 +77,7 @@ public sealed partial class {{className}}
         };
         var response = await _http.SendAsync(request, cancellationToken);
 """;
-        else if (endpoint.Point.BodyMediaType == "text/plain")
+        else if (endpoint.BodyMediaType == "text/plain")
             send = $$"""
         using var request = new HttpRequestMessage(HttpMethod.Delete, {{pathExpr}})
         {
@@ -93,19 +92,18 @@ public sealed partial class {{className}}
     }
 
     private static string EmitPostOrPut(Mapoint endpoint, string signature, string pathExpr) {
-        var (point, returnType, _, _) = endpoint;
         string send;
-        if (point.BodyMediaType == "application/json")
-            send = $"        var response = await _http.{point.Method}AsJsonAsync({pathExpr}, body, cancellationToken);";
-        else if (point.BodyMediaType == "text/plain")
+        if (endpoint.BodyMediaType == "application/json")
+            send = $"        var response = await _http.{endpoint.Method}AsJsonAsync({pathExpr}, body, cancellationToken);";
+        else if (endpoint.BodyMediaType == "text/plain")
             send = $$"""
         using var content = new StringContent(body, Encoding.UTF8, "text/plain");
-        var response = await _http.{{point.Method}}Async({{pathExpr}}, content, cancellationToken);
+        var response = await _http.{{endpoint.Method}}Async({{pathExpr}}, content, cancellationToken);
 """;
         else
-            send = $"        var response = await _http.{point.Method}Async({pathExpr}, null, cancellationToken);";
+            send = $"        var response = await _http.{endpoint.Method}Async({pathExpr}, null, cancellationToken);";
 
-        return EmitResponse(signature, returnType, send);
+        return EmitResponse(signature, endpoint.ReturnType, send);
     }
 
     private static string EmitResponse(string signature, string returnType, string send) {
@@ -143,15 +141,15 @@ public sealed partial class {{className}}
 """;
     }
     private static string BuildPathExpression(Mapoint endpoint) {
-        string interpolatedPath = endpoint.Point.Path;
+        string interpolatedPath = endpoint.Path;
         foreach (var param in endpoint.Params)
             interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{V(" + param.Identifier + ")}");
 
         string pathExpr = $"$\"{interpolatedPath}\"";
-        if (endpoint.Point.Queries.Length == 0)
+        if (endpoint.Queries.Length == 0)
             return pathExpr;
 
-        string queryBuilder = string.Join(Given.NewLine, endpoint.Point.Queries.Select(static p =>
+        string queryBuilder = string.Join(Given.NewLine, endpoint.Queries.Select(static p =>
             $"            A(query, \"{p.Name}\", {p.Identifier});"));
 
         return $$"""

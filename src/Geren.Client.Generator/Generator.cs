@@ -54,11 +54,11 @@ public sealed class Generator : IIncrementalGenerator {
 
             var extensions = EmitExtensions.Run(rootNamespace, map.NamespaceFromFile, spaceFromName,
                 map.Endpoints.Select(e =>
-                    $"{(string.IsNullOrEmpty(e.Point.SpaceName) ? string.Empty : e.Point.SpaceName + ".")}{e.Point.ClassName}")
+                    $"{(string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".")}{e.ClassName}")
                     .Distinct(StringComparer.Ordinal));
             spc.AddSource($"{spaceFromName}.Extensions.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(extensions), Encoding.UTF8));
 
-            var files = map.Endpoints.GroupBy(e => new { e.Point.SpaceName, e.Point.ClassName });
+            var files = map.Endpoints.GroupBy(e => new { e.SpaceName, e.ClassName });
             foreach (var file in files) {
                 string fileSpaceName = $"{spaceFromName}{(string.IsNullOrEmpty(file.Key.SpaceName) ? string.Empty : "." + file.Key.SpaceName)}";
                 var code = EmitClient.Run(file, rootNamespace, fileSpaceName, file.Key.ClassName);

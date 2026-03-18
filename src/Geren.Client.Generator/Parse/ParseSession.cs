@@ -72,7 +72,7 @@ internal sealed class ParseSession {
                 if (!ValidatePathParametersAgainstPath(path.Key, normalizedPath, @params))
                     continue;
 
-                endpoints.Add(new(new(method, normalizedPath, spaceName, className, methodName, bodyMediaType, queries), returnType, bodyType, @params));
+                endpoints.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
             }
         }
 

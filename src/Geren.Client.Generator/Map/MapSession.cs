@@ -7,14 +7,16 @@ internal sealed class MapSession {
         string namespaceFromFile = Given.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
         _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _diagnostics);
         var endpoints = ImmutableArray.CreateBuilder<Mapoint>();
-        foreach (var (point, returnPurtype, bodyPurtype, purparams) in purpoints) {
-            string returnType = _typeResolver.Resolve(returnPurtype);
-            string bodyType = _typeResolver.Resolve(bodyPurtype);
+        foreach (var point in purpoints) {
+            string returnType = _typeResolver.Resolve(point.ReturnType);
+            string bodyType = _typeResolver.Resolve(point.BodyType);
             ImmutableArray<ParamSpec>.Builder ps = ImmutableArray.CreateBuilder<ParamSpec>();
-            foreach (var pp in purparams)
-                ps.Add(new(pp.Name, pp.Identifier, _typeResolver.Resolve(pp.Type)));
+            foreach (var param in point.Params)
+                ps.Add(new(param.Name, param.Identifier, _typeResolver.Resolve(param.Type)));
 
-            endpoints.Add(new(point, returnType, bodyType, ps.ToImmutable()));
+            endpoints.Add(new(
+                point.Method, point.Path, point.SpaceName, point.ClassName, point.MethodName,
+                returnType, bodyType, point.BodyMediaType, ps.ToImmutable(), point.Queries));
         }
 
         return new(

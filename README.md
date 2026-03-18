@@ -96,10 +96,6 @@ By default the root namespace is `Geren`. You can override it:
 <PropertyGroup>
   <Geren_RootNamespace>MyCompany.Generated</Geren_RootNamespace>
 </PropertyGroup>
-
-<ItemGroup>
-  <CompilerVisibleProperty Include="Geren_RootNamespace" />
-</ItemGroup>
 ```
 
 ## Troubleshooting

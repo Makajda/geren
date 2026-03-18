@@ -2,5 +2,6 @@
   <ItemGroup>
     <!-- Allow the generator to read custom AdditionalFiles metadata via AnalyzerConfigOptionsProvider. -->
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="Geren" />
+    <CompilerVisibleProperty Include="Geren_RootNamespace" />
   </ItemGroup>
 </Project>

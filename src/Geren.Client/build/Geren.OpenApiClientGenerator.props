@@ -1,6 +1,3 @@
 <Project>
-  <ItemGroup>
-    <!-- Allow the generator to read custom AdditionalFiles metadata via AnalyzerConfigOptionsProvider. -->
-    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="Geren" />
-  </ItemGroup>
+	<Import Project="..\buildTransitive\Geren.OpenApiClientGenerator.props" />
 </Project>

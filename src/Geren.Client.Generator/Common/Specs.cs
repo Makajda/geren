@@ -1,14 +1,5 @@
 namespace Geren.Client.Generator.Common;
 
-internal sealed record PointSpec(
-    string Method,
-    string Path,
-    string SpaceName,
-    string ClassName,
-    string MethodName,
-    string? BodyMediaType,
-    ImmutableArray<ParamSpec> Queries);
-
 internal sealed record ParamSpec(
     string Name,
     string Identifier,
@@ -20,16 +11,28 @@ internal sealed record Purparam(
     PurposeType Type);
 
 internal sealed record Purpoint(
-    PointSpec Point,
+    string Method,
+    string Path,
+    string SpaceName,
+    string ClassName,
+    string MethodName,
     PurposeType ReturnType,
     PurposeType? BodyType,
-    ImmutableArray<Purparam> Params);
+    string? BodyMediaType,
+    ImmutableArray<Purparam> Params,
+    ImmutableArray<ParamSpec> Queries);
 
 internal sealed record Mapoint(
-    PointSpec Point,
+    string Method,
+    string Path,
+    string SpaceName,
+    string ClassName,
+    string MethodName,
     string ReturnType,
     string? BodyType,
-    ImmutableArray<ParamSpec> Params);
+    string? BodyMediaType,
+    ImmutableArray<ParamSpec> Params,
+    ImmutableArray<ParamSpec> Queries);
 
 internal sealed record UnresolvedSchemaType(
     string PlaceholderTypeName,
