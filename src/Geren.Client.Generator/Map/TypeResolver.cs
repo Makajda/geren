@@ -3,21 +3,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Geren.Client.Generator.Map;
 
-internal class TypeResolver(string _rootFileNamespace, Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
+internal class TypeResolver(
+    string _rootFileNamespace,
+    Compilation _compilation,
+    Dictionary<string,
+    UnresolvedSchemaType> _unresolvedByPlaceholder,
+    ImmutableArray<Diagnostic>.Builder _diagnostics) {
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
-
-    internal ImmutableArray<UnresolvedSchemaType> GetUnresolvedSchemaTypes() =>
-        _unresolvedByPlaceholder.Count == 0
-            ? []
-            : [.. _unresolvedByPlaceholder.Values
-                .OrderBy(static t => t.Kind, StringComparer.Ordinal)
-                .ThenBy(static t => t.Requested, StringComparer.Ordinal)
-                .ThenBy(static t => t.PlaceholderTypeName, StringComparer.Ordinal)];
 
     internal string Resolve(PurposeType? _) {
-        return "string";
+        return "string";//todo
     }
     internal string Resolve(IOpenApiSchema? schema) {
         const string defaultType = "string";

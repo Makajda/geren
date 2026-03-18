@@ -4,44 +4,12 @@ namespace Geren.Client.Generator.Parse;
 
 internal sealed class ParseSession {
     private readonly ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
-    internal ParseInc BuildMap(AdditionalText file, CancellationToken cancellationToken) {
-        try {
-            string? text = file.GetText(cancellationToken)?.ToString();
-            if (string.IsNullOrWhiteSpace(text)) {
-                _diagnostics.Add(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid {file.Path}: File is empty."));
-                return Skip();
-            }
 
-            using MemoryStream ms = new(Encoding.UTF8.GetBytes(Given.ArraysDisguise(text!)));
-            var readResult = OpenApiDocument.Load(ms);
-            var errors = readResult.Diagnostic?.Errors;
-            if (errors is not null && errors.Any()) {
-                _diagnostics.Add(Diagnostic.Create(Dide.ParseError, Location.None,
-                    $"OpenAPI errors in {file.Path}: {string.Join("; ", errors.Select(e => e.Message))}"));
-                return Skip();
-            }
-
-            OpenApiDocument? document = readResult.Document;
-            if (document is null) {
-                _diagnostics.Add(Diagnostic.Create(Dide.ParseError, Location.None, $"OpenAPI reader returned null for {file.Path}"));
-                return Skip();
-            }
-
-            return new(true, file.Path, GetEndpoints(document), _diagnostics.ToImmutable());
-        }
-        catch (Exception ex) {
-            _diagnostics.Add(Diagnostic.Create(Dide.ParseError, Location.None,
-                $"OpenAPI parse exception in {file.Path}: {ex.Message}"));
-            return Skip();
-        }
-    }
-
-    private ParseInc Skip() => new(false, string.Empty, [], _diagnostics.ToImmutable());
-
-    private ImmutableArray<Purpoint> GetEndpoints(OpenApiDocument doc) {
+    internal ParseInc BuildMap(string filePath, OpenApiDocument doc) {
         var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var path in doc.Paths) {
+            //todo cancellationToken
             string normalizedPath = NormalizePathTemplate(path.Key);
             if (path.Value?.Operations is null)
                 continue;
@@ -76,7 +44,7 @@ internal sealed class ParseSession {
             }
         }
 
-        return endpoints.ToImmutable();
+        return new(true, filePath, endpoints.ToImmutable(), _diagnostics.ToImmutable());
     }
 
     internal PurposeType Resolve(IOpenApiSchema? schema) {

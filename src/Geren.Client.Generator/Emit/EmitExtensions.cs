@@ -1,7 +1,7 @@
 namespace Geren.Client.Generator.Emit;
 
 internal static class EmitExtensions {
-    internal static string Run(string rootNamespace, string namespaceFromFile, string spaceName, IEnumerable<string> names) {
+    internal static string Run(string rootNamespace, string namespaceFromFile, IEnumerable<string> names) {
         return $$"""
 #nullable enable
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using System;
 
-namespace {{spaceName}};
+namespace {{rootNamespace}}.{{namespaceFromFile}};
 
 public static class {{namespaceFromFile}}Extensions
 {
