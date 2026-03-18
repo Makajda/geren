@@ -149,6 +149,8 @@ $packages = @(
             "lib/net10.0/Geren.Client.dll",
             "analyzers/dotnet/cs/Geren.Client.Generator.dll",
             "analyzers/dotnet/cs/Microsoft.OpenApi.dll",
+            "build/Geren.OpenApiClientGenerator.props",
+            "buildTransitive/Geren.OpenApiClientGenerator.props",
             "README.md",
             "LICENSE.txt"
         )
