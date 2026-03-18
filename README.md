@@ -98,6 +98,14 @@ By default the root namespace is `Geren`. You can override it:
 </PropertyGroup>
 ```
 
+Note: if you reference the generator via `ProjectReference`/manual `<Analyzer Include=...>`, you may also need:
+
+```xml
+<ItemGroup>
+  <CompilerVisibleProperty Include="Geren_RootNamespace" />
+</ItemGroup>
+```
+
 ## Troubleshooting
 
 ### Nothing Is Generated

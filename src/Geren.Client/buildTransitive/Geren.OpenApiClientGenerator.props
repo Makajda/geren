@@ -2,6 +2,7 @@
   <ItemGroup>
     <!-- Allow the generator to read custom AdditionalFiles metadata via AnalyzerConfigOptionsProvider. -->
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="Geren" />
+    <!-- Allow the generator to read build_property.Geren_RootNamespace when user sets the MSBuild property. -->
     <CompilerVisibleProperty Include="Geren_RootNamespace" />
   </ItemGroup>
 </Project>
