@@ -160,11 +160,11 @@ public sealed class TypeNameResolverTests {
         diagnostics.Select(static diagnostic => diagnostic.Id).Should().Contain("GEREN014");
     }
 
-    private static TypeNameResolver CreateResolver(
+    private static TypeResolver CreateResolver(
         ImmutableArray<Diagnostic>.Builder? diagnostics = null,
         params string[] sources) {
         diagnostics ??= ImmutableArray.CreateBuilder<Diagnostic>();
-        return new TypeNameResolver("rootFileNamespace", TestCompilationFactory.Create(sources), diagnostics);
+        return new TypeResolver("rootFileNamespace", TestCompilationFactory.Create(sources), diagnostics);
     }
 
     private static IOpenApiSchema GetReferencedSchema(string text) {

@@ -7,30 +7,38 @@ public sealed class Generator : IIncrementalGenerator {
             options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
                 && !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : "Geren");
 
-        // Probe
-        var probed = context.AdditionalTextsProvider
-            .Select(static (text, cancellationToken) => ProbeInc.Probe(text, cancellationToken));
-        context.RegisterSourceOutput(probed.Where(p => p.Diagnostic is not null),
-            static (spc, p) => spc.ReportDiagnostic(p.Diagnostic!));
-
         // Parse
-        var parsed = probed.Where(static p => p.Success).Select(static (p, _) => ParseInc.Parse(p.FilePath!, p.Text!));
-        context.RegisterSourceOutput(parsed.Where(static p => p.Diagnostic is not null),
-            static (spc, p) => spc.ReportDiagnostic(p.Diagnostic!));
+        var parsed = context.AdditionalTextsProvider
+            .Combine(context.AnalyzerConfigOptionsProvider)
+            .Select(static (x, cancellationToken) =>
+                x.Right.GetOptions(x.Left).TryGetValue("build_metadata.AdditionalFiles.Geren", out var value)
+                    && string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ? x.Left : null)
+            .Where(static p => p is not null)
+            .Select(static (p, cancellationToken) => ParseInc.Parse(p!, cancellationToken));
+
+        context.RegisterSourceOutput(parsed.SelectMany(static (r, _) => r.Diagnostics),
+            static (spc, r) => spc.ReportDiagnostic(r));
 
         // Map
         var maped = parsed
             .Where(static p => p.Success)
             .Combine(context.CompilationProvider)
             .Combine(rootNamespace)
-            .Select(static (x, _) => MapInc.Map(x.Left.Right, x.Right, x.Left.Left.Document!, x.Left.Left.FilePath!));
+            .Select(static (x, _) => {
+                var ((p, compilation), rootNamespace) = x;
+                return MapInc.Map(compilation, rootNamespace, p.FilePath, p.Purpoints);
+            });
+
         context.RegisterSourceOutput(maped.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));
 
         // FactoryBridge
-        context.RegisterSourceOutput(maped.Where(static n => !n.Endpoints.IsEmpty).Collect().Combine(rootNamespace), static (spc, t) => {
-            if (t.Left.Any())
-                spc.AddSource($"{t.Right}.FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8));
+        var hasAnyEndpoints = maped.Select(static (m, _) => !m.Endpoints.IsEmpty).Collect()
+            .Select(static (flags, _) => flags.Any(f => f));
+        context.RegisterSourceOutput(hasAnyEndpoints.Combine(rootNamespace), static (spc, t) => {
+            if (t.Left)
+                spc.AddSource($"{t.Right}.FactoryBridge.g.cs",
+                    SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8));
         });
 
         // Extensions and Clients
@@ -45,11 +53,12 @@ public sealed class Generator : IIncrementalGenerator {
             }
 
             var extensions = EmitExtensions.Run(rootNamespace, map.NamespaceFromFile, spaceFromName,
-                map.Endpoints.Select(e => $"{(string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".")}{e.ClassName}")
-                .Distinct(StringComparer.Ordinal));
+                map.Endpoints.Select(e =>
+                    $"{(string.IsNullOrEmpty(e.Point.SpaceName) ? string.Empty : e.Point.SpaceName + ".")}{e.Point.ClassName}")
+                    .Distinct(StringComparer.Ordinal));
             spc.AddSource($"{spaceFromName}.Extensions.{map.HintFilePath}.g.cs", SourceText.From(NormalizeEol(extensions), Encoding.UTF8));
 
-            var files = map.Endpoints.GroupBy(e => new { e.SpaceName, e.ClassName });
+            var files = map.Endpoints.GroupBy(e => new { e.Point.SpaceName, e.Point.ClassName });
             foreach (var file in files) {
                 string fileSpaceName = $"{spaceFromName}{(string.IsNullOrEmpty(file.Key.SpaceName) ? string.Empty : "." + file.Key.SpaceName)}";
                 var code = EmitClient.Run(file, rootNamespace, fileSpaceName, file.Key.ClassName);

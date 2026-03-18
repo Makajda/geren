@@ -4,7 +4,7 @@ using System.Runtime.Loader;
 namespace Geren.Tests.TestSupport;
 
 internal static class GeneratedClientRuntimeHost {
-    internal static async Task<Uri?> InvokeAsync(EndpointSpec endpoint, params object?[] arguments) {
+    internal static async Task<Uri?> InvokeAsync(Mapoint endpoint, params object?[] arguments) {
         var usingsCode = """
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Http.Resilience;

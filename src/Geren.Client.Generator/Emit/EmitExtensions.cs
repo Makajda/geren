@@ -28,12 +28,12 @@ public static class {{namespaceFromFile}}Extensions
 }
 """;
 
-        string AllReg() => string.Join(Givencg.NewLine, names.Select(name => $$"""
+        string AllReg() => string.Join(Given.NewLine, names.Select(name => $$"""
         global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient, configureBuilder, useResilience, resiliencePipelineName, configureResilience);
 """));
 
         // Registration for each class
-        string SingleReg() => string.Join(Givencg.NewLine + Givencg.NewLine, names.Select(name => $$"""
+        string SingleReg() => string.Join(Given.NewLine + Given.NewLine, names.Select(name => $$"""
     public static IHttpClientBuilder AddGeren{{name.Replace(".", "_")}}(this IServiceCollection services,
         Action<HttpClient>? configureClient = null) => global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient);
 """));

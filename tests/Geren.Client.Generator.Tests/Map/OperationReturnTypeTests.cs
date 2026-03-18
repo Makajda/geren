@@ -78,6 +78,6 @@ public sealed class OperationReturnTypeTests {
         OperationReturnType.Resolve(operation, CreateTypeNameResolver()).Should().BeEmpty();
     }
 
-    private static TypeNameResolver CreateTypeNameResolver() =>
+    private static TypeResolver CreateTypeNameResolver() =>
         new("rootFileNamespace", TestCompilationFactory.Create(), ImmutableArray.CreateBuilder<Diagnostic>());
 }

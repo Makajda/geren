@@ -1,13 +1,13 @@
-namespace Geren.Client.Generator.Map;
+namespace Geren.Client.Generator.Parse;
 
-internal static class OperationReturnType {
-    internal static string Resolve(OpenApiOperation operation, TypeNameResolver typeNameResolver) {
+internal static class ReturnTypeResolver {
+    internal static PurposeType Resolve(OpenApiOperation operation, Func<IOpenApiSchema?, PurposeType> resolver) {
         foreach (var responseEntry in operation.Responses
             .Where(static r => Is2xxStatusCode(r.Key))
             .OrderBy(static r => GetResponsePriority(r.Key))
             .ThenBy(static r => r.Key, StringComparer.Ordinal)) {
-            var resolved = ResolveResponsePayloadType(responseEntry.Value, typeNameResolver);
-            if (!string.IsNullOrEmpty(resolved))
+            var resolved = ResolveResponsePayloadType(responseEntry.Value, resolver);
+            if (!string.IsNullOrEmpty(resolved.Type))
                 return resolved;
         }
 
@@ -15,25 +15,24 @@ internal static class OperationReturnType {
             if (operation.Responses is null || !TryGetResponseByCode(operation.Responses, fallbackCode, out var fallback))
                 continue;
 
-            var resolved = ResolveResponsePayloadType(fallback, typeNameResolver);
-            if (!string.IsNullOrEmpty(resolved))
+            var resolved = ResolveResponsePayloadType(fallback, resolver);
+            if (!string.IsNullOrEmpty(resolved.Type))
                 return resolved;
         }
 
-        return string.Empty;
+        return new(string.Empty);
     }
 
-    private static string ResolveResponsePayloadType(IOpenApiResponse response, TypeNameResolver typeNameResolver) {
-        if (response.Content is null || response.Content.Count == 0)
-            return string.Empty;
+    private static PurposeType ResolveResponsePayloadType(IOpenApiResponse response, Func<IOpenApiSchema?, PurposeType> resolver) {
+        if (response.Content is not null && response.Content.Any()) {
+            if (response.Content.TryGetValue("application/json", out IOpenApiMediaType json))
+                return resolver(json.Schema);
 
-        if (response.Content.TryGetValue("application/json", out IOpenApiMediaType json))
-            return typeNameResolver.Resolve(json.Schema);
+            if (response.Content.ContainsKey("text/plain"))
+                return new("string");
+        }
 
-        if (response.Content.ContainsKey("text/plain"))
-            return "string";
-
-        return string.Empty;
+        return new(string.Empty);
     }
 
     private static bool Is2xxStatusCode(string code) {

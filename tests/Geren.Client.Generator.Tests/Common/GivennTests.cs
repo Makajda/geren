@@ -7,8 +7,8 @@ public sealed class GivennTests {
     public void ArraysDisguise_and_restore_should_round_trip_multidimensional_markers() {
         const string source = "global::Contracts.Matrix[,,,][] and global::Contracts.Cube[,,]";
 
-        var disguised = Givencg.ArraysDisguise(source);
-        var restored = Givencg.ArraysRestore(disguised);
+        var disguised = Given.ArraysDisguise(source);
+        var restored = Given.ArraysRestore(disguised);
 
         disguised.Should().NotContain("[");
         restored.Should().Be(source);
@@ -21,6 +21,6 @@ public sealed class GivennTests {
     [InlineData("!!!", "___")]
     [InlineData("_already_valid", "_already_valid")]
     public void ToLetterOrDigitName_should_normalize_to_safe_identifier(string value, string expected) {
-        Givencg.ToLetterOrDigitName(value).Should().Be(expected);
+        Given.ToLetterOrDigitName(value).Should().Be(expected);
     }
 }

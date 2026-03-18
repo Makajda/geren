@@ -20,7 +20,7 @@ namespace {{spaceName}};
 // - Generated client code uses these placeholders to avoid producing extra compiler errors.
 // - Share this file with the DTO/support team to fix missing or ambiguous types at the source.
 
-{{string.Join(Givencg.NewLine + Givencg.NewLine, items.Select(EmitOne))}}
+{{string.Join(Given.NewLine + Given.NewLine, items.Select(EmitOne))}}
 """;
     }
 
@@ -50,7 +50,7 @@ namespace {{spaceName}};
                 lines.Add("// details: " + Sanitize(detailLine));
         }
 
-        return string.Join(Givencg.NewLine, lines) + Givencg.NewLine
+        return string.Join(Given.NewLine, lines) + Given.NewLine
             + "internal sealed partial class " + type.PlaceholderTypeName + " { }";
     }
 

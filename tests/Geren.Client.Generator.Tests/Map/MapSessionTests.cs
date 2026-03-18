@@ -152,7 +152,7 @@ public sealed class MapSessionTests {
         var endpoint = result.Endpoints.Should().ContainSingle().Subject;
 
         endpoint.Queries.Should().ContainSingle();
-        endpoint.Queries.Single().TypeName.Should().Be("string?");
+        endpoint.Queries.Single().Type.Should().Be("string?");
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public sealed class MapSessionTests {
         var endpoint = result.Endpoints.Should().ContainSingle().Subject;
 
         result.Diagnostics.Should().BeEmpty();
-        endpoint.Queries.Select(static query => query.TypeName)
+        endpoint.Queries.Select(static query => query.Type)
             .Should()
             .Equal("int?", "System.Collections.Generic.IReadOnlyList<string>?");
     }

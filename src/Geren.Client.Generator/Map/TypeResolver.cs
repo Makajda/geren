@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Geren.Client.Generator.Map;
 
-internal class TypeNameResolver(string _rootFileNamespace, Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
+internal class TypeResolver(string _rootFileNamespace, Compilation _compilation, ImmutableArray<Diagnostic>.Builder _diagnostics) {
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
@@ -16,6 +16,9 @@ internal class TypeNameResolver(string _rootFileNamespace, Compilation _compilat
                 .ThenBy(static t => t.Requested, StringComparer.Ordinal)
                 .ThenBy(static t => t.PlaceholderTypeName, StringComparer.Ordinal)];
 
+    internal string Resolve(PurposeType? _) {
+        return "string";
+    }
     internal string Resolve(IOpenApiSchema? schema) {
         const string defaultType = "string";
         if (schema is null)
@@ -28,7 +31,7 @@ internal class TypeNameResolver(string _rootFileNamespace, Compilation _compilat
         }
         else if (hasExtensions && schema.Extensions!.TryGetValue("x-compile", out IOpenApiExtension nodeGeneric)) {
             if (nodeGeneric is JsonNodeExtension node)
-                return ResolveByCompile(Givencg.ArraysRestore(node.Node.GetValue<string>()));
+                return ResolveByCompile(Given.ArraysRestore(node.Node.GetValue<string>()));
         }
         else if (schema is OpenApiSchemaReference schemaReference)
             if (schemaReference.Reference.Id is not null)
@@ -118,7 +121,7 @@ internal class TypeNameResolver(string _rootFileNamespace, Compilation _compilat
 
     // ResolveByReference with GetSymbolsWithName
     private string ResolveByReference(string referenceId) {
-        string simpleType = Givencg.ToLetterOrDigitName(referenceId);
+        string simpleType = Given.ToLetterOrDigitName(referenceId);
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
             return cached;
 

@@ -1,6 +1,6 @@
 namespace Geren.Client.Generator.Common;
 
-internal static class Givencg {
+internal static class Given {
     internal const string NewLine = "\n";
 
     internal const string Get = "Get";
