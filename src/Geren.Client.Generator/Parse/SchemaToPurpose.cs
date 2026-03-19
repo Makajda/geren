@@ -2,7 +2,7 @@ namespace Geren.Client.Generator.Parse;
 
 internal static class SchemaToPurpose {
     internal static PurposeType Convert(IOpenApiSchema? schema) {
-        const string defaultType = "string";
+        const string defaultType = "object";
         if (schema is null)
             return new(defaultType);
 
@@ -29,7 +29,7 @@ internal static class SchemaToPurpose {
             JsonSchemaType.Number => "double",
             JsonSchemaType.String => "string",
             JsonSchemaType.Object => "object",
-            JsonSchemaType.Array => $"System.Collections.Generic.IReadOnlyList<{Convert(schema.Items)}>",
+            JsonSchemaType.Array => $"System.Collections.Generic.IReadOnlyList<{Convert(schema.Items).Type}>",
             _ => defaultType
         });
         return new(defaultType);

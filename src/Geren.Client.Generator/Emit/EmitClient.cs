@@ -3,6 +3,7 @@ namespace Geren.Client.Generator.Emit;
 internal sealed class EmitClient {
     internal static string Run(IGrouping<object, Mapoint> endpoints, string rootNamespace, string spaceName, string className) => $$"""
 using System.Net.Http.Json;
+using System.Text;
 using static {{rootNamespace}}.FactoryBridge;
 
 namespace {{spaceName}};

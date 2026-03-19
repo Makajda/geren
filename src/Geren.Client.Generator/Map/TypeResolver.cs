@@ -79,13 +79,23 @@ internal class TypeResolver(
         var typeInfo = model.GetTypeInfo(typeSyntax);
         var type = typeInfo.Type;
         string result;
-        if (type is null || type is IErrorTypeSymbol || tree.GetDiagnostics().Count() > 0) {// semantic || syntax
+        bool hasError = type is null || type is IErrorTypeSymbol || tree.GetDiagnostics().Count() > 0; // semantic || syntax
+        if (!hasError && type is INamedTypeSymbol symbol) {
+            foreach (var arg in symbol.TypeArguments) {
+                if (arg is null || arg is IErrorTypeSymbol) {
+                    hasError = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasError) {
             result = GetOrCreatePlaceholderTypeName(kind: "compile", requested: genericType);
             if (_reportedUnresolvedSchemaTypes.Add(genericType))
                 _diagnostics.Add(Diagnostic.Create(Dide.UnresolvedSchemaReference, Location.None, "by compile", genericType));
         }
         else
-            result = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            result = type!.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
         _resolvedSchemaTypeCache[genericType] = result;
         return result;

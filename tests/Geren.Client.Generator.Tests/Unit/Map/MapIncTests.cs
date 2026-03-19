@@ -1,0 +1,58 @@
+using Geren.Client.Generator.Tests.TestSupport;
+
+namespace Geren.Client.Generator.Tests.Unit.Map;
+
+public sealed class MapIncTests {
+    [Fact]
+    public void Map_HintFilePath_IsCaseInsensitive() {
+        var compilation = CompilationFactory.Create("t", "public sealed class Dummy { }");
+        var purpoints = ImmutableArray<Purpoint>.Empty;
+
+        var m1 = Geren.Client.Generator.Map.MapInc.Map(compilation, "Root", @"C:\Specs\Pets.json", purpoints, CancellationToken.None);
+        var m2 = Geren.Client.Generator.Map.MapInc.Map(compilation, "Root", @"c:\specs\pets.json", purpoints, CancellationToken.None);
+
+        m1.HintFilePath.Should().Be(m2.HintFilePath);
+    }
+
+    [Fact]
+    public void Map_ResolvesMetadataTypes_AndCollectsUnresolved() {
+        var compilation = CompilationFactory.Create("t", """
+            namespace Dto;
+            public sealed class Known { }
+            """);
+
+        var points = ImmutableArray.Create(
+            new Purpoint(
+                Method: Given.Get,
+                Path: "/known",
+                SpaceName: "",
+                ClassName: "WebApiClient",
+                MethodName: "GetKnown",
+                ReturnType: new PurposeType("Dto.Known", PurposeTypes.Metadata),
+                BodyType: null,
+                BodyMediaType: null,
+                Params: ImmutableArray<Purparam>.Empty,
+                Queries: ImmutableArray<ParamSpec>.Empty),
+            new Purpoint(
+                Method: Given.Get,
+                Path: "/missing",
+                SpaceName: "",
+                ClassName: "WebApiClient",
+                MethodName: "GetMissing",
+                ReturnType: new PurposeType("Dto.Missing", PurposeTypes.Metadata),
+                BodyType: null,
+                BodyMediaType: null,
+                Params: ImmutableArray<Purparam>.Empty,
+                Queries: ImmutableArray<ParamSpec>.Empty));
+
+        var map = Geren.Client.Generator.Map.MapInc.Map(compilation, "Acme", @"C:\Specs\Pets.json", points, CancellationToken.None);
+
+        map.Endpoints.Should().HaveCount(2);
+        map.Endpoints[0].ReturnType.Should().Be("global::Dto.Known");
+        map.Endpoints[1].ReturnType.Should().StartWith("global::Acme.Pets.__GerenUnresolvedType_");
+
+        map.UnresolvedSchemaTypes.Should().ContainSingle(u => u.Kind == "metadata" && u.Requested == "Dto.Missing");
+        map.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN007");
+    }
+}
+
