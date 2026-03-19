@@ -12,41 +12,18 @@ internal class TypeResolver(
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 
-    internal string Resolve(PurposeType? _) {
-        return "string";//todo
-    }
-    internal string Resolve(IOpenApiSchema? schema) {
-        const string defaultType = "string";
+    internal string Resolve(PurposeType? schema) {
         if (schema is null)
-            return defaultType;
+            return "string";
 
-        bool hasExtensions = schema.Extensions is not null;
-        if (hasExtensions && schema.Extensions!.TryGetValue("x-metadata", out IOpenApiExtension nodeExtension)) {
-            if (nodeExtension is JsonNodeExtension node)
-                return ResolveByMetadata(node.Node.GetValue<string>());
-        }
-        else if (hasExtensions && schema.Extensions!.TryGetValue("x-compile", out IOpenApiExtension nodeGeneric)) {
-            if (nodeGeneric is JsonNodeExtension node)
-                return ResolveByCompile(Given.ArraysRestore(node.Node.GetValue<string>()));
-        }
-        else if (schema is OpenApiSchemaReference schemaReference)
-            if (schemaReference.Reference.Id is not null)
-                return ResolveByReference(schemaReference.Reference.Id);
+        var (type, purpose) = schema.Value;
 
-        if (schema.Format == "int64") return "long";
-        if (schema.Format == "int32") return "int";
-
-        if (schema.Type.HasValue) return schema.Type.Value switch {
-            JsonSchemaType.Null => "string",
-            JsonSchemaType.Array => $"System.Collections.Generic.IReadOnlyList<{Resolve(schema.Items)}>",
-            JsonSchemaType.Boolean => "bool",
-            JsonSchemaType.Integer => "int",
-            JsonSchemaType.Number => "double",
-            JsonSchemaType.String => "string",
-            JsonSchemaType.Object => "object",
-            _ => defaultType
+        return purpose switch {
+            PurposeTypes.Metadata => ResolveByMetadata(type),
+            PurposeTypes.Compile => ResolveByCompile(type),
+            PurposeTypes.Reference => ResolveByReference(type),
+            _ => type
         };
-        return defaultType;
     }
 
     private string GetOrCreatePlaceholderTypeName(string kind, string requested, string? details = null) {
