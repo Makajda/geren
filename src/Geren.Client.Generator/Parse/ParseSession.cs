@@ -32,7 +32,7 @@ internal sealed class ParseSession {
                     continue;
                 }
 
-                var returnType = ReturnTypeResolver.Resolve(operation.Value, Resolve);
+                var returnType = ReturnTypeResolver.Resolve(operation.Value);
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value);
                 if (bodyType is null && bodyMediaType is not null)
                     continue;
@@ -49,47 +49,13 @@ internal sealed class ParseSession {
         return new(true, filePath, endpoints.ToImmutable(), _diagnostics.ToImmutable());
     }
 
-    internal PurposeType Resolve(IOpenApiSchema? schema) {
-        const string defaultType = "string";
-        if (schema is null)
-            return new(defaultType);
-
-        bool hasExtensions = schema.Extensions is not null;
-        if (hasExtensions && schema.Extensions!.TryGetValue("x-metadata", out IOpenApiExtension nodeExtension)) {
-            if (nodeExtension is JsonNodeExtension node)
-                return new(node.Node.GetValue<string>(), PurposeTypes.Metadata);
-        }
-        else if (hasExtensions && schema.Extensions!.TryGetValue("x-compile", out IOpenApiExtension nodeGeneric)) {
-            if (nodeGeneric is JsonNodeExtension node)
-                return new(Given.ArraysRestore(node.Node.GetValue<string>()), PurposeTypes.Compile);
-        }
-        else if (schema is OpenApiSchemaReference schemaReference)
-            if (schemaReference.Reference.Id is not null)
-                return new(schemaReference.Reference.Id, PurposeTypes.Reference);
-
-        if (schema.Format == "int64") return new("long");
-        if (schema.Format == "int32") return new("int");
-
-        if (schema.Type.HasValue) return new(schema.Type.Value switch {
-            JsonSchemaType.Null => "string",
-            JsonSchemaType.Boolean => "bool",
-            JsonSchemaType.Integer => "int",
-            JsonSchemaType.Number => "double",
-            JsonSchemaType.String => "string",
-            JsonSchemaType.Object => "object",
-            JsonSchemaType.Array => $"System.Collections.Generic.IReadOnlyList<{Resolve(schema.Items)}>",
-            _ => defaultType
-        });
-        return new(defaultType);
-    }
-
     private (PurposeType? BodyType, string? MediaType) ResolveRequestBody(OpenApiOperation operation) {
         var requestBody = operation.RequestBody;
         if (requestBody is null || requestBody.Content is null || requestBody.Content.Count == 0)
             return (null, null);
 
         if (requestBody.Content.TryGetValue("application/json", out var json))
-            return (Resolve(json.Schema), "application/json");
+            return (SchemaToPurpose.Convert(json.Schema), "application/json");
 
         if (requestBody.Content.ContainsKey("text/plain"))
             return (new("string"), "text/plain");
@@ -115,7 +81,7 @@ internal sealed class ParseSession {
             string inValue = parameter.In.Value.ToString().ToLowerInvariant();
             if (inValue == "path") {
                 string identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
-                PurposeType paramType = Resolve(parameter.Schema);
+                PurposeType paramType = SchemaToPurpose.Convert(parameter.Schema);
                 pathParams.Add(new(parameter.Name, identifier, paramType));
 
                 continue;
@@ -123,7 +89,7 @@ internal sealed class ParseSession {
 
             if (inValue == "query") {
                 string identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
-                var (type, _) = Resolve(parameter.Schema);
+                var (type, _) = SchemaToPurpose.Convert(parameter.Schema);
                 type = parameter.Required || type.EndsWith("?", StringComparison.Ordinal) ? type : type + "?";
                 if (IsSupportedQueryType(type))
                     queryParams.Add(new(parameter.Name, identifier, type));

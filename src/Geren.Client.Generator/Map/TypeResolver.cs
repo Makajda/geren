@@ -6,8 +6,7 @@ namespace Geren.Client.Generator.Map;
 internal class TypeResolver(
     string _rootFileNamespace,
     Compilation _compilation,
-    Dictionary<string,
-    UnresolvedSchemaType> _unresolvedByPlaceholder,
+    Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder,
     ImmutableArray<Diagnostic>.Builder _diagnostics) {
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
