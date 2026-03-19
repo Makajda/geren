@@ -5,11 +5,13 @@ namespace Geren.Client.Generator.Parse;
 internal sealed class ParseSession {
     private readonly ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
 
-    internal ParseInc BuildMap(string filePath, OpenApiDocument doc) {
+    internal ParseInc BuildMap(string filePath, OpenApiDocument doc, CancellationToken cancellationToken) {
         var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var path in doc.Paths) {
-            //todo cancellationToken
+            if (cancellationToken.IsCancellationRequested)
+                return ParseInc.Empty;
+
             string normalizedPath = NormalizePathTemplate(path.Key);
             if (path.Value?.Operations is null)
                 continue;

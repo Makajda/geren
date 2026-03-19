@@ -5,7 +5,11 @@ internal sealed record ParseInc(
     string FilePath,
     ImmutableArray<Purpoint> Purpoints,
     ImmutableArray<Diagnostic> Diagnostics) {
+
     private static ParseInc Skip(Diagnostic diagnostic) => new(false, string.Empty, [], [diagnostic]);
+
+    internal static ParseInc Empty => new(false, string.Empty, [], []);
+
     internal static ParseInc Parse(AdditionalText file, CancellationToken cancellationToken) {
         try {
             string? text = file.GetText(cancellationToken)?.ToString();
@@ -23,7 +27,7 @@ internal sealed record ParseInc(
             if (document is null)
                 return Skip(Diagnostic.Create(Dide.ParseError, Location.None, $"OpenAPI reader returned null for {file.Path}"));
 
-            return new ParseSession().BuildMap(file.Path, document);
+            return new ParseSession().BuildMap(file.Path, document, cancellationToken);
         }
         catch (Exception ex) {
             return Skip(Diagnostic.Create(Dide.ParseError, Location.None,

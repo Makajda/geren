@@ -6,14 +6,24 @@ internal sealed record MapInc(
     ImmutableArray<Mapoint> Endpoints,
     ImmutableArray<UnresolvedSchemaType> UnresolvedSchemaTypes,
     ImmutableArray<Diagnostic> Diagnostics) {
-    internal static MapInc Map(Compilation compilation, string rootNamespace, string filePath, ImmutableArray<Purpoint> purpoints) {
+
+    private static MapInc Empty => new(string.Empty, string.Empty, [], [], []);
+
+    internal static MapInc Map(
+        Compilation compilation,
+        string rootNamespace,
+        string filePath,
+        ImmutableArray<Purpoint> purpoints,
+        CancellationToken cancellationToken) {
         ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
         Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
         string namespaceFromFile = Given.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
         TypeResolver _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _unresolvedByPlaceholder, _diagnostics);
         var endpoints = ImmutableArray.CreateBuilder<Mapoint>();
         foreach (var point in purpoints) {
-            //todo cancellationToken
+            if (cancellationToken.IsCancellationRequested)
+                return Empty;
+
             string returnType = _typeResolver.Resolve(point.ReturnType);
             string bodyType = _typeResolver.Resolve(point.BodyType);
             ImmutableArray<ParamSpec>.Builder ps = ImmutableArray.CreateBuilder<ParamSpec>();

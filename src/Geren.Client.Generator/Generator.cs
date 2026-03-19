@@ -24,9 +24,9 @@ public sealed class Generator : IIncrementalGenerator {
             .Where(static p => p.Success)
             .Combine(context.CompilationProvider)
             .Combine(rootNamespace)
-            .Select(static (x, _) => {
+            .Select(static (x, cancellationToken) => {
                 var ((p, compilation), rootNamespace) = x;
-                return MapInc.Map(compilation, rootNamespace, p.FilePath, p.Purpoints);
+                return MapInc.Map(compilation, rootNamespace, p.FilePath, p.Purpoints, cancellationToken);
             });
 
         context.RegisterSourceOutput(maped.SelectMany(static (r, _) => r.Diagnostics),
