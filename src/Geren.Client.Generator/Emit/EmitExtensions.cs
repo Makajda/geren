@@ -11,7 +11,7 @@ using System;
 
 namespace {{rootNamespace}}.{{namespaceFromFile}};
 
-public static class {{namespaceFromFile}}Extensions
+public static partial class {{namespaceFromFile}}Extensions
 {
     public static IServiceCollection AddGerenClients(
         this IServiceCollection services,

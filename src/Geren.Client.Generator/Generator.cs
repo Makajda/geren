@@ -32,17 +32,23 @@ public sealed class Generator : IIncrementalGenerator {
         context.RegisterSourceOutput(maped.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));
 
+        // Need Hint
+        var needHint = maped.Collect().Select(static (p, _) => p.Count() > 1);
+        var hinted = maped.Combine(needHint).Combine(rootNamespace).Select((x, _) => {
+            var ((Map, needHint), RootNamespace) = x;
+            string Hint = needHint ? Map.HintFilePath + "." : string.Empty;
+            return (Map, Hint, RootNamespace);
+        });
+
         // Unresolved Types
-        var unresolved = maped.Where(static p => !p.UnresolvedSchemaTypes.IsEmpty);
-        context.RegisterSourceOutput(unresolved.Combine(rootNamespace), static (spc, x) => {
-            var (map, rootNamespace) = x;
-            string spaceFromName = $"{rootNamespace}.{map.NamespaceFromFile}";
-            spc.AddSource($"{map.HintFilePath}.UnresolvedTypes.g.cs",
-                SourceText.From(NormalizeEol(EmitUnresolvedTypes.Run(spaceFromName, map.UnresolvedSchemaTypes)), Encoding.UTF8));
+        context.RegisterSourceOutput(hinted.Where(static p => !p.Map.UnresolvedSchemaTypes.IsEmpty), static (spc, x) => {
+            string space = $"{x.RootNamespace}.{x.Map.NamespaceFromFile}";
+            spc.AddSource($"{x.Hint}_UnresolvedTypes.g.cs",
+                SourceText.From(NormalizeEol(EmitUnresolvedTypes.Run(space, x.Map.UnresolvedSchemaTypes)), Encoding.UTF8));
         });
 
         // exist endpoints
-        var ended = maped.Where(static p => !p.Endpoints.IsEmpty);
+        var ended = hinted.Where(static p => !p.Map.Endpoints.IsEmpty);
 
         // FactoryBridge
         var hasAnyEndpoints = ended.Select(static (_, _) => true).Collect().Select(static (flags, _) => flags.Any(f => f));
@@ -52,37 +58,28 @@ public sealed class Generator : IIncrementalGenerator {
         });
 
         // Extensions
-        var extensed = ended
-            .Where(static p => !p.Endpoints.IsEmpty)
-            .Select(static (m, _) => new {
-                m.HintFilePath,
-                m.NamespaceFromFile,
-                Classes = m.Endpoints
-                    .Select(e => (string.IsNullOrEmpty(e.SpaceName) ? string.Empty : e.SpaceName + ".") + e.ClassName)
-                    .Distinct(StringComparer.Ordinal)
-            });
-
-        context.RegisterSourceOutput(extensed.Combine(rootNamespace), static (spc, x) => {
-            var (map, rootNamespace) = x;
-            spc.AddSource($"{map.HintFilePath}.Extensions.g.cs",
-                SourceText.From(NormalizeEol(EmitExtensions.Run(rootNamespace, map.NamespaceFromFile, map.Classes)), Encoding.UTF8));
+        context.RegisterSourceOutput(ended, static (spc, x) => {
+            spc.AddSource($"{x.Hint}Extensions.g.cs",
+                SourceText.From(NormalizeEol(EmitExtensions.Run(x.RootNamespace, x.Map.NamespaceFromFile,
+                x.Map.Endpoints
+                    .Select(static e => NameDot(e.SpaceName) + e.ClassName)
+                    .Distinct(StringComparer.Ordinal))), Encoding.UTF8));
         });
 
         // Clients
-        var cliented = ended
-            .SelectMany((m, cancellationToken) => m.Endpoints.GroupBy(e => new Client(m.HintFilePath, m.NamespaceFromFile, e.SpaceName, e.ClassName)))
-            .Combine(rootNamespace);
+        var cliented = ended.SelectMany((x, _) => x.Map.Endpoints.GroupBy(e =>
+                new Client(x.Hint, x.RootNamespace, x.Map.NamespaceFromFile, e.SpaceName, e.ClassName)));
+
         context.RegisterSourceOutput(cliented, (spc, x) => {
-            var (map, rootNamespace) = x;
-            var client = map.Key;
-            string dotSpace = string.IsNullOrEmpty(client.SpaceName) ? string.Empty : "." + client.SpaceName;
-            string spaceName = $"{rootNamespace}.{client.NamespaceFromFile}{dotSpace}";
-            var code = EmitClient.Run(map, rootNamespace, spaceName, client.ClassName);
-            spc.AddSource($"{client.HintFilePath}{dotSpace}.{client.ClassName}.g.cs", SourceText.From(NormalizeEol(code), Encoding.UTF8));
+            var key = x.Key;
+            string dotSpace = string.IsNullOrEmpty(key.SpaceName) ? string.Empty : "." + key.SpaceName;
+            string spaceName = $"{key.RootNamespace}.{key.NamespaceFromFile}{dotSpace}";
+            var code = EmitClient.Run(x, key.RootNamespace, spaceName, key.ClassName);
+            spc.AddSource($"{key.Hint}{NameDot(key.SpaceName)}{key.ClassName}.g.cs", SourceText.From(NormalizeEol(code), Encoding.UTF8));
         });
     }
 
-    record SpaceClass(string SpaceName, string ClassName);
-    record Client(string HintFilePath, string NamespaceFromFile, string SpaceName, string ClassName);
+    record Client(string Hint, string RootNamespace, string NamespaceFromFile, string SpaceName, string ClassName);
     private static string NormalizeEol(string text) => text.Replace("\r\n", "\n").Replace('\r', '\n');
+    private static string NameDot(string name) => string.IsNullOrWhiteSpace(name) ? string.Empty : name + ".";
 }
