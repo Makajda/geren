@@ -71,11 +71,11 @@ public sealed class Generator : IIncrementalGenerator {
                 new Client(x.Hint, x.RootNamespace, x.Map.NamespaceFromFile, e.SpaceName, e.ClassName)));
 
         context.RegisterSourceOutput(cliented, (spc, x) => {
-            var key = x.Key;
-            string dotSpace = string.IsNullOrEmpty(key.SpaceName) ? string.Empty : "." + key.SpaceName;
-            string spaceName = $"{key.RootNamespace}.{key.NamespaceFromFile}{dotSpace}";
-            var code = EmitClient.Run(x, key.RootNamespace, spaceName, key.ClassName);
-            spc.AddSource($"{key.Hint}{NameDot(key.SpaceName)}{key.ClassName}.g.cs", SourceText.From(NormalizeEol(code), Encoding.UTF8));
+            var (hint, rootNamespace, namespaceFromFile, spaceName, className) = x.Key;
+            string dotSpace = string.IsNullOrEmpty(spaceName) ? string.Empty : "." + spaceName;
+            string spaceReal = $"{rootNamespace}.{namespaceFromFile}{dotSpace}";
+            string code = NormalizeEol(EmitClient.Run(x, rootNamespace, spaceReal, className));
+            spc.AddSource($"{hint}{NameDot(spaceName)}{className}.g.cs", SourceText.From(code, Encoding.UTF8));
         });
     }
 
