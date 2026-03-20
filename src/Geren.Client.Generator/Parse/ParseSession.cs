@@ -9,8 +9,7 @@ internal sealed class ParseSession {
         var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var path in doc.Paths) {
-            if (cancellationToken.IsCancellationRequested)
-                return ParseInc.Empty;
+            cancellationToken.ThrowIfCancellationRequested();
 
             string normalizedPath = NormalizePathTemplate(path.Key);
             if (path.Value?.Operations is null)

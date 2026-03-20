@@ -1,0 +1,6 @@
+<Project>
+	<PropertyGroup>
+		<BaseIntermediateOutputPath >..\..\bin\obj-exporter\</BaseIntermediateOutputPath>
+		<BaseOutputPath >..\..\bin\bin-exporter\</BaseOutputPath>
+	</PropertyGroup>
+</Project>

@@ -44,8 +44,9 @@ internal static class Program {
                 return 1;
             }
 
+            List<Endpoint> endpoints = [];
             List<string> warnings = [];
-            var endpoints = Extractor.Extract(compilation, warnings, cts.Token);
+            Extractor.Extract(compilation, endpoints, warnings, cts.Token);
 
             foreach (var w in warnings)
                 Console.Error.WriteLine(w);

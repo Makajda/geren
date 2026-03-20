@@ -131,7 +131,7 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
 
-        var resolved = resolver.Resolve(new PurposeType("System.Collections.Generic.List<MissingType>", PurposeTypes.Compile));
+        var resolved = resolver.Resolve(new PurposeType("System.Collections.Generic.List<KeyValuePair<string, MissingType>>", PurposeTypes.Compile));
 
         resolved.Should().StartWith("global::Acme.Spec.__GerenUnresolvedType_");
         diags.Should().ContainSingle(d => d.Id == "GEREN007");

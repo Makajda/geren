@@ -31,7 +31,7 @@ See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON,
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.0" />
+  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.1" />
   <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3" PrivateAssets="all" />
 </ItemGroup>
 ```
@@ -68,7 +68,7 @@ app.MapOpenApi();
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.0" />
+  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.1" />
 </ItemGroup>
 ```
 

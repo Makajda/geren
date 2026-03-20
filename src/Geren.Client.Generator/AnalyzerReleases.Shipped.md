@@ -1,7 +1,7 @@
 ﻿; Shipped analyzer releases
 ; https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
 
-## Release 0.3.0
+## Release 0.3.1
 
 ### New Rules
 

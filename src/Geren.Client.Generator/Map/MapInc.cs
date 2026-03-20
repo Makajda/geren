@@ -7,8 +7,6 @@ internal sealed record MapInc(
     ImmutableArray<UnresolvedSchemaType> UnresolvedSchemaTypes,
     ImmutableArray<Diagnostic> Diagnostics) {
 
-    private static MapInc Empty => new(string.Empty, string.Empty, [], [], []);
-
     internal static MapInc Map(
         Compilation compilation,
         string rootNamespace,
@@ -21,8 +19,7 @@ internal sealed record MapInc(
         TypeResolver _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _unresolvedByPlaceholder, _diagnostics);
         var endpoints = ImmutableArray.CreateBuilder<Mapoint>();
         foreach (var point in purpoints) {
-            if (cancellationToken.IsCancellationRequested)
-                return Empty;
+            cancellationToken.ThrowIfCancellationRequested();
 
             string returnType = _typeResolver.Resolve(point.ReturnType);
             string bodyType = _typeResolver.Resolve(point.BodyType);

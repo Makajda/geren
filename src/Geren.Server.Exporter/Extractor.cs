@@ -1,40 +1,11 @@
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
-using System.Collections.Immutable;
 using System.Globalization;
 
 namespace Geren.Server.Exporter;
 
 internal static class Extractor {
-    internal sealed record EndpointModel(
-        ImmutableArray<string> HttpMethods,
-        string RouteTemplate,
-        ImmutableArray<string> RouteParameters,
-        string Handler,
-        ImmutableArray<ParameterModel> Parameters,
-        string? ReturnType);
-
-    internal sealed record ParameterModel(string Name, string Type, string Source);
-
-    private static readonly SymbolDisplayFormat FullyQualifiedMethodFormat =
-        new(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            memberOptions:
-            SymbolDisplayMemberOptions.IncludeContainingType |
-            SymbolDisplayMemberOptions.IncludeParameters |
-            SymbolDisplayMemberOptions.IncludeType,
-            parameterOptions:
-            SymbolDisplayParameterOptions.IncludeType |
-            SymbolDisplayParameterOptions.IncludeName,
-            miscellaneousOptions:
-            SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-            SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
-
-    public static List<EndpointModel> Extract(Compilation compilation, List<string> warnings, CancellationToken cancellationToken) {
-        List<EndpointModel> endpoints = [];
+    public static List<Endpoint> Extract(Compilation compilation, List<Endpoint> endpoints, List<string> warnings, CancellationToken cancellationToken) {
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
         if (endpointRouteBuilder is null) {
             warnings.Add("Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered.");
@@ -47,22 +18,8 @@ internal static class Extractor {
             var root = tree.GetRoot(cancellationToken);
             var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
-            foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>()) {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!IsMapInvocationCandidate(invocation)) {
-                    continue;
-                }
-
-                if (!TryBuildEndpoint(compilation, endpointRouteBuilder, semanticModel, invocation, cancellationToken, out var endpoint, out var warn)) {
-                    if (warn is not null) {
-                        warnings.Add(warn);
-                    }
-                    continue;
-                }
-
-                endpoints.Add(endpoint);
-            }
+            foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                AddOne(compilation, endpointRouteBuilder, semanticModel, invocation, endpoints, warnings, cancellationToken);
         }
 
         endpoints.Sort(static (a, b) => {
@@ -80,94 +37,80 @@ internal static class Extractor {
         return endpoints;
     }
 
-    private static bool IsMapInvocationCandidate(InvocationExpressionSyntax invocation) {
-        var methodName = GetInvokedMethodName(invocation.Expression);
-        return methodName is not null && methodName.StartsWith("Map", StringComparison.Ordinal);
-    }
+    private static void AddOne(
+        Compilation compilation,
+        INamedTypeSymbol endpointRouteBuilder,
+        SemanticModel semanticModel,
+        InvocationExpressionSyntax invocation,
+        List<Endpoint> endpoints,
+        List<string> warnings,
+        CancellationToken cancellationToken) {
 
-    private static string? GetInvokedMethodName(ExpressionSyntax expression) =>
-        expression switch {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var methodName = invocation.Expression switch {
             MemberAccessExpressionSyntax m => m.Name.Identifier.ValueText,
             IdentifierNameSyntax i => i.Identifier.ValueText,
             GenericNameSyntax g => g.Identifier.ValueText,
             _ => null,
         };
-
-    private static bool TryBuildEndpoint(
-        Compilation compilation,
-        INamedTypeSymbol endpointRouteBuilder,
-        SemanticModel semanticModel,
-        InvocationExpressionSyntax invocation,
-        CancellationToken cancellationToken,
-        out EndpointModel endpoint,
-        out string? warning) {
-        endpoint = null!;
-        warning = null;
+        if (methodName is null || !methodName.StartsWith("Map", StringComparison.Ordinal))
+            return;
 
         var methodSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol as IMethodSymbol;
         methodSymbol ??= semanticModel.GetSymbolInfo(invocation, cancellationToken).CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
-        if (methodSymbol is null || !methodSymbol.Name.StartsWith("Map", StringComparison.Ordinal)) {
-            return false;
-        }
+        if (methodSymbol is null || !methodSymbol.Name.StartsWith("Map", StringComparison.Ordinal))
+            return;
 
-        if (!IsEndpointRouteBuilderExtension(methodSymbol, endpointRouteBuilder)) {
-            return false;
-        }
+        if (!IsEndpointRouteBuilderExtension(methodSymbol, endpointRouteBuilder))
+            return;
 
         var routeTemplateArgIndex = GetRouteTemplateArgumentIndex(methodSymbol);
         var handlerArgIndex = GetHandlerArgumentIndex(compilation, methodSymbol);
-        if (routeTemplateArgIndex < 0 || handlerArgIndex < 0) {
-            return false;
-        }
+        if (routeTemplateArgIndex < 0 || handlerArgIndex < 0)
+            return;
 
-        if (invocation.ArgumentList is null ||
-            invocation.ArgumentList.Arguments.Count <= Math.Max(routeTemplateArgIndex, handlerArgIndex)) {
-            return false;
-        }
+        if (invocation.ArgumentList is null || invocation.ArgumentList.Arguments.Count <= Math.Max(routeTemplateArgIndex, handlerArgIndex))
+            return;
 
         var routeTemplateExpression = invocation.ArgumentList.Arguments[routeTemplateArgIndex].Expression;
         if (!TryGetConstantString(semanticModel, routeTemplateExpression, cancellationToken, out var routeTemplate)) {
-            warning = FormatWarning(invocation, $"Skipped '{methodSymbol.Name}': route template is not a constant string.");
-            return false;
+            warnings.Add(FormatWarning(invocation, $"Skipped '{methodSymbol.Name}': route template is not a constant string."));
+            return;
         }
 
-        if (invocation.Expression is MemberAccessExpressionSyntax memberAccess &&
-            TryGetChainedMapGroupPrefix(endpointRouteBuilder, semanticModel, memberAccess.Expression, cancellationToken, out var prefix) &&
-            prefix.Length != 0) {
-            routeTemplate = CombineRouteTemplates(prefix, routeTemplate);
-        }
+        if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+            routeTemplate = AddChainedMapGroupPrefix(routeTemplate, endpointRouteBuilder, semanticModel, memberAccess.Expression, cancellationToken);
 
         var routeParameterNames = ExtractRouteParameterNames(routeTemplate);
 
         var handlerExpression = invocation.ArgumentList.Arguments[handlerArgIndex].Expression;
-        var handlerMethod = TryGetHandlerMethodSymbol(semanticModel, handlerExpression, cancellationToken);
+        var operation = semanticModel.GetOperation(handlerExpression, cancellationToken);
+        var handlerMethod = operation is null ? null : GetHandlerMethodSymbol(operation);
         if (handlerMethod is null) {
-            warning = FormatWarning(invocation, $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol.");
-            return false;
+            warnings.Add(FormatWarning(invocation, $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol."));
+            return;
         }
 
         var httpMethods = GetHttpMethods(methodSymbol, invocation, semanticModel, cancellationToken);
         var parameters = InferParameters(handlerMethod, routeParameterNames, httpMethods);
         var returnType = UnwrapReturnType(handlerMethod.ReturnType, compilation);
 
-        endpoint = new EndpointModel(
+        endpoints.Add(new(
             HttpMethods: httpMethods,
             RouteTemplate: routeTemplate,
-            RouteParameters: routeParameterNames.OrderBy(static p => p, StringComparer.Ordinal).ToImmutableArray(),
-            Handler: handlerMethod.ToDisplayString(FullyQualifiedMethodFormat),
+            RouteParameters: [.. routeParameterNames.OrderBy(static p => p, StringComparer.Ordinal)],
+            Handler: handlerMethod.ToDisplayString(Given.FullyQualifiedMethodFormat),
             Parameters: parameters,
-            ReturnType: returnType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-
-        return true;
+            ReturnType: returnType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
     }
 
-    private static bool TryGetChainedMapGroupPrefix(
+    private static string AddChainedMapGroupPrefix(
+        string routeTemplate,
         INamedTypeSymbol endpointRouteBuilder,
         SemanticModel semanticModel,
         ExpressionSyntax receiverExpression,
-        CancellationToken cancellationToken,
-        out string prefix) {
-        prefix = string.Empty;
+        CancellationToken cancellationToken) {
 
         List<string> prefixesReversed = [];
         ExpressionSyntax current = receiverExpression;
@@ -185,9 +128,9 @@ internal static class Extractor {
                 break;
 
             int routeTemplateArgIndex = GetRouteTemplateArgumentIndex(methodSymbol);
-            if (routeTemplateArgIndex < 0 ||
-                invocation.ArgumentList is null ||
-                invocation.ArgumentList.Arguments.Count <= routeTemplateArgIndex) {
+            if (routeTemplateArgIndex < 0
+                || invocation.ArgumentList is null
+                || invocation.ArgumentList.Arguments.Count <= routeTemplateArgIndex) {
                 break;
             }
 
@@ -207,15 +150,15 @@ internal static class Extractor {
                 break;
         }
 
-        if (prefixesReversed.Count == 0)
-            return false;
+        if (prefixesReversed.Count > 0) {
+            string prefix = string.Empty;
+            for (var i = prefixesReversed.Count - 1; i >= 0; i--)
+                prefix = CombineRouteTemplates(prefix, prefixesReversed[i]);
 
-        string combined = string.Empty;
-        for (var i = prefixesReversed.Count - 1; i >= 0; i--)
-            combined = CombineRouteTemplates(combined, prefixesReversed[i]);
+            return CombineRouteTemplates(prefix, routeTemplate);
+        }
 
-        prefix = combined;
-        return true;
+        return routeTemplate;
     }
 
     private static string CombineRouteTemplates(string left, string right) {
@@ -316,7 +259,7 @@ internal static class Extractor {
         while (start < trimmed.Length && trimmed[start] == '*')
             start++;
 
-        trimmed = trimmed.Substring(start);
+        trimmed = trimmed[start..];
 
         int cutIndex = trimmed.Length;
         int colonIndex = trimmed.IndexOf(':');
@@ -334,12 +277,7 @@ internal static class Extractor {
         return trimmed[..cutIndex].Trim();
     }
 
-    private static IMethodSymbol? TryGetHandlerMethodSymbol(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken) {
-        IOperation? operation = semanticModel.GetOperation(expression, cancellationToken);
-        return operation is null ? null : TryGetHandlerMethodSymbol(operation);
-    }
-
-    private static IMethodSymbol? TryGetHandlerMethodSymbol(IOperation operation) {
+    private static IMethodSymbol? GetHandlerMethodSymbol(IOperation operation) {
         while (true) {
             switch (operation) {
                 case IDelegateCreationOperation d:
@@ -366,21 +304,22 @@ internal static class Extractor {
         InvocationExpressionSyntax invocation,
         SemanticModel semanticModel,
         CancellationToken cancellationToken) {
+
         string name = mapMethod.Name;
-        if (name.Equals("MapGet", StringComparison.Ordinal)) return ImmutableArray.Create("GET");
-        if (name.Equals("MapPost", StringComparison.Ordinal)) return ImmutableArray.Create("POST");
-        if (name.Equals("MapPut", StringComparison.Ordinal)) return ImmutableArray.Create("PUT");
-        if (name.Equals("MapPatch", StringComparison.Ordinal)) return ImmutableArray.Create("PATCH");
-        if (name.Equals("MapDelete", StringComparison.Ordinal)) return ImmutableArray.Create("DELETE");
-        if (name.Equals("MapHead", StringComparison.Ordinal)) return ImmutableArray.Create("HEAD");
-        if (name.Equals("MapOptions", StringComparison.Ordinal)) return ImmutableArray.Create("OPTIONS");
+        if (name.Equals("MapGet", StringComparison.Ordinal)) return ["GET"];
+        if (name.Equals("MapPost", StringComparison.Ordinal)) return ["POST"];
+        if (name.Equals("MapPut", StringComparison.Ordinal)) return ["PUT"];
+        if (name.Equals("MapPatch", StringComparison.Ordinal)) return ["PATCH"];
+        if (name.Equals("MapDelete", StringComparison.Ordinal)) return ["DELETE"];
+        if (name.Equals("MapHead", StringComparison.Ordinal)) return ["HEAD"];
+        if (name.Equals("MapOptions", StringComparison.Ordinal)) return ["OPTIONS"];
 
         if (name.Equals("MapMethods", StringComparison.Ordinal)) {
             int methodsArgIndex = FindHttpMethodsArgumentIndex(mapMethod);
-            if (methodsArgIndex >= 0 &&
-                invocation.ArgumentList is not null &&
-                invocation.ArgumentList.Arguments.Count > methodsArgIndex &&
-                TryGetConstantStringList(semanticModel, invocation.ArgumentList.Arguments[methodsArgIndex].Expression, cancellationToken, out var methods)) {
+            if (methodsArgIndex >= 0
+                && invocation.ArgumentList is not null
+                && invocation.ArgumentList.Arguments.Count > methodsArgIndex
+                && TryGetConstantStringList(semanticModel, invocation.ArgumentList.Arguments[methodsArgIndex].Expression, cancellationToken, out var methods)) {
                 return methods;
             }
 
@@ -418,6 +357,7 @@ internal static class Extractor {
         ExpressionSyntax expression,
         CancellationToken cancellationToken,
         out ImmutableArray<string> values) {
+
         if (expression is ArrayCreationExpressionSyntax arrayCreation
             && arrayCreation.Initializer is not null
             && TryGetConstantStringListFromInitializer(semanticModel, arrayCreation.Initializer.Expressions, cancellationToken, out values)) {
@@ -444,6 +384,7 @@ internal static class Extractor {
         SeparatedSyntaxList<ExpressionSyntax> expressions,
         CancellationToken cancellationToken,
         out ImmutableArray<string> values) {
+
         var builder = ImmutableArray.CreateBuilder<string>();
         foreach (var e in expressions) {
             if (!TryGetConstantString(semanticModel, e, cancellationToken, out var s) || s.Length == 0) {
@@ -458,14 +399,15 @@ internal static class Extractor {
         return values.Length != 0;
     }
 
-    private static ImmutableArray<ParameterModel> InferParameters(
+    private static ImmutableArray<ParamSpec> InferParameters(
         IMethodSymbol handlerMethod,
         HashSet<string> routeParameterNames,
         ImmutableArray<string> httpMethods) {
+
         var allowBody = httpMethods.Any(static m => m is "POST" or "PUT" or "PATCH");
         var bodyAssigned = false;
 
-        var builder = ImmutableArray.CreateBuilder<ParameterModel>(handlerMethod.Parameters.Length);
+        var builder = ImmutableArray.CreateBuilder<ParamSpec>(handlerMethod.Parameters.Length);
         foreach (var parameter in handlerMethod.Parameters) {
             string source = InferParameterSource(parameter, routeParameterNames, allowBody, ref bodyAssigned);
             builder.Add(new(
@@ -482,6 +424,7 @@ internal static class Extractor {
         HashSet<string> routeParameterNames,
         bool allowBody,
         ref bool bodyAssigned) {
+
         if (HasFromRouteAttribute(parameter))
             return "route";
 
@@ -499,7 +442,8 @@ internal static class Extractor {
     private static bool HasFromRouteAttribute(IParameterSymbol parameter) {
         foreach (var attribute in parameter.GetAttributes()) {
             var cls = attribute.AttributeClass;
-            if (cls is null) continue;
+            if (cls is null)
+                continue;
 
             var metadataName = cls.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             if (metadataName == "global::Microsoft.AspNetCore.Mvc.FromRouteAttribute"

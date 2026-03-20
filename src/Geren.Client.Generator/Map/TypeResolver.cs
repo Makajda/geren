@@ -78,17 +78,9 @@ internal class TypeResolver(
         var typeSyntax = field.Declaration.Type;
         var typeInfo = model.GetTypeInfo(typeSyntax);
         var type = typeInfo.Type;
-        string result;
-        bool hasError = type is null || type is IErrorTypeSymbol || tree.GetDiagnostics().Count() > 0; // semantic || syntax
-        if (!hasError && type is INamedTypeSymbol symbol) {
-            foreach (var arg in symbol.TypeArguments) {
-                if (arg is null || arg is IErrorTypeSymbol) {
-                    hasError = true;
-                    break;
-                }
-            }
-        }
+        bool hasError = IsErrorTypeArgs(type) || tree.GetDiagnostics().Count() > 0;
 
+        string result;
         if (hasError) {
             result = GetOrCreatePlaceholderTypeName(kind: "compile", requested: genericType);
             if (_reportedUnresolvedSchemaTypes.Add(genericType))
@@ -101,7 +93,18 @@ internal class TypeResolver(
         return result;
     }
 
-    // ResolveByReference with GetSymbolsWithName
+    private static bool IsErrorTypeArgs(ITypeSymbol? type) {
+        if (type is null || type is IErrorTypeSymbol)
+            return true;
+
+        if (type is INamedTypeSymbol symbol)
+            foreach (var next in symbol.TypeArguments)
+                if (IsErrorTypeArgs(next))
+                    return true;
+
+        return false;
+    }
+
     private string ResolveByReference(string referenceId) {
         string simpleType = Given.ToLetterOrDigitName(referenceId);
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
@@ -144,6 +147,7 @@ internal class TypeResolver(
         return result;
     }
 
+    // static
     private static string FormatAmbiguousMatches(SortedSet<string> candidateNames) {
         const int previewLimit = 5;
         var preview = candidateNames.Take(previewLimit).ToArray();

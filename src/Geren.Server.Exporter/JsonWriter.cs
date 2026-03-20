@@ -1,12 +1,13 @@
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace Geren.Server.Exporter;
 
 internal static class JsonWriter {
-    public static string Write(List<Extractor.EndpointModel> endpoints) {
+    public static string Write(List<Endpoint> endpoints) {
         using MemoryStream stream = new(capacity: 32 * 1024);
-        using (Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = false })) {
+        using (Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping })) {
             writer.WriteStartObject();
             writer.WriteString("schema", "geren-minimal-api-spec");
             writer.WriteNumber("version", 1);
@@ -23,7 +24,7 @@ internal static class JsonWriter {
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static void WriteEndpoint(Utf8JsonWriter writer, Extractor.EndpointModel endpoint) {
+    private static void WriteEndpoint(Utf8JsonWriter writer, Endpoint endpoint) {
         writer.WriteStartObject();
 
         writer.WritePropertyName("httpMethods");
@@ -59,7 +60,7 @@ internal static class JsonWriter {
         writer.WriteEndObject();
     }
 
-    private static void WriteParameter(Utf8JsonWriter writer, Extractor.ParameterModel parameter) {
+    private static void WriteParameter(Utf8JsonWriter writer, ParamSpec parameter) {
         writer.WriteStartObject();
         writer.WriteString("name", parameter.Name);
         writer.WriteString("type", parameter.Type);

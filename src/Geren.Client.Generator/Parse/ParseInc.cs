@@ -8,8 +8,6 @@ internal sealed record ParseInc(
 
     private static ParseInc Skip(Diagnostic diagnostic) => new(false, string.Empty, [], [diagnostic]);
 
-    internal static ParseInc Empty => new(false, string.Empty, [], []);
-
     internal static ParseInc Parse(AdditionalText file, CancellationToken cancellationToken) {
         try {
             string? text = file.GetText(cancellationToken)?.ToString();
