@@ -5,11 +5,13 @@ using System.Globalization;
 namespace Geren.Server.Exporter;
 
 internal static class Extractor {
-    public static List<Endpoint> Extract(Compilation compilation, List<Endpoint> endpoints, List<string> warnings, CancellationToken cancellationToken) {
+    public static (List<Endpoint>, List<string>) Extract(Compilation compilation, CancellationToken cancellationToken) {
+        List<Endpoint> endpoints = [];
+        List<string> warnings = [];
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
         if (endpointRouteBuilder is null) {
             warnings.Add("Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered.");
-            return endpoints;
+            return (endpoints, warnings);
         }
 
         foreach (var tree in compilation.SyntaxTrees) {
@@ -34,7 +36,7 @@ internal static class Extractor {
             return StringComparer.Ordinal.Compare(a.Handler, b.Handler);
         });
 
-        return endpoints;
+        return (endpoints, warnings);
     }
 
     private static void AddOne(

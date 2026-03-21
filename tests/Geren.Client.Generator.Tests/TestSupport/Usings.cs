@@ -3,7 +3,7 @@ global using Geren.Client.Generator.Common;
 global using Geren.Client.Generator.Emit;
 global using Geren.Client.Generator.Map;
 global using Geren.Client.Generator.Parse;
-global using Geren.Tests.TestSupport;
+global using Geren.Client.Generator.Tests.TestSupport;
 global using Microsoft.CodeAnalysis;
 global using Microsoft.CodeAnalysis.CSharp;
 global using Microsoft.CodeAnalysis.Diagnostics;

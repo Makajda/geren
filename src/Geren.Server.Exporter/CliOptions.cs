@@ -1,9 +1,9 @@
 namespace Geren.Server.Exporter;
 
 internal sealed record CliOptions(string ProjectPath, string OutputDirectory, string OutputFileName, string Configuration, string Platform) {
-    public static bool TryParse(string[] args, out CliOptions options, out string? error) {
-        options = default!;
-        error = null;
+    public static CliOptions? Parse(string[] args) {
+        CliOptions? options = default;
+        string? error = default;
 
         string? project = null;
         string? outDir = null;
@@ -16,48 +16,48 @@ internal sealed record CliOptions(string ProjectPath, string OutputDirectory, st
             switch (a) {
                 case "--project":
                 case "-p":
-                    if (!TryReadValue(args, ref i, out project, out error)) return false;
+                    if (!TryReadValue(args, ref i, out project, out error)) return options;
                     break;
                 case "--output-dir":
                 case "-o":
-                    if (!TryReadValue(args, ref i, out outDir, out error)) return false;
+                    if (!TryReadValue(args, ref i, out outDir, out error)) return options;
                     break;
                 case "--output-file":
                 case "-f":
-                    if (!TryReadValue(args, ref i, out outFile, out error)) return false;
+                    if (!TryReadValue(args, ref i, out outFile, out error)) return options;
                     break;
                 case "--configuration":
                 case "-c":
-                    if (!TryReadValue(args, ref i, out configuration, out error)) return false;
+                    if (!TryReadValue(args, ref i, out configuration, out error)) return options;
                     break;
                 case "--platform":
-                    if (!TryReadValue(args, ref i, out platform, out error)) return false;
+                    if (!TryReadValue(args, ref i, out platform, out error)) return options;
                     break;
                 case "--help":
                 case "-h":
                 case "/?":
                     error = null;
-                    return false;
+                    return options;
                 default:
                     error = $"Unknown argument: {a}";
-                    return false;
+                    return options;
             }
         }
 
         if (string.IsNullOrWhiteSpace(project)) {
             error = "Missing required argument: --project <path-to-csproj>";
-            return false;
+            return options;
         }
 
         if (string.IsNullOrWhiteSpace(outDir)) {
             error = "Missing required argument: --output-dir <folder>";
-            return false;
+            return options;
         }
 
         var projectPath = Path.GetFullPath(project);
         if (!File.Exists(projectPath)) {
             error = $"Project file does not exist: {projectPath}";
-            return false;
+            return options;
         }
 
         var outputDirectory = Path.GetFullPath(outDir);
@@ -71,7 +71,7 @@ internal sealed record CliOptions(string ProjectPath, string OutputDirectory, st
             OutputFileName: outputFileName,
             Configuration: configuration,
             Platform: platform);
-        return true;
+        return options;
     }
 
     private static bool TryReadValue(string[] args, ref int i, out string value, out string? error) {

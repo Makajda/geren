@@ -24,9 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-			<_Parameter1>Geren.Client.Generator.Tests</_Parameter1>
-		</AssemblyAttribute>
+        <InternalsVisibleTo Include="Geren.Client.Generator.Tests" />
 	</ItemGroup>
    
 </Project>

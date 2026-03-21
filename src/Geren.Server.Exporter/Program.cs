@@ -6,15 +6,9 @@ namespace Geren.Server.Exporter;
 
 internal static class Program {
     public static async Task<int> Main(string[] args) {
-        if (!CliOptions.TryParse(args, out var options, out var error)) {
-            if (error is not null) {
-                Console.Error.WriteLine(error);
-                Console.Error.WriteLine();
-            }
-
-            CliOptions.PrintUsage();
-            return 2;
-        }
+        Settings? settings = Config.Get(args);
+        if (settings is null)
+            return 1;
 
         using CancellationTokenSource cts = new();
         Console.CancelKeyPress += (_, e) => {
@@ -23,38 +17,21 @@ internal static class Program {
         };
 
         try {
-            if (!MSBuildLocator.IsRegistered)
-                MSBuildLocator.RegisterDefaults();
-
-            var workspaceProperties = new Dictionary<string, string>(StringComparer.Ordinal) {
-                ["Configuration"] = options.Configuration,
-                ["Platform"] = options.Platform,
-            };
-
-            using var workspace = MSBuildWorkspace.Create(workspaceProperties);
-            workspace.RegisterWorkspaceFailedHandler(e => {
-                if (e.Diagnostic.Kind == Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Failure)
-                    Console.Error.WriteLine(e.Diagnostic.Message);
-            });
-
-            var project = await workspace.OpenProjectAsync(options.ProjectPath, cancellationToken: cts.Token).ConfigureAwait(false);
-            var compilation = await project.GetCompilationAsync(cts.Token).ConfigureAwait(false);
+            Compilation? compilation = await CreateCompilation(settings, cts.Token);
             if (compilation is null) {
                 Console.Error.WriteLine("Failed to create Compilation.");
-                return 1;
+                return 2;
             }
 
-            List<Endpoint> endpoints = [];
-            List<string> warnings = [];
-            Extractor.Extract(compilation, endpoints, warnings, cts.Token);
+            var (endpoints, warnings) = Extractor.Extract(compilation, cts.Token);
 
             foreach (var w in warnings)
                 Console.Error.WriteLine(w);
 
             var json = JsonWriter.Write(endpoints);
 
-            Directory.CreateDirectory(options.OutputDirectory);
-            var outputPath = Path.Combine(options.OutputDirectory, options.OutputFileName);
+            Directory.CreateDirectory(settings.OutputDirectory);
+            var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
             await File.WriteAllTextAsync(
                     outputPath,
                     json,
@@ -75,5 +52,24 @@ internal static class Program {
         }
     }
 
+    private static async Task<Compilation?> CreateCompilation(Settings settings, CancellationToken token) {
+        if (!MSBuildLocator.IsRegistered)
+            MSBuildLocator.RegisterDefaults();
+
+        var workspaceProperties = new Dictionary<string, string>(StringComparer.Ordinal) {
+            ["Configuration"] = settings.Configuration,
+            ["Platform"] = settings.Platform,
+        };
+
+        using MSBuildWorkspace workspace = MSBuildWorkspace.Create(workspaceProperties);
+        workspace.RegisterWorkspaceFailedHandler(e => {
+            if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                Console.Error.WriteLine(e.Diagnostic.Message);
+        });
+
+        Project project = await workspace.OpenProjectAsync(settings.Project, cancellationToken: token).ConfigureAwait(false);
+        Compilation? compilation = await project.GetCompilationAsync(token).ConfigureAwait(false);
+        return compilation;
+    }
 }
 
