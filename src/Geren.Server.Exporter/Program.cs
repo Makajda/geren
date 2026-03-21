@@ -17,13 +17,17 @@ internal static class Program {
         };
 
         try {
+            using Spinner spinner1 = new("Creating Compilation", ConsoleColor.Green);
             Compilation? compilation = await CreateCompilation(settings, cts.Token);
+            spinner1.Dispose();
             if (compilation is null) {
                 Console.Error.WriteLine("Failed to create Compilation.");
                 return 2;
             }
 
+            using Spinner spinner2 = new("Extracting", ConsoleColor.Blue);
             var (endpoints, warnings) = Extractor.Extract(compilation, cts.Token);
+            spinner2.Dispose();
 
             foreach (var w in warnings)
                 Console.Error.WriteLine(w);
@@ -39,7 +43,8 @@ internal static class Program {
                     cts.Token)
                 .ConfigureAwait(false);
 
-            Console.WriteLine($"Wrote {endpoints.Count} endpoints to '{outputPath}'.");
+            Console.WriteLine($"Wrote {endpoints.Count} endpoints to");
+            Console.WriteLine(outputPath);
             return 0;
         }
         catch (OperationCanceledException) {

@@ -12,7 +12,7 @@ internal sealed record Settings(
 internal static class Config {
     internal static Settings? Get(string[] args) {
 #if DEBUG
-        args = ["--project", @"C:\depo\source\Qer\Src\Qera\Qera.csproj", "--output-dir", @"Aut"];//todo validate dir?
+        args = ["--project", @"C:\depo\source\Qer\Src\Qera\Qera.csproj", "--output-dir", @"C:\depo\source"];
 #endif
 
         IConfiguration config = new ConfigurationBuilder()
