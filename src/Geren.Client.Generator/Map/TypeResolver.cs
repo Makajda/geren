@@ -7,7 +7,8 @@ internal class TypeResolver(
     string _rootFileNamespace,
     Compilation _compilation,
     Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder,
-    ImmutableArray<Diagnostic>.Builder _diagnostics) {
+    ImmutableArray<Diagnostic>.Builder _diagnostics,
+    CancellationToken cancellationToken) {
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 
@@ -23,25 +24,6 @@ internal class TypeResolver(
             PurposeTypes.Reference => ResolveByReference(type),
             _ => type
         };
-    }
-
-    private string GetOrCreatePlaceholderTypeName(string kind, string requested, string? details = null) {
-        string name = "__GerenUnresolvedType_" + ComputeStableHash12($"{kind}:{requested}");
-        if (!_unresolvedByPlaceholder.ContainsKey(name)) {
-            _unresolvedByPlaceholder[name] = new UnresolvedSchemaType(
-                PlaceholderTypeName: name,
-                Kind: kind,
-                Requested: requested,
-                Details: details);
-        }
-        else if (details is not null) {
-            var existing = _unresolvedByPlaceholder[name];
-            if (existing.Details is null) {
-                _unresolvedByPlaceholder[name] = existing with { Details = details };
-            }
-        }
-
-        return $"global::{_rootFileNamespace}.{name}";
     }
 
     private string ResolveByMetadata(string simpleType) {
@@ -69,16 +51,16 @@ internal class TypeResolver(
 
         var source = $$"""class __TypeProbe {{{genericType}} m;}""";
         var parseOptions = (CSharpParseOptions)_compilation.SyntaxTrees.First().Options;
-        var tree = CSharpSyntaxTree.ParseText(source, parseOptions, path: "__Geren_TypeProbe.g.cs");
+        var tree = CSharpSyntaxTree.ParseText(source, parseOptions, path: "__Geren_TypeProbe.g.cs", null, cancellationToken);
         var newCompilation = _compilation.AddSyntaxTrees(tree);
         var model = newCompilation.GetSemanticModel(tree);
 
-        var root = tree.GetRoot();
+        var root = tree.GetRoot(cancellationToken);
         var field = root.DescendantNodes().OfType<FieldDeclarationSyntax>().First();
         var typeSyntax = field.Declaration.Type;
-        var typeInfo = model.GetTypeInfo(typeSyntax);
+        var typeInfo = model.GetTypeInfo(typeSyntax, cancellationToken);
         var type = typeInfo.Type;
-        bool hasError = IsErrorTypeArgs(type) || tree.GetDiagnostics().Count() > 0;
+        bool hasError = HasErrorTypeArgs(type) || tree.GetDiagnostics(cancellationToken).Count() > 0;
 
         string result;
         if (hasError) {
@@ -93,18 +75,6 @@ internal class TypeResolver(
         return result;
     }
 
-    private static bool IsErrorTypeArgs(ITypeSymbol? type) {
-        if (type is null || type is IErrorTypeSymbol)
-            return true;
-
-        if (type is INamedTypeSymbol symbol)
-            foreach (var next in symbol.TypeArguments)
-                if (IsErrorTypeArgs(next))
-                    return true;
-
-        return false;
-    }
-
     private string ResolveByReference(string referenceId) {
         string simpleType = Given.ToLetterOrDigitName(referenceId);
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))
@@ -112,7 +82,7 @@ internal class TypeResolver(
 
         SortedSet<string> candidateNames = new(StringComparer.Ordinal);
 
-        foreach (var symbol in _compilation.GetSymbolsWithName(simpleType, SymbolFilter.Type)
+        foreach (var symbol in _compilation.GetSymbolsWithName(simpleType, SymbolFilter.Type, cancellationToken)
             .OfType<INamedTypeSymbol>()
             .OrderBy(static s => s.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), StringComparer.Ordinal)) {
             candidateNames.Add(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
@@ -147,7 +117,39 @@ internal class TypeResolver(
         return result;
     }
 
+    private string GetOrCreatePlaceholderTypeName(string kind, string requested, string? details = null) {
+        string name = "__GerenUnresolvedType_" + ComputeStableHash12($"{kind}:{requested}");
+        if (!_unresolvedByPlaceholder.ContainsKey(name)) {
+            _unresolvedByPlaceholder[name] = new UnresolvedSchemaType(
+                PlaceholderTypeName: name,
+                Kind: kind,
+                Requested: requested,
+                Details: details);
+        }
+        else if (details is not null) {
+            var existing = _unresolvedByPlaceholder[name];
+            if (existing.Details is null) {
+                _unresolvedByPlaceholder[name] = existing with { Details = details };
+            }
+        }
+
+        return $"global::{_rootFileNamespace}.{name}";
+    }
+
     // static
+
+    private static bool HasErrorTypeArgs(ITypeSymbol? type) {
+        if (type is null || type is IErrorTypeSymbol)
+            return true;
+
+        if (type is INamedTypeSymbol symbol)
+            foreach (var next in symbol.TypeArguments)
+                if (HasErrorTypeArgs(next))
+                    return true;
+
+        return false;
+    }
+
     private static string FormatAmbiguousMatches(SortedSet<string> candidateNames) {
         const int previewLimit = 5;
         var preview = candidateNames.Take(previewLimit).ToArray();
