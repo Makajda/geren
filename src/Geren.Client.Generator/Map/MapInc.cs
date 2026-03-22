@@ -22,7 +22,7 @@ internal sealed record MapInc(
             cancellationToken.ThrowIfCancellationRequested();
 
             string returnType = _typeResolver.Resolve(point.ReturnType);
-            string bodyType = _typeResolver.Resolve(point.BodyType);
+            string? bodyType = point.BodyType is null ? null : _typeResolver.Resolve(point.BodyType.Value);
             ImmutableArray<ParamSpec>.Builder ps = ImmutableArray.CreateBuilder<ParamSpec>();
             foreach (var param in point.Params)
                 ps.Add(new(param.Name, param.Identifier, _typeResolver.Resolve(param.Type)));

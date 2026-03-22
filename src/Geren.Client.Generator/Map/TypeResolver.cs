@@ -9,15 +9,12 @@ internal class TypeResolver(
     Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder,
     ImmutableArray<Diagnostic>.Builder _diagnostics,
     CancellationToken cancellationToken) {
+
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 
-    internal string Resolve(PurposeType? schema) {
-        if (schema is null)
-            return "string";
-
-        var (type, purpose) = schema.Value;
-
+    internal string Resolve(PurposeType schema) {
+        var (type, purpose) = schema;
         return purpose switch {
             PurposeTypes.Metadata => ResolveByMetadata(type),
             PurposeTypes.Compile => ResolveByCompile(type),
