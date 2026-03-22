@@ -1,20 +1,6 @@
-using Geren.Client.Generator.Tests.TestSupport;
-
 namespace Geren.Client.Generator.Tests.Unit.Map;
 
 public sealed class TypeResolverTests {
-    [Fact]
-    public void Resolve_NullSchema_ReturnsString() {
-        var compilation = CompilationFactory.Create("t", "public sealed class Dummy { }");
-        var diags = ImmutableArray.CreateBuilder<Diagnostic>();
-        var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
-
-        resolver.Resolve(schema: null).Should().Be("string");
-        diags.Should().BeEmpty();
-        unresolved.Should().BeEmpty();
-    }
-
     [Fact]
     public void Resolve_Metadata_Succeeds_WhenTypeExistsByMetadataName() {
         var compilation = CompilationFactory.Create("t", """
@@ -24,7 +10,7 @@ public sealed class TypeResolverTests {
 
         var diags = ImmutableArray.CreateBuilder<Diagnostic>();
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
+        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
         var resolved = resolver.Resolve(new PurposeType("Dto.PetDto", PurposeTypes.Metadata));
 
@@ -38,7 +24,7 @@ public sealed class TypeResolverTests {
         var compilation = CompilationFactory.Create("t", "public sealed class Dummy { }");
         var diags = ImmutableArray.CreateBuilder<Diagnostic>();
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
+        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
         var r1 = resolver.Resolve(new PurposeType("Dto.Missing", PurposeTypes.Metadata));
         var r2 = resolver.Resolve(new PurposeType("Dto.Missing", PurposeTypes.Metadata));
@@ -58,7 +44,7 @@ public sealed class TypeResolverTests {
 
         var diags = ImmutableArray.CreateBuilder<Diagnostic>();
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
+        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
         var resolved = resolver.Resolve(new PurposeType("PetDto", PurposeTypes.Reference));
 
@@ -72,7 +58,7 @@ public sealed class TypeResolverTests {
         var compilation = CompilationFactory.Create("t", "public sealed class Dummy { }");
         var diags = ImmutableArray.CreateBuilder<Diagnostic>();
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
+        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
         var resolved = resolver.Resolve(new PurposeType("MissingDto", PurposeTypes.Reference));
 
@@ -93,7 +79,7 @@ public sealed class TypeResolverTests {
 
         var diags = ImmutableArray.CreateBuilder<Diagnostic>();
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
+        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
         var resolved = resolver.Resolve(new PurposeType("PetDto", PurposeTypes.Reference));
 
@@ -116,7 +102,7 @@ public sealed class TypeResolverTests {
 
         var diags = ImmutableArray.CreateBuilder<Diagnostic>();
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
+        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
         _ = resolver.Resolve(new PurposeType("PetDto", PurposeTypes.Reference));
 
@@ -129,7 +115,7 @@ public sealed class TypeResolverTests {
         var compilation = CompilationFactory.Create("t", "public sealed class Dummy { }");
         var diags = ImmutableArray.CreateBuilder<Diagnostic>();
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
-        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags);
+        var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
         var resolved = resolver.Resolve(new PurposeType("System.Collections.Generic.List<KeyValuePair<string, MissingType>>", PurposeTypes.Compile));
 
