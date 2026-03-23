@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using System.Globalization;
+using System.Text;
 
 namespace Geren.Server.Exporter;
 
@@ -86,6 +87,8 @@ internal static class Extractor {
 
         if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
             routeTemplate = AddChainedMapGroupPrefix(routeTemplate, endpointRouteBuilder, semanticModel, memberAccess.Expression, cancellationToken);
+
+        routeTemplate = NormalizeRouteTemplate(routeTemplate);
 
         var routeParameterNames = ExtractRouteParameterNames(routeTemplate);
 
@@ -304,6 +307,45 @@ internal static class Extractor {
             return left + "/" + right;
 
         return left + right;
+    }
+
+    private static string NormalizeRouteTemplate(string template) {
+        if (string.IsNullOrWhiteSpace(template))
+            return "/";
+
+        template = template.Trim().Replace('\\', '/');
+
+        // Treat "~/..." as rooted.
+        if (template.StartsWith("~/", StringComparison.Ordinal))
+            template = template.Substring(1);
+
+        // Collapse duplicate slashes.
+        var sb = new StringBuilder(template.Length);
+        bool prevSlash = false;
+        foreach (char ch in template) {
+            if (ch == '/') {
+                if (prevSlash)
+                    continue;
+
+                prevSlash = true;
+                sb.Append('/');
+                continue;
+            }
+
+            prevSlash = false;
+            sb.Append(ch);
+        }
+
+        template = sb.ToString();
+
+        if (!template.StartsWith("/", StringComparison.Ordinal))
+            template = "/" + template;
+
+        // Keep "/" but trim trailing slashes for other routes.
+        while (template.Length > 1 && template.EndsWith("/", StringComparison.Ordinal))
+            template = template.Substring(0, template.Length - 1);
+
+        return template;
     }
 
     private static string FormatWarning(InvocationExpressionSyntax invocation, string message) {
