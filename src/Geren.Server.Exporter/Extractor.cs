@@ -784,7 +784,33 @@ internal static class Extractor {
         var task = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
         var valueTask = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
         var actionResultOfT = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.ActionResult`1");
+        var actionResult = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.ActionResult");
+        var iActionResult = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.IActionResult");
+        var iResult = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.IResult");
         const string HttpResultsNamespace = "Microsoft.AspNetCore.Http.HttpResults";
+        const string ResultsUnionNamespace = "Microsoft.AspNetCore.Http.Results";
+
+        bool IsOrImplements(ITypeSymbol type, INamedTypeSymbol target) {
+            if (SymbolEqualityComparer.Default.Equals(type, target))
+                return true;
+
+            if (type is not INamedTypeSymbol named)
+                return false;
+
+            if (target.TypeKind == TypeKind.Interface) {
+                foreach (var iface in named.AllInterfaces)
+                    if (SymbolEqualityComparer.Default.Equals(iface, target))
+                        return true;
+
+                return false;
+            }
+
+            for (INamedTypeSymbol? t = named; t is not null; t = t.BaseType)
+                if (SymbolEqualityComparer.Default.Equals(t, target))
+                    return true;
+
+            return false;
+        }
 
         ITypeSymbol current = returnType;
         while (true) {
@@ -812,6 +838,37 @@ internal static class Extractor {
                 }
             }
 
+            // Minimal API Results<...> union wrapper (e.g., Results<Ok<T>, NotFound>).
+            if (current is INamedTypeSymbol resultsUnion
+                && resultsUnion.Name.Equals("Results", StringComparison.Ordinal)
+                && resultsUnion.TypeArguments.Length > 0
+                && resultsUnion.ContainingNamespace?.ToDisplayString() == ResultsUnionNamespace) {
+
+                HashSet<ITypeSymbol> payloadTypes = new(SymbolEqualityComparer.Default);
+                foreach (var alt in resultsUnion.TypeArguments) {
+                    if (alt is not INamedTypeSymbol altNamed || altNamed.TypeArguments.Length != 1)
+                        continue;
+
+                    if (altNamed.ContainingNamespace?.ToDisplayString() == HttpResultsNamespace) {
+                        payloadTypes.Add(altNamed.TypeArguments[0]);
+                        continue;
+                    }
+
+                    var altOriginal = altNamed.OriginalDefinition;
+                    if (actionResultOfT is not null && SymbolEqualityComparer.Default.Equals(altOriginal, actionResultOfT)) {
+                        payloadTypes.Add(altNamed.TypeArguments[0]);
+                        continue;
+                    }
+                }
+
+                if (payloadTypes.Count == 1) {
+                    current = payloadTypes.Single();
+                    continue;
+                }
+
+                return null;
+            }
+
             break;
         }
 
@@ -819,6 +876,16 @@ internal static class Extractor {
             return null;
 
         if (valueTask is not null && SymbolEqualityComparer.Default.Equals(current, valueTask))
+            return null;
+
+        // "Zoo": returning IActionResult/IResult/etc. does not expose a stable DTO type.
+        if (actionResult is not null && IsOrImplements(current, actionResult))
+            return null;
+
+        if (iActionResult is not null && IsOrImplements(current, iActionResult))
+            return null;
+
+        if (iResult is not null && IsOrImplements(current, iResult))
             return null;
 
         return current;
