@@ -11,14 +11,16 @@ internal sealed record Settings(
 
 internal static class Config {
     internal static Settings? Get(string[] args) {
-        IConfiguration config = new ConfigurationBuilder()
+        IConfigurationBuilder configBuilder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true)
-            .AddEnvironmentVariables()
-            .AddCommandLine(args, SwitchMappings)
-            .Build();
+            .AddCommandLine(args, SwitchMappings);
 
-        var settings = config.Get<Settings>() ?? new();
+        if ((Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production") == "Development")
+            configBuilder.AddUserSecrets<ParamSpec>();// Project & OutputDirectory
+
+        IConfiguration configuration = configBuilder.Build();
+        Settings settings = configuration.Get<Settings>() ?? new();
 
         if (string.IsNullOrEmpty(settings.Project) || string.IsNullOrEmpty(settings.OutputDirectory)) {
             PrintUsage();

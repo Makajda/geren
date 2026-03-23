@@ -6,9 +6,6 @@ namespace Geren.Server.Exporter;
 
 internal static class Program {
     public static async Task<int> Main(string[] args) {
-#if DEBUG
-        args = ["--project", @"C:\depo\source\Qer\Src\Qera\Qera.csproj", "--output-dir", @"C:\depo\source"];
-#endif
         Settings? settings = Config.Get(args);
         if (settings is null)
             return 1;
