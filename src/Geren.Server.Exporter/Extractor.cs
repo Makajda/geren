@@ -3,9 +3,9 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Geren.Server.Exporter;
 
 internal static class Extractor {
-    public static (List<Endpoint>, List<Dide.WarningSpec>) Extract(Compilation compilation, CancellationToken cancellationToken) {
+    public static (List<Endpoint>, List<Dide.Warning>) Extract(Compilation compilation, CancellationToken cancellationToken) {
         List<Endpoint> endpoints = [];
-        List<Dide.WarningSpec> warnings = [];
+        List<Dide.Warning> warnings = [];
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
         if (endpointRouteBuilder is null) {
             warnings.Add(Dide.Create("GERENEXP001", "Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered."));
@@ -46,7 +46,7 @@ internal static class Extractor {
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         List<Endpoint> endpoints,
-        List<Dide.WarningSpec> warnings,
+        List<Dide.Warning> warnings,
         CancellationToken cancellationToken) {
 
         cancellationToken.ThrowIfCancellationRequested();
