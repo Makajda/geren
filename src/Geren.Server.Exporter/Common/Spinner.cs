@@ -1,3 +1,5 @@
+namespace Geren.Server.Exporter.Common;
+
 internal class Spinner : IDisposable {
     private readonly CancellationTokenSource _cts = new();
     private readonly Task _spinnerTask;

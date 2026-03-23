@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace Geren.Server.Exporter;
+namespace Geren.Server.Exporter.Common;
 
 internal sealed record Settings(
     string Project = "",

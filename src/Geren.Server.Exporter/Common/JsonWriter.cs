@@ -1,11 +1,10 @@
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
-namespace Geren.Server.Exporter;
+namespace Geren.Server.Exporter.Common;
 
 internal static class JsonWriter {
-    public static string Write(List<Endpoint> endpoints, IReadOnlyList<WarningSpec>? warnings = null) {
+    public static string Write(List<Endpoint> endpoints, IReadOnlyList<Dide.WarningSpec>? warnings = null) {
         using MemoryStream stream = new(capacity: 32 * 1024);
         using (Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping })) {
             writer.WriteStartObject();
@@ -69,9 +68,9 @@ internal static class JsonWriter {
         writer.WriteEndObject();
     }
 
-    private static void WriteWarning(Utf8JsonWriter writer, WarningSpec warning) {
+    private static void WriteWarning(Utf8JsonWriter writer, Dide.WarningSpec warning) {
         writer.WriteStartObject();
-        writer.WriteString("code", warning.Code);
+        writer.WriteString("code", warning.Id);
         writer.WriteString("message", warning.Message);
 
         if (warning.Location is not null) {

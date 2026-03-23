@@ -1,3 +1,5 @@
+using Geren.Server.Exporter.Common;
+
 namespace Geren.Server.Exporter.Tests;
 
 public class ConfigTests {

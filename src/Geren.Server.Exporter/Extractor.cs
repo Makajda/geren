@@ -1,19 +1,14 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
-using System.Globalization;
-using System.Text;
 
 namespace Geren.Server.Exporter;
 
 internal static class Extractor {
-    public static (List<Endpoint>, List<WarningSpec>) Extract(Compilation compilation, CancellationToken cancellationToken) {
+    public static (List<Endpoint>, List<Dide.WarningSpec>) Extract(Compilation compilation, CancellationToken cancellationToken) {
         List<Endpoint> endpoints = [];
-        List<WarningSpec> warnings = [];
+        List<Dide.WarningSpec> warnings = [];
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
         if (endpointRouteBuilder is null) {
-            warnings.Add(new(
-                Code: "GERENEXP000",
-                Message: "Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered."));
+            warnings.Add(Dide.Create("GERENEXP001", "Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered."));
             return (endpoints, warnings);
         }
 
@@ -51,7 +46,7 @@ internal static class Extractor {
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         List<Endpoint> endpoints,
-        List<WarningSpec> warnings,
+        List<Dide.WarningSpec> warnings,
         CancellationToken cancellationToken) {
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -83,7 +78,7 @@ internal static class Extractor {
 
         var routeTemplateExpression = invocation.ArgumentList.Arguments[routeTemplateArgIndex].Expression;
         if (!TryGetConstantString(semanticModel, routeTemplateExpression, cancellationToken, out var routeTemplate)) {
-            warnings.Add(CreateWarning(invocation, "GERENEXP001", $"Skipped '{methodSymbol.Name}': route template is not a constant string."));
+            warnings.Add(Dide.Create(invocation, "GERENEXP002", $"Skipped '{methodSymbol.Name}': route template is not a constant string."));
             return;
         }
 
@@ -98,13 +93,13 @@ internal static class Extractor {
         var operation = semanticModel.GetOperation(handlerExpression, cancellationToken);
         var handlerMethod = operation is null ? null : GetHandlerMethodSymbol(operation);
         if (handlerMethod is null) {
-            warnings.Add(CreateWarning(invocation, "GERENEXP002", $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol."));
+            warnings.Add(Dide.Create(invocation, "GERENEXP003", $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol."));
             return;
         }
 
         var httpMethods = GetHttpMethods(methodSymbol, invocation, semanticModel, cancellationToken);
         if (httpMethods.IsEmpty) {
-            warnings.Add(CreateWarning(invocation, "GERENEXP003", $"Skipped '{methodSymbol.Name}': unknown HTTP method(s) (unable to infer from map call)."));
+            warnings.Add(Dide.Create(invocation, "GERENEXP004", $"Skipped '{methodSymbol.Name}': unknown HTTP method(s) (unable to infer from map call)."));
             return;
         }
 
@@ -324,7 +319,7 @@ internal static class Extractor {
 
         // Treat "~/..." as rooted.
         if (template.StartsWith("~/", StringComparison.Ordinal))
-            template = template.Substring(1);
+            template = template[1..];
 
         // Collapse duplicate slashes.
         var sb = new StringBuilder(template.Length);
@@ -345,22 +340,14 @@ internal static class Extractor {
 
         template = sb.ToString();
 
-        if (!template.StartsWith("/", StringComparison.Ordinal))
+        if (!template.StartsWith('/'))
             template = "/" + template;
 
         // Keep "/" but trim trailing slashes for other routes.
-        while (template.Length > 1 && template.EndsWith("/", StringComparison.Ordinal))
-            template = template.Substring(0, template.Length - 1);
+        while (template.Length > 1 && template.EndsWith('/'))
+            template = template[..^1];
 
         return template;
-    }
-
-    private static WarningSpec CreateWarning(InvocationExpressionSyntax invocation, string code, string message) {
-        FileLinePositionSpan span = invocation.GetLocation().GetLineSpan();
-        string file = span.Path.Length == 0 ? "<unknown>" : span.Path;
-        int line = span.StartLinePosition.Line + 1;
-        int col = span.StartLinePosition.Character + 1;
-        return new(code, message, new WarningLocation(file, line, col));
     }
 
     private static bool IsEndpointRouteBuilderExtension(IMethodSymbol methodSymbol, INamedTypeSymbol endpointRouteBuilder) {
@@ -790,7 +777,7 @@ internal static class Extractor {
         const string HttpResultsNamespace = "Microsoft.AspNetCore.Http.HttpResults";
         const string ResultsUnionNamespace = "Microsoft.AspNetCore.Http.Results";
 
-        bool IsOrImplements(ITypeSymbol type, INamedTypeSymbol target) {
+        static bool IsOrImplements(ITypeSymbol type, INamedTypeSymbol target) {
             if (SymbolEqualityComparer.Default.Equals(type, target))
                 return true;
 

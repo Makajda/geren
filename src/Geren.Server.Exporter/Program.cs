@@ -1,6 +1,5 @@
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
-using System.Text;
 
 namespace Geren.Server.Exporter;
 
@@ -8,7 +7,7 @@ internal static class Program {
     public static async Task<int> Main(string[] args) {
         Settings? settings = Config.Get(args);
         if (settings is null)
-            return 1;
+            return 2;
 
         using CancellationTokenSource cts = new();
         Console.CancelKeyPress += (_, e) => {
@@ -22,19 +21,14 @@ internal static class Program {
             spinner1.Dispose();
             if (compilation is null) {
                 Console.Error.WriteLine("Failed to create Compilation.");
-                return 2;
+                return 3;
             }
 
             using Spinner spinner2 = new("Extracting", ConsoleColor.Blue);
             var (endpoints, warnings) = Extractor.Extract(compilation, cts.Token);
             spinner2.Dispose();
 
-            foreach (var w in warnings) {
-                if (w.Location is null)
-                    Console.Error.WriteLine($"{w.Code}: {w.Message}");
-                else
-                    Console.Error.WriteLine($"{w.Location.File}({w.Location.Line},{w.Location.Column}): {w.Code}: {w.Message}");
-            }
+            Dide.Show(warnings);
 
             var json = JsonWriter.Write(endpoints, settings.IncludeWarningsInJson ? warnings : null);
 
@@ -53,7 +47,7 @@ internal static class Program {
         }
         catch (OperationCanceledException) {
             Console.Error.WriteLine("Canceled.");
-            return 130;
+            return 4;
         }
         catch (Exception ex) {
             Console.Error.WriteLine(ex.ToString());
