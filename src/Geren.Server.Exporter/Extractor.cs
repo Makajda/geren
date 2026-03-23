@@ -784,6 +784,7 @@ internal static class Extractor {
         var task = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
         var valueTask = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
         var actionResultOfT = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.ActionResult`1");
+        const string HttpResultsNamespace = "Microsoft.AspNetCore.Http.HttpResults";
 
         ITypeSymbol current = returnType;
         while (true) {
@@ -800,6 +801,12 @@ internal static class Extractor {
                 }
 
                 if (actionResultOfT is not null && SymbolEqualityComparer.Default.Equals(original, actionResultOfT)) {
+                    current = named.TypeArguments[0];
+                    continue;
+                }
+
+                // Minimal API TypedResults.* return wrappers under Microsoft.AspNetCore.Http.HttpResults (e.g., Ok<T>, Created<T>).
+                if (named.ContainingNamespace?.ToDisplayString() == HttpResultsNamespace) {
                     current = named.TypeArguments[0];
                     continue;
                 }

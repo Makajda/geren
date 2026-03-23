@@ -23,7 +23,7 @@ public sealed partial class {{className}}
         if (args.Length > 0)
             args += ", ";
 
-        if (endpoint.BodyType is not null && (endpoint.Method == Given.Post || endpoint.Method == Given.Put || endpoint.Method == Given.Delete))
+        if (!string.IsNullOrEmpty(endpoint.BodyType) && (endpoint.Method == Given.Post || endpoint.Method == Given.Put || endpoint.Method == Given.Delete))
             args += $"{endpoint.BodyType} body, ";
 
         var signature = $"{methodName}({args}CancellationToken cancellationToken = default)";
