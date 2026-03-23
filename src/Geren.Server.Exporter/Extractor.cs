@@ -103,6 +103,11 @@ internal static class Extractor {
         }
 
         var httpMethods = GetHttpMethods(methodSymbol, invocation, semanticModel, cancellationToken);
+        if (httpMethods.IsEmpty) {
+            warnings.Add(CreateWarning(invocation, "GERENEXP003", $"Skipped '{methodSymbol.Name}': unknown HTTP method(s) (unable to infer from map call)."));
+            return;
+        }
+
         var parameters = InferParameters(compilation, handlerMethod, routeParameterNames, httpMethods);
         var returnType = UnwrapReturnType(handlerMethod.ReturnType, compilation);
 
