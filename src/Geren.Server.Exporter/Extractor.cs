@@ -6,12 +6,14 @@ using System.Text;
 namespace Geren.Server.Exporter;
 
 internal static class Extractor {
-    public static (List<Endpoint>, List<string>) Extract(Compilation compilation, CancellationToken cancellationToken) {
+    public static (List<Endpoint>, List<WarningSpec>) Extract(Compilation compilation, CancellationToken cancellationToken) {
         List<Endpoint> endpoints = [];
-        List<string> warnings = [];
+        List<WarningSpec> warnings = [];
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
         if (endpointRouteBuilder is null) {
-            warnings.Add("Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered.");
+            warnings.Add(new(
+                Code: "GERENEXP000",
+                Message: "Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered."));
             return (endpoints, warnings);
         }
 
@@ -49,7 +51,7 @@ internal static class Extractor {
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         List<Endpoint> endpoints,
-        List<string> warnings,
+        List<WarningSpec> warnings,
         CancellationToken cancellationToken) {
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -81,7 +83,7 @@ internal static class Extractor {
 
         var routeTemplateExpression = invocation.ArgumentList.Arguments[routeTemplateArgIndex].Expression;
         if (!TryGetConstantString(semanticModel, routeTemplateExpression, cancellationToken, out var routeTemplate)) {
-            warnings.Add(FormatWarning(invocation, $"Skipped '{methodSymbol.Name}': route template is not a constant string."));
+            warnings.Add(CreateWarning(invocation, "GERENEXP001", $"Skipped '{methodSymbol.Name}': route template is not a constant string."));
             return;
         }
 
@@ -96,7 +98,7 @@ internal static class Extractor {
         var operation = semanticModel.GetOperation(handlerExpression, cancellationToken);
         var handlerMethod = operation is null ? null : GetHandlerMethodSymbol(operation);
         if (handlerMethod is null) {
-            warnings.Add(FormatWarning(invocation, $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol."));
+            warnings.Add(CreateWarning(invocation, "GERENEXP002", $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol."));
             return;
         }
 
@@ -348,12 +350,12 @@ internal static class Extractor {
         return template;
     }
 
-    private static string FormatWarning(InvocationExpressionSyntax invocation, string message) {
+    private static WarningSpec CreateWarning(InvocationExpressionSyntax invocation, string code, string message) {
         FileLinePositionSpan span = invocation.GetLocation().GetLineSpan();
         string file = span.Path.Length == 0 ? "<unknown>" : span.Path;
         int line = span.StartLinePosition.Line + 1;
         int col = span.StartLinePosition.Character + 1;
-        return $"{file}({line.ToString(CultureInfo.InvariantCulture)},{col.ToString(CultureInfo.InvariantCulture)}): {message}";
+        return new(code, message, new WarningLocation(file, line, col));
     }
 
     private static bool IsEndpointRouteBuilderExtension(IMethodSymbol methodSymbol, INamedTypeSymbol endpointRouteBuilder) {

@@ -29,10 +29,14 @@ internal static class Program {
             var (endpoints, warnings) = Extractor.Extract(compilation, cts.Token);
             spinner2.Dispose();
 
-            foreach (var w in warnings)
-                Console.Error.WriteLine(w);
+            foreach (var w in warnings) {
+                if (w.Location is null)
+                    Console.Error.WriteLine($"{w.Code}: {w.Message}");
+                else
+                    Console.Error.WriteLine($"{w.Location.File}({w.Location.Line},{w.Location.Column}): {w.Code}: {w.Message}");
+            }
 
-            var json = JsonWriter.Write(endpoints);
+            var json = JsonWriter.Write(endpoints, settings.IncludeWarningsInJson ? warnings : null);
 
             Directory.CreateDirectory(settings.OutputDirectory);
             var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
@@ -77,4 +81,3 @@ internal static class Program {
         return compilation;
     }
 }
-

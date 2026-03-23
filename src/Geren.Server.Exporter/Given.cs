@@ -11,6 +11,10 @@ internal sealed record Endpoint(
 
 internal sealed record ParamSpec(string Name, string Type, string Source);
 
+internal sealed record WarningLocation(string File, int Line, int Column);
+
+internal sealed record WarningSpec(string Code, string Message, WarningLocation? Location = null);
+
 internal static class Given {
     internal static readonly SymbolDisplayFormat FullyQualifiedMethodFormat = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
