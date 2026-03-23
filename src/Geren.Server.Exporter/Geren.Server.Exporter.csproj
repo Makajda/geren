@@ -47,8 +47,4 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Geren.Server.Exporter.Tests" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Extract\" />
-    </ItemGroup>
 </Project>
