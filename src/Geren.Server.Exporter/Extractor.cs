@@ -17,6 +17,9 @@ internal static class Extractor {
         foreach (var tree in compilation.SyntaxTrees) {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if (ShouldSkipSyntaxTree(tree.FilePath))
+                continue;
+
             var root = tree.GetRoot(cancellationToken);
             var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
@@ -95,7 +98,7 @@ internal static class Extractor {
         }
 
         var httpMethods = GetHttpMethods(methodSymbol, invocation, semanticModel, cancellationToken);
-        var parameters = InferParameters(handlerMethod, routeParameterNames, httpMethods);
+        var parameters = InferParameters(compilation, handlerMethod, routeParameterNames, httpMethods);
         var returnType = UnwrapReturnType(handlerMethod.ReturnType, compilation);
 
         endpoints.Add(new(
@@ -547,15 +550,20 @@ internal static class Extractor {
     }
 
     private static ImmutableArray<ParamSpec> InferParameters(
+        Compilation compilation,
         IMethodSymbol handlerMethod,
         HashSet<string> routeParameterNames,
         ImmutableArray<string> httpMethods) {
 
         var allowBody = httpMethods.Any(static m => m is "POST" or "PUT" or "PATCH");
         var bodyAssigned = false;
+        var efDbContext = compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.DbContext");
 
         var builder = ImmutableArray.CreateBuilder<ParamSpec>(handlerMethod.Parameters.Length);
         foreach (var parameter in handlerMethod.Parameters) {
+            if (IsServicesOrInfrastructureParameter(parameter, efDbContext))
+                continue;
+
             string source = InferParameterSource(parameter, routeParameterNames, allowBody, ref bodyAssigned);
             builder.Add(new(
                 Name: parameter.Name,
@@ -596,6 +604,77 @@ internal static class Extractor {
             if (metadataName == "global::Microsoft.AspNetCore.Mvc.FromRouteAttribute"
                 || metadataName == "global::Microsoft.AspNetCore.Http.Metadata.FromRouteAttribute") {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsServicesOrInfrastructureParameter(IParameterSymbol parameter, INamedTypeSymbol? efDbContext) {
+        if (HasFromServicesAttribute(parameter))
+            return true;
+
+        return IsInfrastructureType(parameter.Type, efDbContext);
+    }
+
+    private static bool HasFromServicesAttribute(IParameterSymbol parameter) {
+        foreach (var attribute in parameter.GetAttributes()) {
+            var cls = attribute.AttributeClass;
+            if (cls is null)
+                continue;
+
+            var metadataName = cls.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            if (metadataName == "global::Microsoft.AspNetCore.Mvc.FromServicesAttribute"
+                || metadataName == "global::Microsoft.AspNetCore.Http.Metadata.FromServicesAttribute"
+                || metadataName == "global::Microsoft.AspNetCore.Http.FromServicesAttribute") {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsInfrastructureType(ITypeSymbol type, INamedTypeSymbol? efDbContext) {
+        type = UnwrapNullable(type);
+
+        if (type is IArrayTypeSymbol array)
+            type = UnwrapNullable(array.ElementType);
+
+        if (type is not INamedTypeSymbol named)
+            return false;
+
+        // Common binding-only parameters in Minimal APIs: not part of a client contract.
+        if (named.Name == "CancellationToken" && named.ContainingNamespace?.ToDisplayString() == "System.Threading")
+            return true;
+
+        if (named.Name == "ClaimsPrincipal" && named.ContainingNamespace?.ToDisplayString() == "System.Security.Claims")
+            return true;
+
+        if (named.ContainingNamespace?.ToDisplayString() == "Microsoft.AspNetCore.Http") {
+            if (named.Name is "HttpContext" or "HttpRequest" or "HttpResponse")
+                return true;
+        }
+
+        // ILogger / ILogger<T>
+        if (named.ContainingNamespace?.ToDisplayString() == "Microsoft.Extensions.Logging"
+            && named.Name == "ILogger") {
+            return true;
+        }
+
+        // Treat most Microsoft.Extensions.* as DI infrastructure by default.
+        var ns = named.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        if (ns.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal)
+            && !ns.StartsWith("Microsoft.Extensions.Primitives", StringComparison.Ordinal))
+            return true;
+
+        // DbContext or derived (best-effort; no hard dependency).
+        if (named.Name.EndsWith("DbContext", StringComparison.Ordinal))
+            return true;
+
+        if (efDbContext is not null) {
+            for (INamedTypeSymbol? cur = named; cur is not null; cur = cur.BaseType) {
+                if (SymbolEqualityComparer.Default.Equals(cur, efDbContext))
+                    return true;
             }
         }
 
@@ -687,5 +766,19 @@ internal static class Extractor {
             return null;
 
         return current;
+    }
+
+    private static bool ShouldSkipSyntaxTree(string? filePath) {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return false;
+
+        // Skip generated code and build outputs.
+        if (filePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return filePath.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase)
+            || filePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
+            || filePath.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
+            || filePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
     }
 }
