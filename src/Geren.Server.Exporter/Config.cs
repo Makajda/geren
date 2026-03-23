@@ -56,6 +56,10 @@ internal static class Config {
         Console.WriteLine("  Geren.Server.Exporter --project <path.csproj> --output-dir <folder> [options]");
         Console.WriteLine("  Geren.Server.Exporter -p <path.csproj> -o <folder> [options]");
         Console.WriteLine();
+        Console.WriteLine("Notes:");
+        Console.WriteLine("  MapGroup prefixes are detected only for compile-time constant strings.");
+        Console.WriteLine("  Avoid MapGroup(Func<string>)/reflection-based wrappers for route prefixes.");
+        Console.WriteLine();
         Console.WriteLine("Options:");
         Console.WriteLine("  -f, --output-file <name>     Output file name (default: <ProjectName>.minimalapi.json)");
         Console.WriteLine("  -c, --configuration <cfg>    MSBuild Configuration (default: Release)");
@@ -63,4 +67,3 @@ internal static class Config {
         Console.WriteLine("  -h, --help                   Show help");
     }
 }
-
