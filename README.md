@@ -31,7 +31,7 @@ See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON,
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.1" />
+  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.2" />
   <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3" PrivateAssets="all" />
 </ItemGroup>
 ```
@@ -68,7 +68,7 @@ app.MapOpenApi();
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.1" />
+  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.2" />
 </ItemGroup>
 ```
 
@@ -195,3 +195,45 @@ The pipeline validates these package layouts:
 
 - `Geren.OpenApi.Server`: `lib/net10.0/Geren.Server.dll`, `README.md`, `LICENSE.txt`
 - `Geren.OpenApiClientGenerator`: `analyzers/dotnet/cs/Geren.Client.Generator.dll`, `analyzers/dotnet/cs/Microsoft.OpenApi.dll`, `README.md`, `LICENSE.txt`
+
+
+# Geren.Server.Exporter
+
+Exporter scans the project and builds a JSON specification using the Minimal API.
+
+## Important about `MapGroup`
+
+Group prefixes are taken **only** when they are specified by a **constant string** (compile-time constant):
+
+```csharp
+app.MapGroup("stat").MapPost("setItems/{tourId:int}", ...);
+app.MapGroup(nameof(..)).MapPost("setItems/{tourId:int}", ...);
+const string Prefix = "stat";
+app.MapGroup(Prefix).MapPost("setItems/{tourId:int}", ...);
+```
+
+Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper extensions with reflection and any runtime logic for constructing the prefix—the exporter is not required to (and usually cannot) determine such prefixes.
+
+## Warnings
+
+The exporter writes warnings to stderr. If needed, they can be included in the JSON:
+
+```powershell
+Geren.Server.Exporter --project .\MyServer.csproj --output-dir .\artifacts --IncludeWarningsInOutput true
+```
+
+Some endpoints may be skipped if the exporter could not unambiguously determine the HTTP method (for example, `MapMethods(...)` with a non-constant list of methods) - in this case, the warning `GERENEXP003` will be issued.
+
+Default excluded types:
+```csharp
+System.Threading.CancellationToken
+System.Security.Claims.ClaimsPrincipal
+Microsoft.AspNetCore.Http.HttpContext
+Microsoft.AspNetCore.Http.HttpRequest
+Microsoft.AspNetCore.Http.HttpResponse
+Microsoft.Extensions.Logging.ILogger
+```
+
+In the `appsettings.json`, you can specify additional types to exclude in the parameters
+
+Client Generator v0.3.2 doesn't use it yet
