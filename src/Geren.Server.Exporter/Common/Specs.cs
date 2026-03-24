@@ -1,5 +1,10 @@
 namespace Geren.Server.Exporter.Common;
 
+internal sealed record Documant(
+    string Gerenapi,
+    ImmutableArray<Endpoint> Endpoints,
+    ImmutableArray<Dide.Warning>? Warnings = null);
+
 internal sealed record Endpoint(
     ImmutableArray<string> HttpMethods,
     string RouteTemplate,

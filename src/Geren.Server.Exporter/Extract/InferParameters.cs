@@ -2,7 +2,6 @@ namespace Geren.Server.Exporter.Extract;
 
 internal static class InferParameters {
     internal static ImmutableArray<ParamSpec> Get(
-        Compilation compilation,
         IMethodSymbol handlerMethod,
         HashSet<string> routeParameterNames,
         ImmutableArray<string> httpMethods,

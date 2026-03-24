@@ -1,6 +1,9 @@
 using Geren.Server.Exporter.Extract;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Geren.Server.Exporter;
 
@@ -26,12 +29,18 @@ internal static class Program {
             }
 
             using Spinner spinner2 = new("Extracting", ConsoleColor.Blue);
-            var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes, cts.Token);
+            var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes ?? [], cts.Token);
             spinner2.Dispose();
 
             Dide.Show(warnings);
 
-            var json = JsonWriter.Write(endpoints, settings.IncludeWarningsInOutput ? warnings : null);
+            Documant document = new("1.0.0", endpoints, settings.IncludeWarningsInOutput ? warnings : null);
+            string json = JsonSerializer.Serialize(document, new JsonSerializerOptions {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+            });
 
             Directory.CreateDirectory(settings.OutputDirectory);
             var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
@@ -42,7 +51,7 @@ internal static class Program {
                     cts.Token)
                 .ConfigureAwait(false);
 
-            Console.WriteLine($"Wrote {endpoints.Count} endpoints to");
+            Console.WriteLine($"Wrote {endpoints.Length} endpoints to");
             Console.WriteLine(outputPath);
             return 0;
         }
