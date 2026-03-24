@@ -1,19 +1,19 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class InferParameters {
-    internal static ImmutableArray<ParamSpec> Run(
+    internal static ImmutableArray<ParamSpec> Get(
         Compilation compilation,
         IMethodSymbol handlerMethod,
         HashSet<string> routeParameterNames,
-        ImmutableArray<string> httpMethods) {
+        ImmutableArray<string> httpMethods,
+        string[] excludeTypes) {
 
         var allowBody = httpMethods.Any(static m => m is "POST" or "PUT" or "PATCH");
         var bodyAssigned = false;
-        var efDbContext = compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.DbContext");
 
         var builder = ImmutableArray.CreateBuilder<ParamSpec>(handlerMethod.Parameters.Length);
         foreach (var parameter in handlerMethod.Parameters) {
-            if (IsServicesOrInfrastructureParameter(parameter, efDbContext))
+            if (IsServicesOrInfrastructureParameter(parameter, excludeTypes))
                 continue;
 
             string source = InferParameterSource(parameter, routeParameterNames, allowBody, ref bodyAssigned);
@@ -62,11 +62,11 @@ internal static class InferParameters {
         return false;
     }
 
-    private static bool IsServicesOrInfrastructureParameter(IParameterSymbol parameter, INamedTypeSymbol? efDbContext) {
+    private static bool IsServicesOrInfrastructureParameter(IParameterSymbol parameter, string[] excludeTypes) {
         if (HasFromServicesAttribute(parameter))
             return true;
 
-        return IsInfrastructureType(parameter.Type, efDbContext);
+        return IsInfrastructureType(parameter.Type, excludeTypes);
     }
 
     private static bool HasFromServicesAttribute(IParameterSymbol parameter) {
@@ -86,7 +86,7 @@ internal static class InferParameters {
         return false;
     }
 
-    private static bool IsInfrastructureType(ITypeSymbol type, INamedTypeSymbol? efDbContext) {
+    private static bool IsInfrastructureType(ITypeSymbol type, string[] excludeTypes) {
         type = UnwrapNullable(type);
 
         if (type is IArrayTypeSymbol array)
@@ -95,40 +95,27 @@ internal static class InferParameters {
         if (type is not INamedTypeSymbol named)
             return false;
 
+        string fullName = $"{named.ContainingNamespace?.ToDisplayString()}.{named.Name}";
+        if (excludeTypes.Contains(fullName))
+            return true;
+
         // Common binding-only parameters in Minimal APIs: not part of a client contract.
-        if (named.Name == "CancellationToken" && named.ContainingNamespace?.ToDisplayString() == "System.Threading")
+        if (fullName switch {
+            "System.Threading.CancellationToken"
+            or "System.Security.Claims.ClaimsPrincipal"
+            or "Microsoft.AspNetCore.Http.HttpContext"
+            or "Microsoft.AspNetCore.Http.HttpRequest"
+            or "Microsoft.AspNetCore.Http.HttpResponse"
+            or "Microsoft.Extensions.Logging.ILogger" => true,
+            _ => false
+        })
             return true;
-
-        if (named.Name == "ClaimsPrincipal" && named.ContainingNamespace?.ToDisplayString() == "System.Security.Claims")
-            return true;
-
-        if (named.ContainingNamespace?.ToDisplayString() == "Microsoft.AspNetCore.Http") {
-            if (named.Name is "HttpContext" or "HttpRequest" or "HttpResponse")
-                return true;
-        }
-
-        // ILogger / ILogger<T>
-        if (named.ContainingNamespace?.ToDisplayString() == "Microsoft.Extensions.Logging"
-            && named.Name == "ILogger") {
-            return true;
-        }
 
         // Treat most Microsoft.Extensions.* as DI infrastructure by default.
         var ns = named.ContainingNamespace?.ToDisplayString() ?? string.Empty;
         if (ns.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal)
             && !ns.StartsWith("Microsoft.Extensions.Primitives", StringComparison.Ordinal))
             return true;
-
-        // DbContext or derived (best-effort; no hard dependency).
-        if (named.Name.EndsWith("DbContext", StringComparison.Ordinal))
-            return true;
-
-        if (efDbContext is not null) {
-            for (INamedTypeSymbol? cur = named; cur is not null; cur = cur.BaseType) {
-                if (SymbolEqualityComparer.Default.Equals(cur, efDbContext))
-                    return true;
-            }
-        }
 
         return false;
     }

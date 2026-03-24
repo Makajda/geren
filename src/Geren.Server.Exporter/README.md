@@ -19,7 +19,15 @@ app.MapGroup(Prefix).MapPost("setItems/{tourId:int}", ...);
 Exporter пишет предупреждения в stderr. При необходимости их можно включить в JSON:
 
 ```powershell
-Geren.Server.Exporter --project .\MyServer.csproj --output-dir .\artifacts --IncludeWarningsInJson true
+Geren.Server.Exporter --project .\MyServer.csproj --output-dir .\artifacts --IncludeWarningsInOutput true
 ```
 
 Часть endpoint’ов может быть пропущена, если exporter не смог однозначно определить HTTP-метод (например, `MapMethods(...)` с неконстантным списком методов) — в этом случае будет warning `GERENEXP003`.
+todo
+default excluded
+System.Threading.CancellationToken
+System.Security.Claims.ClaimsPrincipal
+Microsoft.AspNetCore.Http.HttpContext
+Microsoft.AspNetCore.Http.HttpRequest
+Microsoft.AspNetCore.Http.HttpResponse
+Microsoft.Extensions.Logging.ILogger

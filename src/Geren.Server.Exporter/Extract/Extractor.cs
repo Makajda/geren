@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Geren.Server.Exporter.Extract;
 
 internal static class Extractor {
-    public static (List<Endpoint>, List<Dide.Warning>) Extract(Compilation compilation, CancellationToken cancellationToken) {
+    public static (List<Endpoint>, List<Dide.Warning>) Extract(Compilation compilation, string[] excludeTypes, CancellationToken cancellationToken) {
         List<Endpoint> endpoints = [];
         List<Dide.Warning> warnings = [];
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
@@ -19,7 +19,7 @@ internal static class Extractor {
             var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
-                AddOne(compilation, endpointRouteBuilder, semanticModel, invocation, endpoints, warnings, cancellationToken);
+                AddOne(compilation, endpointRouteBuilder, semanticModel, invocation, excludeTypes, endpoints, warnings, cancellationToken);
         }
 
         endpoints.Sort(static (a, b) => {
@@ -42,6 +42,7 @@ internal static class Extractor {
         INamedTypeSymbol endpointRouteBuilder,
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
+        string[] excludeTypes,
         List<Endpoint> endpoints,
         List<Dide.Warning> warnings,
         CancellationToken cancellationToken) {
@@ -99,7 +100,7 @@ internal static class Extractor {
             return;
         }
 
-        var parameters = InferParameters.Run(compilation, handlerMethod, routeParameterNames, httpMethods);
+        var parameters = InferParameters.Get(compilation, handlerMethod, routeParameterNames, httpMethods, excludeTypes);
         var returnType = UnwrapReturnType(handlerMethod.ReturnType, compilation);
 
         endpoints.Add(new(

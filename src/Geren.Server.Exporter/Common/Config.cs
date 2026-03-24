@@ -6,7 +6,8 @@ internal sealed record Settings(
     string Project = "",
     string OutputDirectory = "",
     string OutputFileName = "",
-    bool IncludeWarningsInJson = false,
+    bool IncludeWarningsInOutput = false,
+    string[]? ExcludeTypes = null,
     string Configuration = "Release",
     string Platform = "AnyCPU");
 
@@ -44,7 +45,7 @@ internal static class Config {
             { "-f", "OutputFileName" },
             { "--output-file", "OutputFileName" },
 
-            { "--IncludeWarningsInJson", "IncludeWarningsInJson" },
+            { "--IncludeWarningsInOutput", "IncludeWarningsInOutput" },
 
             { "-c", "Configuration" },
             { "--configuration", "Configuration" },
@@ -63,11 +64,14 @@ internal static class Config {
         Console.WriteLine("  MapGroup prefixes are detected only for compile-time constant strings.");
         Console.WriteLine("  Avoid MapGroup(Func<string>)/reflection-based wrappers for route prefixes.");
         Console.WriteLine();
+        Console.WriteLine("Important:");
+        Console.WriteLine("  Add the types you want to exclude from the parameters to the appsettings.json file.)");
+        Console.WriteLine();
         Console.WriteLine("Options:");
-        Console.WriteLine("  -f, --output-file <name>     Output file name (default: <ProjectName>.minimalapi.json)");
-        Console.WriteLine("      --IncludeWarningsInJson  Emit 'warnings' array to JSON (default: false)");
-        Console.WriteLine("  -c, --configuration <cfg>    MSBuild Configuration (default: Release)");
-        Console.WriteLine("      --platform <platform>    MSBuild Platform (default: AnyCPU)");
-        Console.WriteLine("  -h, --help                   Show help");
+        Console.WriteLine("  -f, --output-file <name>       Output file name (default: <ProjectName>.minimalapi.json)");
+        Console.WriteLine("      --IncludeWarningsInOutput  Emit 'warnings' array to JSON (default: false)");
+        Console.WriteLine("  -c, --configuration <cfg>      MSBuild Configuration (default: Release)");
+        Console.WriteLine("      --platform <platform>      MSBuild Platform (default: AnyCPU)");
+        Console.WriteLine("  -h, --help                     Show help");
     }
 }

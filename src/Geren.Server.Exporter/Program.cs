@@ -26,12 +26,12 @@ internal static class Program {
             }
 
             using Spinner spinner2 = new("Extracting", ConsoleColor.Blue);
-            var (endpoints, warnings) = Extractor.Extract(compilation, cts.Token);
+            var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes, cts.Token);
             spinner2.Dispose();
 
             Dide.Show(warnings);
 
-            var json = JsonWriter.Write(endpoints, settings.IncludeWarningsInJson ? warnings : null);
+            var json = JsonWriter.Write(endpoints, settings.IncludeWarningsInOutput ? warnings : null);
 
             Directory.CreateDirectory(settings.OutputDirectory);
             var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
