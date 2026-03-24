@@ -1,6 +1,7 @@
+using Geren.Server.Exporter.Extract;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Geren.Server.Exporter.Extract;
+namespace Geren.Server.Exporter;
 
 internal static class Extractor {
     public static (List<Endpoint>, List<Dide.Warning>) Extract(Compilation compilation, CancellationToken cancellationToken) {
@@ -188,16 +189,15 @@ internal static class Extractor {
 
     private static bool ValidSyntaxTree(string? filePath) {
         if (string.IsNullOrWhiteSpace(filePath))
-            return false;
-
-        // Skip generated code and build outputs.
-        if (filePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return filePath.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase)
-            || filePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
-            || filePath.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
-            || filePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
+        if (filePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return !filePath.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase)
+            && !filePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
+            && !filePath.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase)
+            && !filePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
     }
 
     private static ITypeSymbol? UnwrapReturnType(ITypeSymbol returnType, Compilation compilation) {
