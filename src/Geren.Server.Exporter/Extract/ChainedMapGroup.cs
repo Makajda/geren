@@ -1,4 +1,4 @@
-namespace Geren.Server.Exporter;
+namespace Geren.Server.Exporter.Extract;
 
 internal static class ChainedMapGroup {
     internal static string AddPrefix(

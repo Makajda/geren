@@ -1,7 +1,6 @@
-using Geren.Server.Exporter.Extract;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Geren.Server.Exporter;
+namespace Geren.Server.Exporter.Extract;
 
 internal static class Extractor {
     public static (List<Endpoint>, List<Dide.Warning>) Extract(Compilation compilation, CancellationToken cancellationToken) {
