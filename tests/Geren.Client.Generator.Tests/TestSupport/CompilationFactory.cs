@@ -40,7 +40,7 @@ internal static class CompilationFactory {
     internal static IReadOnlyList<string> GetTrustedPlatformAssemblyPaths() {
         var tpa = (string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES");
         tpa.Should().NotBeNull("TRUSTED_PLATFORM_ASSEMBLIES must be present in test runtime");
-        return tpa!.Split(Path.PathSeparator).Where(static p => !string.IsNullOrWhiteSpace(p)).ToArray();
+        return [.. tpa!.Split(Path.PathSeparator).Where(static p => !string.IsNullOrWhiteSpace(p))];
     }
 
     private static void AddRef(List<MetadataReference> references, Type type) {

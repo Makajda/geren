@@ -1,4 +1,4 @@
-namespace Geren.Tests.TestSupport;
+namespace Geren.Client.Generator.Tests.TestSupport;
 
 internal sealed class TestAnalyzerConfigOptionsProvider(
     IReadOnlyDictionary<string, string> globalOptions,

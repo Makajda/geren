@@ -1,4 +1,4 @@
-namespace Geren.Tests.TestSupport;
+namespace Geren.Client.Generator.Tests.TestSupport;
 
 internal static class GeneratorRunner {
     internal sealed record AdditionalFile(string Path, string Text, bool OptIn);
@@ -30,7 +30,7 @@ internal static class GeneratorRunner {
         }
 
         var optionsProvider = new TestAnalyzerConfigOptionsProvider(global, perAdditional);
-        var generator = new Geren.Client.Generator.Generator();
+        var generator = new Generator();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(
             generators: [generator.AsSourceGenerator()],
             additionalTexts: addTexts,

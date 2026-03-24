@@ -1,20 +1,14 @@
+using Geren.Server.Exporter.Extract;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
-using System.Text;
 
 namespace Geren.Server.Exporter;
 
 internal static class Program {
     public static async Task<int> Main(string[] args) {
-        if (!CliOptions.TryParse(args, out var options, out var error)) {
-            if (error is not null) {
-                Console.Error.WriteLine(error);
-                Console.Error.WriteLine();
-            }
-
-            CliOptions.PrintUsage();
+        Settings? settings = Config.Get(args);
+        if (settings is null)
             return 2;
-        }
 
         using CancellationTokenSource cts = new();
         Console.CancelKeyPress += (_, e) => {
@@ -23,38 +17,24 @@ internal static class Program {
         };
 
         try {
-            if (!MSBuildLocator.IsRegistered)
-                MSBuildLocator.RegisterDefaults();
-
-            var workspaceProperties = new Dictionary<string, string>(StringComparer.Ordinal) {
-                ["Configuration"] = options.Configuration,
-                ["Platform"] = options.Platform,
-            };
-
-            using var workspace = MSBuildWorkspace.Create(workspaceProperties);
-            workspace.RegisterWorkspaceFailedHandler(e => {
-                if (e.Diagnostic.Kind == Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Failure)
-                    Console.Error.WriteLine(e.Diagnostic.Message);
-            });
-
-            var project = await workspace.OpenProjectAsync(options.ProjectPath, cancellationToken: cts.Token).ConfigureAwait(false);
-            var compilation = await project.GetCompilationAsync(cts.Token).ConfigureAwait(false);
+            using Spinner spinner1 = new("Creating Compilation", ConsoleColor.Green);
+            Compilation? compilation = await CreateCompilation(settings, cts.Token);
+            spinner1.Dispose();
             if (compilation is null) {
                 Console.Error.WriteLine("Failed to create Compilation.");
-                return 1;
+                return 3;
             }
 
-            List<Endpoint> endpoints = [];
-            List<string> warnings = [];
-            Extractor.Extract(compilation, endpoints, warnings, cts.Token);
+            using Spinner spinner2 = new("Extracting", ConsoleColor.Blue);
+            var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes, cts.Token);
+            spinner2.Dispose();
 
-            foreach (var w in warnings)
-                Console.Error.WriteLine(w);
+            Dide.Show(warnings);
 
-            var json = JsonWriter.Write(endpoints);
+            var json = JsonWriter.Write(endpoints, settings.IncludeWarningsInOutput ? warnings : null);
 
-            Directory.CreateDirectory(options.OutputDirectory);
-            var outputPath = Path.Combine(options.OutputDirectory, options.OutputFileName);
+            Directory.CreateDirectory(settings.OutputDirectory);
+            var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
             await File.WriteAllTextAsync(
                     outputPath,
                     json,
@@ -62,12 +42,13 @@ internal static class Program {
                     cts.Token)
                 .ConfigureAwait(false);
 
-            Console.WriteLine($"Wrote {endpoints.Count} endpoints to '{outputPath}'.");
+            Console.WriteLine($"Wrote {endpoints.Count} endpoints to");
+            Console.WriteLine(outputPath);
             return 0;
         }
         catch (OperationCanceledException) {
             Console.Error.WriteLine("Canceled.");
-            return 130;
+            return 4;
         }
         catch (Exception ex) {
             Console.Error.WriteLine(ex.ToString());
@@ -75,5 +56,23 @@ internal static class Program {
         }
     }
 
-}
+    private static async Task<Compilation?> CreateCompilation(Settings settings, CancellationToken token) {
+        if (!MSBuildLocator.IsRegistered)
+            MSBuildLocator.RegisterDefaults();
 
+        var workspaceProperties = new Dictionary<string, string>(StringComparer.Ordinal) {
+            ["Configuration"] = settings.Configuration,
+            ["Platform"] = settings.Platform,
+        };
+
+        using MSBuildWorkspace workspace = MSBuildWorkspace.Create(workspaceProperties);
+        workspace.RegisterWorkspaceFailedHandler(e => {
+            if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                Console.Error.WriteLine(e.Diagnostic.Message);
+        });
+
+        Project project = await workspace.OpenProjectAsync(settings.Project, cancellationToken: token).ConfigureAwait(false);
+        Compilation? compilation = await project.GetCompilationAsync(token).ConfigureAwait(false);
+        return compilation;
+    }
+}

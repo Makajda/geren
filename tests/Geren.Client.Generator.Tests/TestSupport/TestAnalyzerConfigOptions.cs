@@ -1,4 +1,4 @@
-namespace Geren.Tests.TestSupport;
+namespace Geren.Client.Generator.Tests.TestSupport;
 
 internal sealed class TestAnalyzerConfigOptions(IReadOnlyDictionary<string, string> values) : AnalyzerConfigOptions {
     private readonly IReadOnlyDictionary<string, string> _values = values;

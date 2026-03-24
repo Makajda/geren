@@ -1,24 +1,28 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <LangVersion>latest</LangVersion>
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="8.9.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
         <PackageReference Include="xunit.v3" Version="3.2.2" />
         <PackageReference Include="xunit.analyzers" Version="1.27.0" PrivateAssets="all" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.5" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Geren.OpenApi.Server\Geren.OpenApi.Server.csproj" />
+        <ProjectReference Include="..\..\src\Geren.Server.Exporter\Geren.Server.Exporter.csproj" />
     </ItemGroup>
 
 </Project>

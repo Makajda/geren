@@ -1,5 +1,3 @@
-using Geren.Client.Generator.Tests.TestSupport;
-
 namespace Geren.Client.Generator.Tests.Integration;
 
 public sealed class GeneratorEndToEndTests {
@@ -9,12 +7,12 @@ public sealed class GeneratorEndToEndTests {
 
         var run = GeneratorRunner.Run(
             compilation,
-            additionalFiles: new[] {
+            additionalFiles: [
                 new GeneratorRunner.AdditionalFile(
                     Path: @"C:\specs\petstore.json",
                     Text: MinimalGetSpec("/pets"),
                     OptIn: false)
-            },
+            ],
             rootNamespace: "Acme");
 
         run.DriverResult.Diagnostics.Should().BeEmpty();
@@ -28,12 +26,12 @@ public sealed class GeneratorEndToEndTests {
 
         var run = GeneratorRunner.Run(
             compilation,
-            additionalFiles: new[] {
+            additionalFiles: [
                 new GeneratorRunner.AdditionalFile(
                     Path: @"C:\specs\petstore.json",
                     Text: MinimalGetSpec("/pets"),
                     OptIn: true)
-            },
+            ],
             rootNamespace: "Acme");
 
         var gen = run.DriverResult.Results.Single().GeneratedSources.ToDictionary(static s => s.HintName, static s => s.SourceText.ToString());
@@ -43,7 +41,7 @@ public sealed class GeneratorEndToEndTests {
         gen.Keys.Should().Contain("WebApiClient.g.cs");
         gen["WebApiClient.g.cs"].Should().Contain("namespace Acme.Petstore;");
 
-        run.OutputCompilation.GetDiagnostics().Where(static d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
+        run.OutputCompilation.GetDiagnostics(CancellationToken.None).Where(static d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
     }
 
     [Fact]
@@ -52,15 +50,15 @@ public sealed class GeneratorEndToEndTests {
 
         var run = GeneratorRunner.Run(
             compilation,
-            additionalFiles: new[] {
+            additionalFiles: [
                 new GeneratorRunner.AdditionalFile(@"C:\specs\a.json", MinimalGetSpec("/a"), OptIn: true),
                 new GeneratorRunner.AdditionalFile(@"C:\specs\b.json", MinimalGetSpec("/b"), OptIn: true),
-            },
+            ],
             rootNamespace: "Acme");
 
         var hintNames = run.DriverResult.Results.Single().GeneratedSources.Select(static s => s.HintName).ToArray();
 
-        hintNames.Should().Contain(static name => name.StartsWith("h") && name.Contains(".Extensions.g.cs", StringComparison.Ordinal));
+        hintNames.Should().Contain(static name => name.StartsWith('h') && name.Contains(".Extensions.g.cs", StringComparison.Ordinal));
         hintNames.Should().NotContain("Extensions.g.cs", "when more than one document is present, hint prefix avoids collisions");
     }
 
@@ -70,9 +68,9 @@ public sealed class GeneratorEndToEndTests {
 
         var run = GeneratorRunner.Run(
             compilation,
-            additionalFiles: new[] {
+            additionalFiles: [
                 new GeneratorRunner.AdditionalFile(@"C:\specs\petstore.json", SpecWithUnresolvedMetadataType(), OptIn: true),
-            },
+            ],
             rootNamespace: "Acme");
 
         var generated = run.DriverResult.Results.Single().GeneratedSources.ToDictionary(static s => s.HintName, static s => s.SourceText.ToString());
@@ -82,7 +80,7 @@ public sealed class GeneratorEndToEndTests {
         generated["WebApiClient.g.cs"].Should().Contain("__GerenUnresolvedType_");
 
         run.DriverResult.Diagnostics.Should().Contain(d => d.Id == "GEREN007");
-        run.OutputCompilation.GetDiagnostics().Where(static d => d.Severity == DiagnosticSeverity.Warning).Should().BeEmpty();
+        run.OutputCompilation.GetDiagnostics(CancellationToken.None).Where(static d => d.Severity == DiagnosticSeverity.Warning).Should().BeEmpty();
     }
 
     private static string MinimalGetSpec(string path) => $$"""

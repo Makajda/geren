@@ -1,6 +1,6 @@
 namespace Geren.Client.Generator.Tests.Unit.Parse;
 
-public sealed class ParseSessionTests {
+public sealed class ParseBuildTests {
     [Fact]
     public void Parse_QueryUnsupportedType_ReportsDiagnosticAndOmitsQueryParam() {
         const string json = """

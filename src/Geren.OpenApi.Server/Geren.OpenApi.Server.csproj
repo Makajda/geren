@@ -8,7 +8,7 @@
 
         <IsPackable>true</IsPackable>
         <PackageId>Geren.OpenApi.Server</PackageId>
-        <Version>0.3.1</Version>
+        <Version>0.3.2</Version>
         <Authors>Makajda</Authors>
         <Description>OpenApi extensions with x-compile and x-metadata schema transformers</Description>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -22,18 +22,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-            <_Parameter1>Geren.OpenApi.Server.Tests</_Parameter1>
-        </AssemblyAttribute>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     </ItemGroup>
 
     <ItemGroup>
         <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
         <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Geren.OpenApi.Server.Tests" />
     </ItemGroup>
 
 </Project>

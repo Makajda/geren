@@ -31,7 +31,7 @@ See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON,
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.1" />
+  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.2" />
   <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3" PrivateAssets="all" />
 </ItemGroup>
 ```
@@ -68,7 +68,7 @@ app.MapOpenApi();
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.1" />
+  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.2" />
 </ItemGroup>
 ```
 
@@ -136,15 +136,14 @@ If you see `CS9137` related to `Microsoft.AspNetCore.OpenApi.SourceGenerators`, 
 ### Naming Contract (High Level)
 
 - Namespace suffix is derived from the OpenAPI file name (without extension), sanitized by `ToLetterOrDigitName`.
-- Final namespace is `{RootNamespace}.{NamespaceSuffix}.{section0}` (section rules below).
+- Final namespace is `{RootNamespace}.{NamespaceFromFileName}.{NamespaceFromSections}` (section rules below).
 - Path sections used for naming exclude template segments (`{...}`).
 
 Path to class/method mapping:
 
-- If no non-template sections: class `WebApiClient`, method `operationId ?? method + "Root"`.
-- If one non-template section: class `WebApiClient`, method `operationId ?? method + section0`.
-- If two non-template sections: class `section0`, method `operationId ?? method + section1`.
-- If three or more non-template sections: namespace `section0`, class `section1`, method `operationId ?? method + join(sections[2..], "_")`.
+- method name: `operationId ?? (methodHttp + last section)`.
+- class name: `penultimate section ?? WebApiClient`.
+- namespace: `remaining sections`
 - Duplicate generated key `{SpaceName}.{ClassName}.{MethodName}` produces `GEREN006` and the endpoint is skipped.
 
 ### HTTP, Parameters, Serialization
@@ -196,3 +195,45 @@ The pipeline validates these package layouts:
 
 - `Geren.OpenApi.Server`: `lib/net10.0/Geren.Server.dll`, `README.md`, `LICENSE.txt`
 - `Geren.OpenApiClientGenerator`: `analyzers/dotnet/cs/Geren.Client.Generator.dll`, `analyzers/dotnet/cs/Microsoft.OpenApi.dll`, `README.md`, `LICENSE.txt`
+
+
+# Geren.Server.Exporter
+
+Exporter scans the project and builds a JSON specification using the Minimal API.
+
+## Important about `MapGroup`
+
+Group prefixes are taken **only** when they are specified by a **constant string** (compile-time constant):
+
+```csharp
+app.MapGroup("stat").MapPost("setItems/{tourId:int}", ...);
+app.MapGroup(nameof(..)).MapPost("setItems/{tourId:int}", ...);
+const string Prefix = "stat";
+app.MapGroup(Prefix).MapPost("setItems/{tourId:int}", ...);
+```
+
+Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper extensions with reflection and any runtime logic for constructing the prefix—the exporter is not required to (and usually cannot) determine such prefixes.
+
+## Warnings
+
+The exporter writes warnings to stderr. If needed, they can be included in the JSON:
+
+```powershell
+Geren.Server.Exporter --project .\MyServer.csproj --output-dir .\artifacts --IncludeWarningsInOutput true
+```
+
+Some endpoints may be skipped if the exporter could not unambiguously determine the HTTP method (for example, `MapMethods(...)` with a non-constant list of methods) - in this case, the warning `GERENEXP003` will be issued.
+
+Default excluded types:
+```csharp
+System.Threading.CancellationToken
+System.Security.Claims.ClaimsPrincipal
+Microsoft.AspNetCore.Http.HttpContext
+Microsoft.AspNetCore.Http.HttpRequest
+Microsoft.AspNetCore.Http.HttpResponse
+Microsoft.Extensions.Logging.ILogger
+```
+
+In the `appsettings.json`, you can specify additional types to exclude in the parameters
+
+Client Generator v0.3.2 doesn't use it yet

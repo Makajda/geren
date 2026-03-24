@@ -1,11 +1,10 @@
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
-namespace Geren.Server.Exporter;
+namespace Geren.Server.Exporter.Common;
 
 internal static class JsonWriter {
-    public static string Write(List<Endpoint> endpoints) {
+    public static string Write(List<Endpoint> endpoints, IReadOnlyList<Dide.Warning>? warnings = null) {
         using MemoryStream stream = new(capacity: 32 * 1024);
         using (Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping })) {
             writer.WriteStartObject();
@@ -18,6 +17,15 @@ internal static class JsonWriter {
                 WriteEndpoint(writer, endpoints[i]);
 
             writer.WriteEndArray();
+
+            if (warnings is not null) {
+                writer.WritePropertyName("warnings");
+                writer.WriteStartArray();
+                for (var i = 0; i < warnings.Count; i++)
+                    WriteWarning(writer, warnings[i]);
+                writer.WriteEndArray();
+            }
+
             writer.WriteEndObject();
         }
 
@@ -56,6 +64,23 @@ internal static class JsonWriter {
             writer.WriteNull("returnType");
         else
             writer.WriteString("returnType", endpoint.ReturnType);
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteWarning(Utf8JsonWriter writer, Dide.Warning warning) {
+        writer.WriteStartObject();
+        writer.WriteString("code", warning.Id);
+        writer.WriteString("message", warning.Message);
+
+        if (warning.Location is not null) {
+            writer.WritePropertyName("location");
+            writer.WriteStartObject();
+            writer.WriteString("file", warning.Location.File);
+            writer.WriteNumber("line", warning.Location.Line);
+            writer.WriteNumber("column", warning.Location.Column);
+            writer.WriteEndObject();
+        }
 
         writer.WriteEndObject();
     }

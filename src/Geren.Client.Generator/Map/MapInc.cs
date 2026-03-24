@@ -16,13 +16,13 @@ internal sealed record MapInc(
         ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
         Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
         string namespaceFromFile = Given.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
-        TypeResolver _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _unresolvedByPlaceholder, _diagnostics);
+        TypeResolver _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _unresolvedByPlaceholder, _diagnostics, cancellationToken);
         var endpoints = ImmutableArray.CreateBuilder<Mapoint>();
         foreach (var point in purpoints) {
             cancellationToken.ThrowIfCancellationRequested();
 
             string returnType = _typeResolver.Resolve(point.ReturnType);
-            string bodyType = _typeResolver.Resolve(point.BodyType);
+            string? bodyType = point.BodyType is null ? null : _typeResolver.Resolve(point.BodyType.Value);
             ImmutableArray<ParamSpec>.Builder ps = ImmutableArray.CreateBuilder<ParamSpec>();
             foreach (var param in point.Params)
                 ps.Add(new(param.Name, param.Identifier, _typeResolver.Resolve(param.Type)));
