@@ -136,15 +136,14 @@ If you see `CS9137` related to `Microsoft.AspNetCore.OpenApi.SourceGenerators`, 
 ### Naming Contract (High Level)
 
 - Namespace suffix is derived from the OpenAPI file name (without extension), sanitized by `ToLetterOrDigitName`.
-- Final namespace is `{RootNamespace}.{NamespaceSuffix}.{section0}` (section rules below).
+- Final namespace is `{RootNamespace}.{NamespaceFromFileName}.{NamespaceFromSections}` (section rules below).
 - Path sections used for naming exclude template segments (`{...}`).
 
 Path to class/method mapping:
 
-- If no non-template sections: class `WebApiClient`, method `operationId ?? method + "Root"`.
-- If one non-template section: class `WebApiClient`, method `operationId ?? method + section0`.
-- If two non-template sections: class `section0`, method `operationId ?? method + section1`.
-- If three or more non-template sections: namespace `section0`, class `section1`, method `operationId ?? method + join(sections[2..], "_")`.
+- method name: `operationId ?? (methodHttp + last section)`.
+- class name: `penultimate section ?? WebApiClient`.
+- namespace: `remaining sections`
 - Duplicate generated key `{SpaceName}.{ClassName}.{MethodName}` produces `GEREN006` and the endpoint is skipped.
 
 ### HTTP, Parameters, Serialization

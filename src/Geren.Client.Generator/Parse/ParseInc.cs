@@ -160,21 +160,18 @@ internal sealed record ParseInc(
     }
 
     private static (string SpaceName, string ClassName, string MethodName) ResolveNames(string? operationId, string method, string path) {
-        const string spaceDefault = "";
-        const string classNameDefault = "WebApiClient";
-        const string methodNameDefault = "Root";
         string? withName = operationId is null ? null : Given.ToLetterOrDigitName(operationId);
         string[] sections = [.. path
             .Trim('/')
             .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
-            .Where(static s => !IsPathTemplateSegment(s))];
-        if (sections.Length == 0) return (spaceDefault, classNameDefault, MethodName(methodNameDefault));
-        if (sections.Length == 1) return (spaceDefault, classNameDefault, MethodName(sections[0]));
-        string name0 = Given.ToLetterOrDigitName(sections[0]);
-        if (sections.Length == 2) return (spaceDefault, name0, MethodName(sections[1]));
-        return (name0, Given.ToLetterOrDigitName(sections[1]), MethodName(string.Join("_", sections.Skip(2))));
+            .Where(static s => !IsPathTemplateSegment(s))
+            .Select(n=>Given.ToLetterOrDigitName(n))];
 
-        string MethodName(string section) => withName ?? (method + Given.ToLetterOrDigitName(section));
+        int classIndex = sections.Length - 2;
+        string methodName = withName ?? (method + sections.LastOrDefault());
+        string className = classIndex >= 0 ? sections[classIndex] : "WebApiClient";
+        string spaceName = classIndex > 0 ? string.Join(".", sections.Take(classIndex)) : string.Empty;
+        return (spaceName, className, methodName);
     }
 
     private static bool IsPathTemplateSegment(string segment)
