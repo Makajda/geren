@@ -71,8 +71,10 @@ internal static class Program {
 
         using MSBuildWorkspace workspace = MSBuildWorkspace.Create(workspaceProperties);
         workspace.RegisterWorkspaceFailedHandler(e => {
-            if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+            if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure) {
+                Console.Error.WriteLine();
                 Console.Error.WriteLine(e.Diagnostic.Message);
+            }
         });
 
         Project project = await workspace.OpenProjectAsync(settings.Project, cancellationToken: token).ConfigureAwait(false);

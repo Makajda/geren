@@ -13,12 +13,16 @@ internal sealed record Settings(
 
 internal static class Config {
     internal static Settings? Get(string[] args) {
+        int spi = args.IndexOf("--settings-path", StringComparer.OrdinalIgnoreCase);
+        if (spi < 0) spi = args.IndexOf("-s", StringComparer.OrdinalIgnoreCase);
+        string settingsPath = spi >= 0 && spi < args.Length - 1 ? args[spi + 1] : "none";
+
         IConfigurationBuilder configBuilder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile(settingsPath, optional: true)
             .AddCommandLine(args, SwitchMappings);
 
-        if ((Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production") == "Development")
+        if (Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development")
             configBuilder.AddUserSecrets<ParamSpec>();// Project & OutputDirectory
 
         IConfiguration configuration = configBuilder.Build();
@@ -57,15 +61,18 @@ internal static class Config {
         Console.WriteLine("Geren.Server.Exporter");
         Console.WriteLine();
         Console.WriteLine("Usage:");
-        Console.WriteLine("  Geren.Server.Exporter --project <path.csproj> --output-dir <folder> [options]");
-        Console.WriteLine("  Geren.Server.Exporter -p <path.csproj> -o <folder> [options]");
+        Console.WriteLine("  geren-server-exporter --project <path.csproj> --output-dir <folder> [options]");
+        Console.WriteLine("  geren-server-exporter -p <path.csproj> -o <folder> [options]");
+        Console.WriteLine("  geren-server-exporter -project <path.csproj> -o <folder> [options]");
+        Console.WriteLine("  geren-server-exporter -s <settings.json> [options]");
+        Console.WriteLine("  geren-server-exporter --settings-path <settings.json> [options]");
         Console.WriteLine();
         Console.WriteLine("Notes:");
         Console.WriteLine("  MapGroup prefixes are detected only for compile-time constant strings.");
         Console.WriteLine("  Avoid MapGroup(Func<string>)/reflection-based wrappers for route prefixes.");
         Console.WriteLine();
         Console.WriteLine("Important:");
-        Console.WriteLine("  Add the types you want to exclude from the parameters to the appsettings.json file.)");
+        Console.WriteLine("  Add the types you want to exclude from the parameters to the settings.json file.)");
         Console.WriteLine();
         Console.WriteLine("Options:");
         Console.WriteLine("  -f, --output-file <name>       Output file name (default: <ProjectName>.minimalapi.json)");

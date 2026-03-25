@@ -31,7 +31,7 @@ See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON,
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.2" />
+  <PackageReference Include="Geren.OpenApi.Server" Version="0.3.3" />
   <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3" PrivateAssets="all" />
 </ItemGroup>
 ```
@@ -68,7 +68,7 @@ app.MapOpenApi();
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.2" />
+  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.3.3" />
 </ItemGroup>
 ```
 
@@ -201,6 +201,12 @@ The pipeline validates these package layouts:
 
 Exporter scans the project and builds a JSON specification using the Minimal API.
 
+## Install
+
+```powershell
+dotnet tool install -g geren.server.exporter
+```
+
 ## Important about `MapGroup`
 
 Group prefixes are taken **only** when they are specified by a **constant string** (compile-time constant):
@@ -219,12 +225,13 @@ Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper exte
 The exporter writes warnings to stderr. If needed, they can be included in the JSON:
 
 ```powershell
-Geren.Server.Exporter --project .\MyServer.csproj --output-dir .\artifacts --IncludeWarningsInOutput true
+geren-server-exporter --project .\MyServer.csproj --output-dir .\artifacts --IncludeWarningsInOutput true
 ```
 
 Some endpoints may be skipped if the exporter could not unambiguously determine the HTTP method (for example, `MapMethods(...)` with a non-constant list of methods) - in this case, the warning `GERENEXP003` will be issued.
 
 Default excluded types:
+
 ```csharp
 System.Threading.CancellationToken
 System.Security.Claims.ClaimsPrincipal
@@ -234,6 +241,22 @@ Microsoft.AspNetCore.Http.HttpResponse
 Microsoft.Extensions.Logging.ILogger
 ```
 
-In the `appsettings.json`, you can specify additional types to exclude in the parameters
+In the `settings.json`, you can specify additional types to exclude in the parameters.
 
-Client Generator v0.3.2 doesn't use it yet
+```json
+{
+  "Project": "...\WebApiProject.csproj",
+  "OutputDirectory": "...\result-dir",
+  "OutputFileName": "",
+  "IncludeWarningsInOutput": "true",
+  "ExcludeTypes": [
+    "Microsoft.EntityFrameworkCore.DbContext"
+  ]
+}
+```
+
+```powershell
+geren-server-exporter -s ...\settings.json
+```
+
+Client Generator v0.3.3 doesn't use it yet
