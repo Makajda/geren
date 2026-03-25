@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Geren.Client.Generator.Parse;
 
 internal sealed record ParseInc(
@@ -20,12 +22,37 @@ internal sealed record ParseInc(
     }
 
     private static ParseInc ParseGerenApi(string filePath, string text, CancellationToken cancellationToken) {
-        return new(true, filePath, [new(Given.Get, "/gerenapi", "GerenApi", "GerenApiClient", "GetData", new("string"), null, null, [], [])], []);
+        var _endpoints = ImmutableArray.CreateBuilder<Purpoint>();
+        var _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+
+        try {
+            var doc = JsonSerializer.Deserialize<Erdoc>(text) ?? throw new ArgumentNullException("Deserialize error");
+            foreach (var path in doc.Endpoints) {
+                //todo _endpoints.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
+                _endpoints.Add(new(
+                    path.HttpMethods.FirstOrDefault(),
+                    path.RouteTemplate,
+                    string.Empty,
+                    "WebApiClient",
+                    path.Handler,
+                    new PurposeType(path.ReturnType),
+                    null,
+                    null,
+                    path.Parameters.Select(p => new Purparam(p.Name, p.Name, new(p.Type))).ToImmutableArray(),
+                    path.Parameters.Select(p => new Maparam(p.Name, p.Name, p.Type)).ToImmutableArray()));
+            }
+
+            return new(true, filePath, _endpoints.ToImmutable(), _diagnostics.ToImmutable());
+        }
+        catch (Exception ex) {
+            return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
+                $"GerenAPI parse exception in {filePath}: {ex.Message}"));
+        }
     }
 
     private static ParseInc ParseOpenApi(string filePath, string text, CancellationToken cancellationToken) {
         try {
-            using MemoryStream ms = new(Encoding.UTF8.GetBytes(Given.ArraysDisguise(text!)));
+            using MemoryStream ms = new(Encoding.UTF8.GetBytes(Given.ArraysDisguise(text)));
             var readResult = OpenApiDocument.Load(ms);
             var errors = readResult.Diagnostic?.Errors;
             if (errors is not null && errors.Any())

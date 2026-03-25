@@ -12,8 +12,8 @@ public sealed class EmitClientTests {
             ReturnType: string.Empty,
             BodyType: null,
             BodyMediaType: null,
-            Params: ImmutableArray<ParamSpec>.Empty,
-            Queries: ImmutableArray<ParamSpec>.Empty);
+            Params: ImmutableArray<Maparam>.Empty,
+            Queries: ImmutableArray<Maparam>.Empty);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -33,8 +33,8 @@ public sealed class EmitClientTests {
             ReturnType: "string",
             BodyType: null,
             BodyMediaType: null,
-            Params: ImmutableArray<ParamSpec>.Empty,
-            Queries: ImmutableArray<ParamSpec>.Empty);
+            Params: ImmutableArray<Maparam>.Empty,
+            Queries: ImmutableArray<Maparam>.Empty);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -53,8 +53,8 @@ public sealed class EmitClientTests {
             ReturnType: "global::Dto.Pet",
             BodyType: null,
             BodyMediaType: null,
-            Params: ImmutableArray<ParamSpec>.Empty,
-            Queries: ImmutableArray<ParamSpec>.Empty);
+            Params: ImmutableArray<Maparam>.Empty,
+            Queries: ImmutableArray<Maparam>.Empty);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -73,8 +73,8 @@ public sealed class EmitClientTests {
             ReturnType: "string",
             BodyType: null,
             BodyMediaType: null,
-            Params: ImmutableArray<ParamSpec>.Empty,
-            Queries: ImmutableArray.Create(new ParamSpec("q", "q", "string?")));
+            Params: ImmutableArray<Maparam>.Empty,
+            Queries: ImmutableArray.Create(new Maparam("q", "q", "string?")));
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -94,8 +94,8 @@ public sealed class EmitClientTests {
             ReturnType: string.Empty,
             BodyType: "global::Dto.CreatePet",
             BodyMediaType: "application/json",
-            Params: ImmutableArray<ParamSpec>.Empty,
-            Queries: ImmutableArray<ParamSpec>.Empty);
+            Params: ImmutableArray<Maparam>.Empty,
+            Queries: ImmutableArray<Maparam>.Empty);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -116,8 +116,8 @@ public sealed class EmitClientTests {
             ReturnType: "string",
             BodyType: "string",
             BodyMediaType: "text/plain",
-            Params: ImmutableArray<ParamSpec>.Empty,
-            Queries: ImmutableArray<ParamSpec>.Empty);
+            Params: ImmutableArray<Maparam>.Empty,
+            Queries: ImmutableArray<Maparam>.Empty);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -138,8 +138,8 @@ public sealed class EmitClientTests {
             ReturnType: string.Empty,
             BodyType: "global::Dto.DeletePets",
             BodyMediaType: "application/json",
-            Params: ImmutableArray<ParamSpec>.Empty,
-            Queries: ImmutableArray<ParamSpec>.Empty);
+            Params: ImmutableArray<Maparam>.Empty,
+            Queries: ImmutableArray<Maparam>.Empty);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");

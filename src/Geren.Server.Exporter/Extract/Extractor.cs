@@ -1,9 +1,9 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class Extractor {
-    public static (ImmutableArray<Endpoint>, ImmutableArray<Dide.Warning>) Extract(Compilation compilation, string[] excludeTypes, CancellationToken cancellationToken) {
-        var endpoints = ImmutableArray.CreateBuilder<Endpoint>();
-        var warnings = ImmutableArray.CreateBuilder<Dide.Warning>();
+    public static (ImmutableArray<Erpoint>, ImmutableArray<ErWarning>) Extract(Compilation compilation, string[] excludeTypes, CancellationToken cancellationToken) {
+        var endpoints = ImmutableArray.CreateBuilder<Erpoint>();
+        var warnings = ImmutableArray.CreateBuilder<ErWarning>();
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
         if (endpointRouteBuilder is null) {
             warnings.Add(Dide.Create("GERENEXP001", "Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered."));

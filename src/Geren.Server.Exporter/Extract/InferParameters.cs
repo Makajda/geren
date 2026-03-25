@@ -1,7 +1,7 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class InferParameters {
-    internal static ImmutableArray<ParamSpec> Get(
+    internal static ImmutableArray<Erparam> Get(
         IMethodSymbol handlerMethod,
         HashSet<string> routeParameterNames,
         ImmutableArray<string> httpMethods,
@@ -10,7 +10,7 @@ internal static class InferParameters {
         var allowBody = httpMethods.Any(static m => m is "POST" or "PUT" or "PATCH");
         var bodyAssigned = false;
 
-        var builder = ImmutableArray.CreateBuilder<ParamSpec>(handlerMethod.Parameters.Length);
+        var builder = ImmutableArray.CreateBuilder<Erparam>(handlerMethod.Parameters.Length);
         foreach (var parameter in handlerMethod.Parameters) {
             if (IsServicesOrInfrastructureParameter(parameter, excludeTypes))
                 continue;

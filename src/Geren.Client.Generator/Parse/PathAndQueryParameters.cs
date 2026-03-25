@@ -3,12 +3,12 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Geren.Client.Generator.Parse;
 
 internal static class PathAndQueryParameters {
-    internal static (ImmutableArray<Purparam> Params, ImmutableArray<ParamSpec> Queries) Split(
+    internal static (ImmutableArray<Purparam> Params, ImmutableArray<Maparam> Queries) Split(
         string rawPath,
         ImmutableArray<IOpenApiParameter> parameters,
         ImmutableArray<Diagnostic>.Builder diagnostics) {
         var pathParams = ImmutableArray.CreateBuilder<Purparam>();
-        var queryParams = ImmutableArray.CreateBuilder<ParamSpec>();
+        var queryParams = ImmutableArray.CreateBuilder<Maparam>();
         var usedParamIdentifiers = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var parameter in parameters) {

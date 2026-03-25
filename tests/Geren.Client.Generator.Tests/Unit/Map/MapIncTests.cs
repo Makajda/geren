@@ -32,7 +32,7 @@ public sealed class MapIncTests {
                 BodyType: null,
                 BodyMediaType: null,
                 Params: ImmutableArray<Purparam>.Empty,
-                Queries: ImmutableArray<ParamSpec>.Empty),
+                Queries: ImmutableArray<Maparam>.Empty),
             new Purpoint(
                 Method: Given.Get,
                 Path: "/missing",
@@ -43,7 +43,7 @@ public sealed class MapIncTests {
                 BodyType: null,
                 BodyMediaType: null,
                 Params: ImmutableArray<Purparam>.Empty,
-                Queries: ImmutableArray<ParamSpec>.Empty));
+                Queries: ImmutableArray<Maparam>.Empty));
 
         var map = Geren.Client.Generator.Map.MapInc.Map(compilation, "Acme", @"C:\Specs\Pets.json", points, CancellationToken.None);
 

@@ -9,8 +9,8 @@ internal static class ExtractorOne {
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         string[] excludeTypes,
-        ImmutableArray<Endpoint>.Builder endpoints,
-        ImmutableArray<Dide.Warning>.Builder warnings,
+        ImmutableArray<Erpoint>.Builder endpoints,
+        ImmutableArray<ErWarning>.Builder warnings,
         CancellationToken cancellationToken) {
 
         cancellationToken.ThrowIfCancellationRequested();

@@ -1,6 +1,6 @@
 // The same file is in the exporter and generator projects
 
-namespace Geren.Server.Exporter.Common;
+namespace Geren.Client.Generator.Parse;
 
 internal sealed record Erdoc(
     string Gerenapi,
@@ -12,9 +12,9 @@ internal sealed record Erpoint(
     string RouteTemplate,
     ImmutableArray<string> RouteParameters,
     string Handler,
-    ImmutableArray<Erparam> Parameters,
+    ImmutableArray<ErParamSpec> Parameters,
     string? ReturnType);
 
-internal sealed record Erparam(string Name, string Type, string Source);
+internal sealed record ErParamSpec(string Name, string Type, string Source);
 internal sealed record ErLocation(string File, int Line, int Column);
 internal sealed record ErWarning(string Id, string Message, ErLocation? Location = null);

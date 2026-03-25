@@ -23,7 +23,7 @@ internal static class Config {
             .AddCommandLine(args, SwitchMappings);
 
         if (Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development")
-            configBuilder.AddUserSecrets<ParamSpec>();// Project & OutputDirectory
+            configBuilder.AddUserSecrets<Spinner>();// Project & OutputDirectory
 
         IConfiguration configuration = configBuilder.Build();
         Settings settings = configuration.Get<Settings>() ?? new();

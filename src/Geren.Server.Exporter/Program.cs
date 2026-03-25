@@ -34,7 +34,7 @@ internal static class Program {
 
             Dide.Show(warnings);
 
-            Documant document = new("1.0.0", endpoints, settings.IncludeWarningsInOutput ? warnings : null);
+            Erdoc document = new("1.0.0", endpoints, settings.IncludeWarningsInOutput ? warnings : null);
             string json = JsonSerializer.Serialize(document, options);
 
             Directory.CreateDirectory(settings.OutputDirectory);
