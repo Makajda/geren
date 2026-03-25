@@ -35,12 +35,7 @@ internal static class Program {
             Dide.Show(warnings);
 
             Documant document = new("1.0.0", endpoints, settings.IncludeWarningsInOutput ? warnings : null);
-            string json = JsonSerializer.Serialize(document, new JsonSerializerOptions {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true,
-            });
+            string json = JsonSerializer.Serialize(document, options);
 
             Directory.CreateDirectory(settings.OutputDirectory);
             var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
@@ -84,4 +79,11 @@ internal static class Program {
         Compilation? compilation = await project.GetCompilationAsync(token).ConfigureAwait(false);
         return compilation;
     }
+
+    private static readonly JsonSerializerOptions options = new() {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
 }
