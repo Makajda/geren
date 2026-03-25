@@ -34,7 +34,7 @@ internal static class Config {
         }
 
         if (string.IsNullOrEmpty(settings.OutputFileName))
-            settings = settings with { OutputFileName = $"{Path.GetFileNameWithoutExtension(settings.Project)}.minimalapi.json" };
+            settings = settings with { OutputFileName = $"{Path.GetFileNameWithoutExtension(settings.Project)}.gerenapi.json" };
 
         return settings;
     }
@@ -75,7 +75,7 @@ internal static class Config {
         Console.WriteLine("  Add the types you want to exclude from the parameters to the settings.json file.)");
         Console.WriteLine();
         Console.WriteLine("Options:");
-        Console.WriteLine("  -f, --output-file <name>       Output file name (default: <ProjectName>.minimalapi.json)");
+        Console.WriteLine("  -f, --output-file <name>       Output file name (default: <ProjectName>.gerenapi.json)");
         Console.WriteLine("      --IncludeWarningsInOutput  Emit 'warnings' array to JSON (default: false)");
         Console.WriteLine("  -c, --configuration <cfg>      MSBuild Configuration (default: Release)");
         Console.WriteLine("      --platform <platform>      MSBuild Platform (default: AnyCPU)");

@@ -11,10 +11,11 @@ public sealed class Generator : IIncrementalGenerator {
         var parsed = context.AdditionalTextsProvider
             .Combine(context.AnalyzerConfigOptionsProvider)
             .Select(static (x, cancellationToken) =>
-                x.Right.GetOptions(x.Left).TryGetValue("build_metadata.AdditionalFiles.Geren", out var value)
-                    && string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ? x.Left : null)
+                x.Right.GetOptions(x.Left).TryGetValue("build_metadata.AdditionalFiles.Geren", out string? JsonFormat)
+                    ? new { x.Left, JsonFormat }
+                    : null)
             .Where(static p => p is not null)
-            .Select(static (p, cancellationToken) => ParseInc.Parse(p!, cancellationToken));
+            .Select(static (p, cancellationToken) => ParseInc.Parse(p!.Left, p.JsonFormat, cancellationToken));
 
         context.RegisterSourceOutput(parsed.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));
