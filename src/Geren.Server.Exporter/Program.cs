@@ -40,7 +40,7 @@ internal static class Program {
             await Save(warningPath, string.Join('\n', logs), cts.Token).ConfigureAwait(false);
 
             ErDocument document = new("1.0.0", [.. endpoints]);
-            string json = JsonSerializer.Serialize(document, JsonHelper.JsonSerializerOptions);
+            string json = JsonSerializer.Serialize(document, Givens.JsonSerializerOptions);
 
             var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
             await Save(outputPath, json, cts.Token).ConfigureAwait(false);

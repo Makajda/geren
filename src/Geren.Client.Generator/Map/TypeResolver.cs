@@ -13,14 +13,13 @@ internal class TypeResolver(
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 
-    internal string Resolve(string type, Byres? byres) {
-        return byres switch {
+    internal string Resolve(string type, Byres? byres) =>
+        byres switch {
             Byres.Metadata => ResolveByMetadata(type),
             Byres.Compile => ResolveByCompile(type),
             Byres.Reference => ResolveByReference(type),
             _ => type
         };
-    }
 
     private string ResolveByMetadata(string simpleType) {
         if (_resolvedSchemaTypeCache.TryGetValue(simpleType, out string cached))

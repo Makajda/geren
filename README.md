@@ -148,7 +148,7 @@ Path to class/method mapping:
 
 ### HTTP, Parameters, Serialization
 
-- Supported HTTP methods: `GET`, `POST`, `PUT`, `DELETE`.
+- Supported HTTP methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`.
 - Supported parameter locations: `path`, `query`.
 - Supported query types: `string`, `int`, `long`, `bool`, `double`.
 - Query values are URL encoded.
@@ -158,7 +158,7 @@ Path to class/method mapping:
 ### Request/Response Mapping
 
 - Request body media types: `application/json`, `text/plain`.
-- `POST`/`PUT`/`DELETE` support body when schema is supported.
+- `POST`/`PUT`/`PATCH` support body when schema is supported.
 - `DELETE` with body uses `HttpRequestMessage(HttpMethod.Delete, ...)` and `SendAsync`.
 - Return type selection prefers the first available `2xx` response (`200`, `201`, `202`, then other `2xx`), then falls back to explicit codes (`200`, `201`, `default`).
 - `text/plain` response maps to `string`.

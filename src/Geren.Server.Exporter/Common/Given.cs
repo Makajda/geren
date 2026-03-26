@@ -71,12 +71,18 @@ internal static class Given {
             ? Byres.Compile
             : Byres.Metadata;
 
+    internal static (string, Byres) GetNameAndByres(ITypeSymbol type) {
+        string name = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        return type.TypeKind == TypeKind.Array || (type is INamedTypeSymbol named && named.IsGenericType)
+            ? (name, Byres.Compile)
+            : (name.StartsWith("global::")
+                ? name.Substring(8)
+                : name,
+                Byres.Metadata);
+    }
+
     internal static bool IsSimpleType(ITypeSymbol type) {
         type = UnwrapNullable(type);
-
-        if (type is IArrayTypeSymbol array)
-            type = UnwrapNullable(array.ElementType);
-
         return type.SpecialType switch {
             SpecialType.System_Boolean or
             SpecialType.System_Byte or

@@ -18,18 +18,16 @@ public sealed partial class {{className}}
 """;
 
     private static string EmitMethod(Mapoint endpoint) {
-        var args = string.Join(", ", endpoint.Params.Concat(endpoint.Queries).Select(p => $"{p.Type} {p.Identifier}"));
+        var args = string.Join(", ", endpoint.Params.Concat(endpoint.Queries).Select(p => $"{p.Type} {p.Identifier ?? p.Name}"));
         if (args.Length > 0)
             args += ", ";
 
-        if (endpoint.Method == Given.Post
-            || endpoint.Method == Given.Put
-            || endpoint.Method == Given.Patch)
+        if (endpoint.Method is Givens.Post or Givens.Put or Givens.Patch)
             args += $"{endpoint.BodyType ?? "string"} body, ";
 
         var signature = $"{endpoint.MethodName}({args}CancellationToken cancellationToken = default)";
         var pathExpr = BuildPathExpression(endpoint);
-        if (endpoint.Method == Given.Get || endpoint.Method == Given.Delete)
+        if (endpoint.Method is Givens.Get or Givens.Delete)
             return EmitGetDelete(endpoint, signature, pathExpr);
 
         return EmitPostOrPutOrPatch(endpoint, signature, pathExpr);

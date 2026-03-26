@@ -20,13 +20,6 @@ internal static class Extractor {
                 ExtractorOne.Extract(compilation, endpointRouteBuilder, semanticModel, invocation, excludeTypes, endpoints, warnings, cancellationToken);
         }
 
-        endpoints.Sort(static (a, b) => {
-            var c = StringComparer.Ordinal.Compare(a.Path, b.Path);
-            if (c != 0) return c;
-
-            return StringComparer.Ordinal.Compare(a.Method, b.Method);
-        });
-
         return (endpoints.ToImmutable(), warnings.ToImmutable());
     }
 

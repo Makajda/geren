@@ -14,7 +14,7 @@ internal static class InferParameters {
         string[] excludeTypes) {
 
         bool bodyAssigned = false;
-        var allowBody = httpMethod is "POST" or "PUT" or "PATCH";
+        var allowBody = httpMethod is Givens.Post or Givens.Put or Givens.Patch;
         string? bodyType = null;
         Byres? bodyTypeBy = null;
         MediaTypes? bodyMedia = null;
@@ -37,8 +37,9 @@ internal static class InferParameters {
                 queries.Add(new(parameter.Name, parameter.Name, parameter.Type.ToDisplayString(format)));// SymbolDisplayFormat.MinimallyQualifiedFormat)));
             }
             else if (allowBody && !bodyAssigned) {// body is first complex parameter, if allowed by HTTP method
-                bodyType = parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                bodyTypeBy = Given.GetByres(parameter.Type);
+                var (name, byres) = Given.GetNameAndByres(parameter.Type);
+                bodyType = name;
+                bodyTypeBy = byres;
                 bodyMedia = MediaTypes.Application_Json;
                 bodyAssigned = true;
             }

@@ -8,13 +8,11 @@ internal static class HttpMethods {
         CancellationToken cancellationToken) {
 
         string name = mapMethod.Name;
-        if (name.Equals("MapGet", StringComparison.Ordinal)) return "GET";
-        if (name.Equals("MapPost", StringComparison.Ordinal)) return "POST";
-        if (name.Equals("MapPut", StringComparison.Ordinal)) return "PUT";
-        if (name.Equals("MapPatch", StringComparison.Ordinal)) return "PATCH";
-        if (name.Equals("MapDelete", StringComparison.Ordinal)) return "DELETE";
-        if (name.Equals("MapHead", StringComparison.Ordinal)) return "HEAD";
-        if (name.Equals("MapOptions", StringComparison.Ordinal)) return "OPTIONS";
+        if (name.Equals("MapGet", StringComparison.Ordinal)) return Givens.Get;
+        if (name.Equals("MapPost", StringComparison.Ordinal)) return Givens.Post;
+        if (name.Equals("MapPut", StringComparison.Ordinal)) return Givens.Put;
+        if (name.Equals("MapPatch", StringComparison.Ordinal)) return Givens.Patch;
+        if (name.Equals("MapDelete", StringComparison.Ordinal)) return Givens.Delete;
 
         if (name.Equals("MapMethods", StringComparison.Ordinal)) {
             int methodsArgIndex = FindHttpMethodsArgumentIndex(mapMethod);

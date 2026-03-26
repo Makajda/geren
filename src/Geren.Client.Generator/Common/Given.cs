@@ -3,12 +3,6 @@ namespace Geren.Client.Generator.Common;
 internal static class Given {
     internal const string NewLine = "\n";
 
-    internal const string Get = "Get";
-    internal const string Post = "Post";
-    internal const string Put = "Put";
-    internal const string Patch = "Patch";
-    internal const string Delete = "Delete";
-
     internal static string ArraysDisguise(string value) => value
         .Replace("[]", "--")
         .Replace("[,]", "-_-")

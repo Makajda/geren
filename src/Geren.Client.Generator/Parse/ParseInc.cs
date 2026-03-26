@@ -24,7 +24,7 @@ internal sealed record ParseInc(
     private static ParseInc ParseGerenApi(string filePath, string text) {
         try {
             var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
-            var doc = JsonSerializer.Deserialize<ErDocument>(text, JsonHelper.JsonSerializerOptions) ?? throw new ArgumentNullException("Deserialize error");
+            var doc = JsonSerializer.Deserialize<ErDocument>(text, Givens.JsonSerializerOptions) ?? throw new ArgumentNullException("Deserialize error");
             return new(true, filePath, doc.Endpoints, []);
         }
         catch (Exception ex) {
@@ -71,7 +71,7 @@ internal sealed record ParseInc(
                     continue;
 
                 string method = char.ToUpperInvariant(key[0]) + key.Substring(1).ToLowerInvariant();
-                if (method is not (Given.Get or Given.Post or Given.Put or Given.Patch or Given.Delete))
+                if (method is not (Givens.Get or Givens.Post or Givens.Put or Givens.Patch or Givens.Delete))
                     continue;
 
                 var returnType = ReturnTypeResolver.Resolve(operation.Value);

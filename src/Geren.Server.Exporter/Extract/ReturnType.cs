@@ -94,8 +94,8 @@ internal static class ReturnType {
         if (iResult is not null && IsOrImplements(current, iResult))
             return result;
 
-        return (current.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-            Given.IsSimpleType(current) ? null : Given.GetByres(current));
+        var (name, byres) = Given.GetNameAndByres(current);
+        return (name, Given.IsSimpleType(current) ? null : byres);
     }
 
     private static bool IsOrImplements(ITypeSymbol type, INamedTypeSymbol target) {
