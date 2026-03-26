@@ -76,7 +76,7 @@ internal static class Given {
         return type.TypeKind == TypeKind.Array || (type is INamedTypeSymbol named && named.IsGenericType)
             ? (name, Byres.Compile)
             : (name.StartsWith("global::")
-                ? name.Substring(8)
+                ? name[8..]
                 : name,
                 Byres.Metadata);
     }

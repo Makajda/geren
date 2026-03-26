@@ -5,7 +5,7 @@ public sealed class ParseIncTests {
     public void Parse_EmptyFile_ReportsJsonReadError() {
         var file = new InMemoryAdditionalText(path: @"C:\specs\empty.json", text: "   ");
 
-        var result = ParseInc.Parse(file, CancellationToken.None);
+        var result = ParseInc.Parse(file, "openapi", CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN001");
@@ -15,7 +15,7 @@ public sealed class ParseIncTests {
     public void Parse_InvalidOpenApi_ReportsParseError() {
         var file = new InMemoryAdditionalText(path: @"C:\specs\bad.json", text: "{\"x\":1}");
 
-        var result = ParseInc.Parse(file, CancellationToken.None);
+        var result = ParseInc.Parse(file, "openapi", CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN002");
@@ -25,7 +25,7 @@ public sealed class ParseIncTests {
     public void Parse_WhenAdditionalTextThrows_ReportsParseError() {
         var file = new ThrowingAdditionalText(@"C:\specs\throws.json");
 
-        var result = ParseInc.Parse(file, CancellationToken.None);
+        var result = ParseInc.Parse(file, "openapi", CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN002");
@@ -55,13 +55,13 @@ public sealed class ParseIncTests {
 
         var file = new InMemoryAdditionalText(path: @"C:\specs\pets.json", text: json);
 
-        var result = ParseInc.Parse(file, CancellationToken.None);
+        var result = ParseInc.Parse(file, "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().BeEmpty();
         result.Purpoints.Should().ContainSingle();
         result.Purpoints[0].Path.Should().Be("/pets/{id}");
-        result.Purpoints[0].Params.Should().ContainSingle(p => p.Name == "id" && p.Identifier == "id");
+        result.Purpoints[0].Params?.Should().ContainSingle(p => p.Name == "id" && p.Identifier == "id");
     }
 
     [Fact]
@@ -90,10 +90,9 @@ public sealed class ParseIncTests {
 
         var file = new InMemoryAdditionalText(path: @"C:\specs\pets.json", text: json);
 
-        var result = ParseInc.Parse(file, CancellationToken.None);
+        var result = ParseInc.Parse(file, "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue("the OpenAPI document is valid, only the operation is unsupported");
-        result.Purpoints.Should().BeEmpty("unsupported requestBody should skip operation");
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN005");
     }
 

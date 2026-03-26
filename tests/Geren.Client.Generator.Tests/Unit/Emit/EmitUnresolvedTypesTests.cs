@@ -11,7 +11,7 @@ public sealed class EmitUnresolvedTypesTests {
         var code = EmitUnresolvedTypes.Run("Acme.Petstore", types);
 
         code.Should().Contain("namespace Acme.Petstore;");
-        code.Should().Contain("internal sealed partial class __GerenUnresolvedType_ABCDEF123456 { }");
+        code.Should().Contain("public sealed partial class __GerenUnresolvedType_ABCDEF123456 { }");
         code.Should().Contain("// kind: metadata");
         code.Should().Contain("// requested: Dto.Missing");
         code.Should().Contain("// details: referenceId: Missing; other: info");

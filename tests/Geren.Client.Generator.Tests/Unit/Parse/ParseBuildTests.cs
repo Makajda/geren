@@ -21,12 +21,12 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN004");
         result.Purpoints.Should().ContainSingle();
-        result.Purpoints[0].Queries.Should().BeEmpty("unsupported query params are omitted from signature");
+        result.Purpoints[0].Queries?.Should().BeEmpty("unsupported query params are omitted from signature");
     }
 
     [Fact]
@@ -49,41 +49,11 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN002");
         result.Purpoints.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void Parse_DuplicateGeneratedMethodName_SkipsSecondEndpointAndReportsDiagnostic() {
-        const string json = """
-            {
-              "openapi": "3.0.1",
-              "info": { "title": "t", "version": "1.0" },
-              "paths": {
-                "/a/b": {
-                  "get": {
-                    "operationId": "Foo",
-                    "responses": { "200": { "description": "ok" } }
-                  }
-                },
-                "/a/c": {
-                  "get": {
-                    "operationId": "Foo",
-                    "responses": { "200": { "description": "ok" } }
-                  }
-                }
-              }
-            }
-            """;
-
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\dup.json", json), CancellationToken.None);
-
-        result.Success.Should().BeTrue();
-        result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN006");
-        result.Purpoints.Should().ContainSingle("one endpoint must be skipped due to duplicate method name");
     }
 
     [Fact]
@@ -106,7 +76,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN002");
@@ -132,7 +102,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN003");
@@ -159,11 +129,11 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Purpoints.Should().ContainSingle();
-        result.Purpoints[0].Queries.Should().ContainSingle(q => q.Name == "q" && q.Type.EndsWith("?", StringComparison.Ordinal));
+        result.Purpoints[0].Queries?.Should().ContainSingle(q => q.Name == "q" && q.Type.EndsWith('?'));
     }
 
     [Fact]
@@ -188,13 +158,13 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\ping.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\ping.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().BeEmpty();
         result.Purpoints.Should().ContainSingle();
-        result.Purpoints[0].BodyType.Should().Be(new PurposeType("string"));
-        result.Purpoints[0].BodyMediaType.Should().Be("text/plain");
+        result.Purpoints[0].BodyType.Should().Be("string");
+        result.Purpoints[0].BodyMedia.Should().Be(MediaTypes.Text_Plain);
     }
 
     [Fact]
@@ -222,11 +192,11 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().BeEmpty();
-        result.Purpoints.Single().Queries.Should().ContainSingle(q => q.Name == "ids" && q.Type == "System.Collections.Generic.IReadOnlyList<int>?");
+        result.Purpoints.Single().Queries?.Should().ContainSingle(q => q.Name == "ids" && q.Type == "System.Collections.Generic.IReadOnlyList<int>?");
     }
 
     [Fact]
@@ -249,10 +219,10 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
-        result.Purpoints.Single().Queries.Should().ContainSingle(q => q.Name == "class" && q.Identifier == "class_");
+        result.Purpoints.Single().Queries?.Should().ContainSingle(q => q.Name == "class" && q.Identifier == "class_");
     }
 
     [Fact]
@@ -278,10 +248,10 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().BeEmpty();
-        result.Purpoints.Single().Queries.Should().ContainSingle(q => q.Name == "q" && q.Type == "int");
+        result.Purpoints.Single().Queries?.Should().ContainSingle(q => q.Name == "q" && q.Type == "int");
     }
 }

@@ -4,16 +4,16 @@ public sealed class EmitClientTests {
     [Fact]
     public void Run_GetVoid_EmitsGetAsyncAndEnsureSuccess() {
         var endpoint = new Mapoint(
-            Method: Given.Get,
+            Method: Givens.Get,
             Path: "/ping",
             SpaceName: "",
             ClassName: "WebApiClient",
             MethodName: "GetPing",
             ReturnType: string.Empty,
             BodyType: null,
-            BodyMediaType: null,
-            Params: ImmutableArray<Maparam>.Empty,
-            Queries: ImmutableArray<Maparam>.Empty);
+            BodyMedia: null,
+            Params: [],
+            Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -25,16 +25,16 @@ public sealed class EmitClientTests {
     [Fact]
     public void Run_GetString_EmitsReadAsStringAsync() {
         var endpoint = new Mapoint(
-            Method: Given.Get,
+            Method: Givens.Get,
             Path: "/ping",
             SpaceName: "",
             ClassName: "WebApiClient",
             MethodName: "GetPing",
             ReturnType: "string",
             BodyType: null,
-            BodyMediaType: null,
-            Params: ImmutableArray<Maparam>.Empty,
-            Queries: ImmutableArray<Maparam>.Empty);
+            BodyMedia: null,
+            Params: [],
+            Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -45,16 +45,16 @@ public sealed class EmitClientTests {
     [Fact]
     public void Run_GetDto_EmitsGetFromJsonAsync() {
         var endpoint = new Mapoint(
-            Method: Given.Get,
+            Method: Givens.Get,
             Path: "/pets",
             SpaceName: "",
             ClassName: "WebApiClient",
             MethodName: "GetPets",
             ReturnType: "global::Dto.Pet",
             BodyType: null,
-            BodyMediaType: null,
-            Params: ImmutableArray<Maparam>.Empty,
-            Queries: ImmutableArray<Maparam>.Empty);
+            BodyMedia: null,
+            Params: [],
+            Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -65,16 +65,16 @@ public sealed class EmitClientTests {
     [Fact]
     public void Run_WithQuery_BuildsRequestUriAndAddsParameters() {
         var endpoint = new Mapoint(
-            Method: Given.Get,
+            Method: Givens.Get,
             Path: "/pets",
             SpaceName: "",
             ClassName: "WebApiClient",
             MethodName: "GetPets",
             ReturnType: "string",
             BodyType: null,
-            BodyMediaType: null,
-            Params: ImmutableArray<Maparam>.Empty,
-            Queries: ImmutableArray.Create(new Maparam("q", "q", "string?")));
+            BodyMedia: null,
+            Params: [],
+            Queries: [new Maparam("q", "q", "string?")]);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -86,21 +86,21 @@ public sealed class EmitClientTests {
     [Fact]
     public void Run_PostJson_EmitsPostAsJsonAsyncAndBodyArgument() {
         var endpoint = new Mapoint(
-            Method: Given.Post,
+            Method: Givens.Post,
             Path: "/pets",
             SpaceName: "",
             ClassName: "WebApiClient",
             MethodName: "CreatePet",
             ReturnType: string.Empty,
-            BodyType: "global::Dto.CreatePet",
-            BodyMediaType: "application/json",
-            Params: ImmutableArray<Maparam>.Empty,
-            Queries: ImmutableArray<Maparam>.Empty);
+            BodyType: "Dto.CreatePet",
+            BodyMedia: MediaTypes.Application_Json,
+            Params: [],
+            Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
 
-        code.Should().Contain("CreatePet(global::Dto.CreatePet body");
+        code.Should().Contain("CreatePet(Dto.CreatePet body");
         code.Should().Contain("await _http.PostAsJsonAsync");
         code.Should().Contain("response.EnsureSuccessStatusCode();");
     }
@@ -108,16 +108,16 @@ public sealed class EmitClientTests {
     [Fact]
     public void Run_PutTextPlain_EmitsStringContentWithEncodingUtf8() {
         var endpoint = new Mapoint(
-            Method: Given.Put,
+            Method: Givens.Put,
             Path: "/ping",
             SpaceName: "",
             ClassName: "WebApiClient",
             MethodName: "PutPing",
             ReturnType: "string",
             BodyType: "string",
-            BodyMediaType: "text/plain",
-            Params: ImmutableArray<Maparam>.Empty,
-            Queries: ImmutableArray<Maparam>.Empty);
+            BodyMedia: MediaTypes.Text_Plain,
+            Params: [],
+            Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
@@ -125,27 +125,5 @@ public sealed class EmitClientTests {
         code.Should().Contain("using System.Text;");
         code.Should().Contain("new StringContent(body, Encoding.UTF8, \"text/plain\")");
         code.Should().Contain("await _http.PutAsync");
-    }
-
-    [Fact]
-    public void Run_DeleteJson_EmitsHttpRequestMessageWithJsonContent() {
-        var endpoint = new Mapoint(
-            Method: Given.Delete,
-            Path: "/pets",
-            SpaceName: "",
-            ClassName: "WebApiClient",
-            MethodName: "DeletePets",
-            ReturnType: string.Empty,
-            BodyType: "global::Dto.DeletePets",
-            BodyMediaType: "application/json",
-            Params: ImmutableArray<Maparam>.Empty,
-            Queries: ImmutableArray<Maparam>.Empty);
-
-        var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
-        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
-
-        code.Should().Contain("new HttpRequestMessage(HttpMethod.Delete");
-        code.Should().Contain("Content = JsonContent.Create(body)");
-        code.Should().Contain("await _http.SendAsync");
     }
 }

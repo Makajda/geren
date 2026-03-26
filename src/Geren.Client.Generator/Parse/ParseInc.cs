@@ -11,47 +11,41 @@ internal sealed record ParseInc(
     private static ParseInc Skip(Diagnostic diagnostic) => new(false, string.Empty, [], [diagnostic]);
 
     internal static ParseInc Parse(AdditionalText file, string jsonFormat, CancellationToken cancellationToken) {
-        string? text = file.GetText(cancellationToken)?.ToString();
-        if (string.IsNullOrWhiteSpace(text))
-            return Skip(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid {file.Path}: File is empty."));
+        try {
+            string? text = file.GetText(cancellationToken)?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return Skip(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid {file.Path}: File is empty."));
 
-        if (string.Equals(jsonFormat, "gerenapi", StringComparison.OrdinalIgnoreCase))
-            return ParseGerenApi(file.Path, text!);
-        else
-            return ParseOpenApi(file.Path, text!, cancellationToken);
+            if (string.Equals(jsonFormat, "gerenapi", StringComparison.OrdinalIgnoreCase))
+                return ParseGerenApi(file.Path, text!);
+            else
+                return ParseOpenApi(file.Path, text!, cancellationToken);
+        }
+        catch (Exception ex) {
+            return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
+                $"GerenAPI parse exception in {file.Path}: {ex.Message}"));
+        }
     }
 
     private static ParseInc ParseGerenApi(string filePath, string text) {
-        try {
-            var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
-            var doc = JsonSerializer.Deserialize<ErDocument>(text, Givens.JsonSerializerOptions) ?? throw new ArgumentNullException("Deserialize error");
-            return new(true, filePath, doc.Endpoints, []);
-        }
-        catch (Exception ex) {
-            return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
-                $"GerenAPI parse exception in {filePath}: {ex.Message}"));
-        }
+        var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
+        var doc = JsonSerializer.Deserialize<ErDocument>(text, Givens.JsonSerializerOptions) ?? throw new ArgumentNullException("Deserialize error");
+        return new(true, filePath, doc.Endpoints, []);
     }
 
     private static ParseInc ParseOpenApi(string filePath, string text, CancellationToken cancellationToken) {
-        try {
-            using MemoryStream ms = new(Encoding.UTF8.GetBytes(Given.ArraysDisguise(text)));
-            var readResult = OpenApiDocument.Load(ms);
-            var errors = readResult.Diagnostic?.Errors;
-            if (errors is not null && errors.Any())
-                return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
-                    $"OpenAPI errors in {filePath}: {string.Join("; ", errors.Select(e => e.Message))}"));
-
-            OpenApiDocument? document = readResult.Document;
-            if (document is null)
-                return Skip(Diagnostic.Create(Dide.ParseError, Location.None, $"OpenAPI reader returned null for {filePath}"));
-
-            return BuildFromOpenApi(filePath, document, cancellationToken);
-        }
-        catch (Exception ex) {
+        using MemoryStream ms = new(Encoding.UTF8.GetBytes(Given.ArraysDisguise(text)));
+        var readResult = OpenApiDocument.Load(ms);
+        var errors = readResult.Diagnostic?.Errors;
+        if (errors is not null && errors.Any())
             return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
-                $"OpenAPI parse exception in {filePath}: {ex.Message}"));
-        }
+                $"OpenAPI errors in {filePath}: {string.Join("; ", errors.Select(e => e.Message))}"));
+
+        OpenApiDocument? document = readResult.Document;
+        if (document is null)
+            return Skip(Diagnostic.Create(Dide.ParseError, Location.None, $"OpenAPI reader returned null for {filePath}"));
+
+        return BuildFromOpenApi(filePath, document, cancellationToken);
     }
 
     private static ParseInc BuildFromOpenApi(string filePath, OpenApiDocument doc, CancellationToken cancellationToken) {

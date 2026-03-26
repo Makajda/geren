@@ -76,7 +76,7 @@ public sealed class GeneratorEndToEndTests {
         var generated = run.DriverResult.Results.Single().GeneratedSources.ToDictionary(static s => s.HintName, static s => s.SourceText.ToString());
 
         generated.Keys.Should().Contain("_UnresolvedTypes.g.cs");
-        generated["_UnresolvedTypes.g.cs"].Should().Contain("internal sealed partial class __GerenUnresolvedType_");
+        generated["_UnresolvedTypes.g.cs"].Should().Contain("public sealed partial class __GerenUnresolvedType_");
         generated["WebApiClient.g.cs"].Should().Contain("__GerenUnresolvedType_");
 
         run.DriverResult.Diagnostics.Should().Contain(d => d.Id == "GEREN007");
