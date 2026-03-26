@@ -32,29 +32,29 @@ public sealed partial class {{className}}
         var signature = $"{methodName}({args}CancellationToken cancellationToken = default)";
         var pathExpr = BuildPathExpression(endpoint);
         if (endpoint.Method == Given.Get || endpoint.Method == Given.Delete)
-            return EmitGetDelete(endpoint.Method, endpoint.ReturnType, signature, pathExpr);
+            return EmitGetDelete(endpoint, signature, pathExpr);
 
         return EmitPostOrPutOrPatch(endpoint, signature, pathExpr);
     }
 
-    private static string EmitGetDelete(string method, string returnType, string signature, string pathExpr) {
+    private static string EmitGetDelete(Mapoint endpoint, string signature, string pathExpr) {
         // void
-        if (string.IsNullOrEmpty(returnType)) {
+        if (string.IsNullOrEmpty(endpoint.ReturnType)) {
             return $$"""
     public async Task {{signature}}
     {
-        var response = await _http.{{method}}Async({{pathExpr}}, cancellationToken);
+        var response = await _http.{{endpoint.Method}}Async({{pathExpr}}, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 """;
         }
 
         // ReadAsString
-        if (returnType == "string") {
+        if (endpoint.ReturnType == "string") {
             return $$"""
     public async Task<string> {{signature}}
     {
-        var response = await _http.{{method}}Async({{pathExpr}}, cancellationToken);
+        var response = await _http.{{endpoint.Method}}Async({{pathExpr}}, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync(cancellationToken);
     }
@@ -63,8 +63,8 @@ public sealed partial class {{className}}
 
         // FromJson
         return $$"""
-    public Task<{{returnType}}> {{signature}}
-        => _http.{{method}}FromJsonAsync<{{returnType}}>({{pathExpr}}, cancellationToken);
+    public Task<{{endpoint.ReturnType}}> {{signature}}
+        => _http.{{endpoint.Method}}FromJsonAsync<{{endpoint.ReturnType}}>({{pathExpr}}, cancellationToken);
 """;
     }
 
@@ -81,7 +81,7 @@ public sealed partial class {{className}}
         return EmitResponse(signature, endpoint.ReturnType, send);
     }
 
-    private static string EmitResponse(string signature, string returnType, string send) {
+    private static string EmitResponse(string signature, string? returnType, string send) {
         // void
         if (string.IsNullOrEmpty(returnType)) {
             return $$"""
@@ -118,7 +118,7 @@ public sealed partial class {{className}}
     private static string BuildPathExpression(Mapoint endpoint) {
         string interpolatedPath = endpoint.Path;
         foreach (var param in endpoint.Params)
-            interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{V(" + param.Identifier + ")}");
+            interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{V(" + (param.Identifier ?? param.Name) + ")}");
 
         string pathExpr = $"$\"{interpolatedPath}\"";
         if (endpoint.Queries.IsEmpty)

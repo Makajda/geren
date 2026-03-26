@@ -6,7 +6,7 @@ internal sealed record Mapoint(
     string SpaceName,
     string ClassName,
     string MethodName,
-    string ReturnType,
+    string? ReturnType,
     string? BodyType,
     MediaTypes? BodyMedia,
     ImmutableArray<Maparam> Params,
@@ -17,3 +17,5 @@ internal sealed record UnresolvedSchemaType(
     string Kind,
     string Requested,
     string? Details = null);
+
+internal record struct PurposeType(string Name, Byres? By = null);

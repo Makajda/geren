@@ -12,7 +12,7 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
-        var resolved = resolver.Resolve(new PurposeType("Dto.PetDto", Puresolve.Metadata));
+        var resolved = resolver.Resolve(new PurposeType("Dto.PetDto", Byres.Metadata));
 
         resolved.Should().Be("global::Dto.PetDto");
         diags.Should().BeEmpty();
@@ -26,8 +26,8 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
-        var r1 = resolver.Resolve(new PurposeType("Dto.Missing", Puresolve.Metadata));
-        var r2 = resolver.Resolve(new PurposeType("Dto.Missing", Puresolve.Metadata));
+        var r1 = resolver.Resolve(new PurposeType("Dto.Missing", Byres.Metadata));
+        var r2 = resolver.Resolve(new PurposeType("Dto.Missing", Byres.Metadata));
 
         r1.Should().StartWith("global::Acme.Spec.__GerenUnresolvedType_");
         r2.Should().Be(r1, "type names are cached");
@@ -46,7 +46,7 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
-        var resolved = resolver.Resolve(new PurposeType("PetDto", Puresolve.Reference));
+        var resolved = resolver.Resolve(new PurposeType("PetDto", Byres.Reference));
 
         resolved.Should().Be("global::A.PetDto");
         diags.Should().BeEmpty();
@@ -60,7 +60,7 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
-        var resolved = resolver.Resolve(new PurposeType("MissingDto", Puresolve.Reference));
+        var resolved = resolver.Resolve(new PurposeType("MissingDto", Byres.Reference));
 
         resolved.Should().StartWith("global::Acme.Spec.__GerenUnresolvedType_");
         diags.Should().ContainSingle(d => d.Id == "GEREN007");
@@ -81,7 +81,7 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
-        var resolved = resolver.Resolve(new PurposeType("PetDto", Puresolve.Reference));
+        var resolved = resolver.Resolve(new PurposeType("PetDto", Byres.Reference));
 
         resolved.Should().StartWith("global::Acme.Spec.__GerenUnresolvedType_");
         diags.Should().ContainSingle(d => d.Id == "GEREN014");
@@ -104,7 +104,7 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
-        _ = resolver.Resolve(new PurposeType("PetDto", Puresolve.Reference));
+        _ = resolver.Resolve(new PurposeType("PetDto", Byres.Reference));
 
         diags.Should().ContainSingle(d => d.Id == "GEREN014" && d.GetMessage().Contains("... (+", StringComparison.Ordinal));
         unresolved.Values.Single().Details.Should().Contain("... (+", "preview truncation keeps diagnostics readable");
@@ -117,7 +117,7 @@ public sealed class TypeResolverTests {
         var unresolved = new Dictionary<string, UnresolvedSchemaType>(StringComparer.Ordinal);
         var resolver = new TypeResolver("Acme.Spec", compilation, unresolved, diags, CancellationToken.None);
 
-        var resolved = resolver.Resolve(new PurposeType("System.Collections.Generic.List<KeyValuePair<string, MissingType>>", Puresolve.Compile));
+        var resolved = resolver.Resolve(new PurposeType("System.Collections.Generic.List<KeyValuePair<string, MissingType>>", Byres.Compile));
 
         resolved.Should().StartWith("global::Acme.Spec.__GerenUnresolvedType_");
         diags.Should().ContainSingle(d => d.Id == "GEREN007");

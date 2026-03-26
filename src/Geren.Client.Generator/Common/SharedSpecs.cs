@@ -1,41 +1,53 @@
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace Geren.Client.Generator.Common;
 
 // the file is shared between the the generator and the exporter
 internal sealed record Maparam(
     string Name,
-    string Identifier,
+    string? Identifier,
     string Type);
 
 internal sealed record Purparam(
     string Name,
     string Identifier,
-    PurposeType Type);
+    string Type,
+    Byres? By);
 
 internal sealed record Purpoint(
     string Method,
     string Path,
     string? OperationId,
-    PurposeType ReturnType,
-    PurposeType? BodyType,
-    MediaTypes BodyMedia,
-    ImmutableArray<Purparam> Params,
-    ImmutableArray<Maparam> Queries);
+    string? ReturnType,
+    Byres? ReturnTypeBy,
+    string? BodyType,
+    Byres? BodyTypeBy,
+    MediaTypes? BodyMedia,
+    ImmutableArray<Purparam>? Params,
+    ImmutableArray<Maparam>? Queries);
 
-internal enum Puresolve {
-    None,
+internal enum Byres {
     Metadata,
     Compile,
     Reference
 }
 
-internal record struct PurposeType(string Type, Puresolve Puresolve = Puresolve.None);
-
 internal enum MediaTypes {
-    None,
     Text_Plain,
     Application_Json
 }
 
 internal sealed record ErDocument(
     string Gerenapi,
-    ImmutableArray<Purparam> Endpoints);
+    ImmutableArray<Purpoint> Endpoints);
+
+internal static class JsonHelper {
+    internal static readonly JsonSerializerOptions JsonSerializerOptions = new() {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
+}

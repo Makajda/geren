@@ -51,7 +51,7 @@ namespace {{spaceName}};
         }
 
         return string.Join(Given.NewLine, lines) + Given.NewLine
-            + "internal sealed partial class " + type.PlaceholderTypeName + " { }";
+            + "public sealed partial class " + type.PlaceholderTypeName + " { }";
     }
 
     private static IEnumerable<string> SplitLines(string value) {

@@ -13,12 +13,11 @@ internal class TypeResolver(
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 
-    internal string Resolve(PurposeType schema) {
-        var (type, purpose) = schema;
-        return purpose switch {
-            Puresolve.Metadata => ResolveByMetadata(type),
-            Puresolve.Compile => ResolveByCompile(type),
-            Puresolve.Reference => ResolveByReference(type),
+    internal string Resolve(string type, Byres? byres) {
+        return byres switch {
+            Byres.Metadata => ResolveByMetadata(type),
+            Byres.Compile => ResolveByCompile(type),
+            Byres.Reference => ResolveByReference(type),
             _ => type
         };
     }

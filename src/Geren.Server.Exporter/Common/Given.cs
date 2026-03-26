@@ -66,9 +66,50 @@ internal static class Given {
         return false;
     }
 
-    internal static PurposeType GetPurposeType(ITypeSymbol type) =>
-        new(type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-            type.TypeKind == TypeKind.Array || (type is INamedTypeSymbol named && named.IsGenericType)
-            ? Puresolve.Compile
-            : Puresolve.Metadata);
+    internal static Byres GetByres(ITypeSymbol type) =>
+        type.TypeKind == TypeKind.Array || (type is INamedTypeSymbol named && named.IsGenericType)
+            ? Byres.Compile
+            : Byres.Metadata;
+
+    internal static bool IsSimpleType(ITypeSymbol type) {
+        type = UnwrapNullable(type);
+
+        if (type is IArrayTypeSymbol array)
+            type = UnwrapNullable(array.ElementType);
+
+        return type.SpecialType switch {
+            SpecialType.System_Boolean or
+            SpecialType.System_Byte or
+            SpecialType.System_SByte or
+            SpecialType.System_Int16 or
+            SpecialType.System_UInt16 or
+            SpecialType.System_Int32 or
+            SpecialType.System_UInt32 or
+            SpecialType.System_Int64 or
+            SpecialType.System_UInt64 or
+            SpecialType.System_Char or
+            SpecialType.System_Decimal or
+            SpecialType.System_Double or
+            SpecialType.System_Single or
+            SpecialType.System_String => true,
+            _ => type.Name switch {
+                "Guid" => type.ContainingNamespace?.ToDisplayString() == "System",
+                "DateTime" => type.ContainingNamespace?.ToDisplayString() == "System",
+                "DateTimeOffset" => type.ContainingNamespace?.ToDisplayString() == "System",
+                "TimeSpan" => type.ContainingNamespace?.ToDisplayString() == "System",
+                "Uri" => type.ContainingNamespace?.ToDisplayString() == "System",
+                _ => false,
+            },
+        };
+    }
+
+    internal static ITypeSymbol UnwrapNullable(ITypeSymbol type) {
+        if (type is INamedTypeSymbol named
+            && named.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+            && named.TypeArguments.Length == 1) {
+            return named.TypeArguments[0];
+        }
+
+        return type;
+    }
 }

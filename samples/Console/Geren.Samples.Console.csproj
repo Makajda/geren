@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <AdditionalFiles Include="..\openapi\sample.json" />
+        <AdditionalFiles Include="..\openapi\sample.json" Geren="openapi" />
     </ItemGroup>
 
     <ItemGroup>

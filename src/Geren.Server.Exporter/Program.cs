@@ -1,9 +1,7 @@
 using Geren.Server.Exporter.Extract;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
-using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Geren.Server.Exporter;
 
@@ -41,8 +39,8 @@ internal static class Program {
             var warningPath = Path.Combine(settings.OutputDirectory, Path.GetFileNameWithoutExtension(settings.OutputFileName) + ".log");
             await Save(warningPath, string.Join('\n', logs), cts.Token).ConfigureAwait(false);
 
-            ErDocument document = new("1.0.0", endpoints);
-            string json = JsonSerializer.Serialize(document, options);
+            ErDocument document = new("1.0.0", [.. endpoints]);
+            string json = JsonSerializer.Serialize(document, JsonHelper.JsonSerializerOptions);
 
             var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
             await Save(outputPath, json, cts.Token).ConfigureAwait(false);
@@ -82,13 +80,6 @@ internal static class Program {
         Compilation? compilation = await project.GetCompilationAsync(token).ConfigureAwait(false);
         return compilation;
     }
-
-    private static readonly JsonSerializerOptions options = new() {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-    };
 
     private static async Task Save(string filePath, string text, CancellationToken cancellationToken) {
         await File.WriteAllTextAsync(

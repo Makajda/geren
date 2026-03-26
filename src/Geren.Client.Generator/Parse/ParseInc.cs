@@ -16,22 +16,16 @@ internal sealed record ParseInc(
             return Skip(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid {file.Path}: File is empty."));
 
         if (string.Equals(jsonFormat, "gerenapi", StringComparison.OrdinalIgnoreCase))
-            return ParseGerenApi(file.Path, text!, cancellationToken);
+            return ParseGerenApi(file.Path, text!);
         else
             return ParseOpenApi(file.Path, text!, cancellationToken);
     }
 
-    private static ParseInc ParseGerenApi(string filePath, string text, CancellationToken cancellationToken) {
-        var _endpoints = ImmutableArray.CreateBuilder<Purpoint>();
-        var _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
-
+    private static ParseInc ParseGerenApi(string filePath, string text) {
         try {
-            var doc = JsonSerializer.Deserialize<ErDocument>(text) ?? throw new ArgumentNullException("Deserialize error");
-            foreach (var path in doc.Endpoints) {
-                //todo _endpoints.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
-            }
-
-            return new(true, filePath, _endpoints.ToImmutable(), _diagnostics.ToImmutable());
+            var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
+            var doc = JsonSerializer.Deserialize<ErDocument>(text, JsonHelper.JsonSerializerOptions) ?? throw new ArgumentNullException("Deserialize error");
+            return new(true, filePath, doc.Endpoints, []);
         }
         catch (Exception ex) {
             return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
@@ -52,7 +46,7 @@ internal sealed record ParseInc(
             if (document is null)
                 return Skip(Diagnostic.Create(Dide.ParseError, Location.None, $"OpenAPI reader returned null for {filePath}"));
 
-            return Build(filePath, document, cancellationToken);
+            return BuildFromOpenApi(filePath, document, cancellationToken);
         }
         catch (Exception ex) {
             return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
@@ -60,7 +54,7 @@ internal sealed record ParseInc(
         }
     }
 
-    private static ParseInc Build(string filePath, OpenApiDocument doc, CancellationToken cancellationToken) {
+    private static ParseInc BuildFromOpenApi(string filePath, OpenApiDocument doc, CancellationToken cancellationToken) {
         var _endpoints = ImmutableArray.CreateBuilder<Purpoint>();
         var _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
 
@@ -82,34 +76,43 @@ internal sealed record ParseInc(
 
                 var returnType = ReturnTypeResolver.Resolve(operation.Value);
 
-                var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value, _diagnostics);
+                var (bodyType, bodyTypeBy, bodyMediaType) = ResolveRequestBody(operation.Value, _diagnostics);
 
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);
                 var (@params, queries) = PathAndQueryParameters.Split(path.Key, effectiveParameters, _diagnostics);
                 if (!ValidatePathParametersAgainstPath(path.Key, normalizedPath, @params, _diagnostics))
                     continue;
 
-                _endpoints.Add(new(method, normalizedPath, operation.Value.OperationId, returnType, bodyType, bodyMediaType, @params, queries));
+                _endpoints.Add(new(
+                    method, normalizedPath, operation.Value.OperationId,
+                    returnType.Name, returnType.By,
+                    bodyType, bodyTypeBy, bodyMediaType,
+                    @params, queries));
             }
         }
 
         return new(true, filePath, _endpoints.ToImmutable(), _diagnostics.ToImmutable());
     }
 
-    private static (PurposeType? BodyType, MediaTypes MediaType) ResolveRequestBody(OpenApiOperation operation, ImmutableArray<Diagnostic>.Builder diagnostics) {
+    private static (string? BodyType, Byres? BodyTypeBy, MediaTypes? MediaType) ResolveRequestBody(
+        OpenApiOperation operation,
+        ImmutableArray<Diagnostic>.Builder diagnostics) {
+
         var requestBody = operation.RequestBody;
         if (requestBody is null || requestBody.Content is null || requestBody.Content.Count == 0)
-            return (null, MediaTypes.None);
+            return (null, null, null);
 
-        if (requestBody.Content.TryGetValue("application/json", out var json))
-            return (SchemaToPurpose.Convert(json.Schema), MediaTypes.Application_Json);
+        if (requestBody.Content.TryGetValue("application/json", out var json)) {
+            var (name, nameBy) = SchemaToPurpose.Convert(json.Schema);
+            return (name, nameBy, MediaTypes.Application_Json);
+        }
 
         if (requestBody.Content.ContainsKey("text/plain"))
-            return (new("string"), MediaTypes.Text_Plain);
+            return ("string", null, MediaTypes.Text_Plain);
 
         string mediaType = requestBody.Content.Keys.FirstOrDefault() ?? "<unknown>";
         diagnostics.Add(Diagnostic.Create(Dide.UnsupportedRequestBody, Location.None, operation.OperationId, mediaType));
-        return (null, MediaTypes.None);
+        return (null, null, null);
     }
 
     private static bool ValidatePathParametersAgainstPath(

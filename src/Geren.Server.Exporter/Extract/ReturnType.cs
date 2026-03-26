@@ -1,8 +1,8 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class ReturnType {
-    internal static PurposeType Unwrap(ITypeSymbol returnType, Compilation compilation) {
-        PurposeType result = new(string.Empty);
+    internal static (string?, Byres?) Unwrap(ITypeSymbol returnType, Compilation compilation) {
+        (string?, Byres?) result = (null, null);
 
         if (returnType.SpecialType == SpecialType.System_Void)
             return result;
@@ -94,7 +94,8 @@ internal static class ReturnType {
         if (iResult is not null && IsOrImplements(current, iResult))
             return result;
 
-        return Given.GetPurposeType(current);
+        return (current.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            Given.IsSimpleType(current) ? null : Given.GetByres(current));
     }
 
     private static bool IsOrImplements(ITypeSymbol type, INamedTypeSymbol target) {

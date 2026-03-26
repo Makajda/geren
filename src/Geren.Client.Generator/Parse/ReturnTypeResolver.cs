@@ -7,7 +7,7 @@ internal static class ReturnTypeResolver {
             .OrderBy(static r => GetResponsePriority(r.Key))
             .ThenBy(static r => r.Key, StringComparer.Ordinal)) {
             var resolved = ResolveResponsePayloadType(responseEntry.Value);
-            if (!string.IsNullOrEmpty(resolved.Type))
+            if (!string.IsNullOrEmpty(resolved.Name))
                 return resolved;
         }
 
@@ -16,7 +16,7 @@ internal static class ReturnTypeResolver {
                 continue;
 
             var resolved = ResolveResponsePayloadType(fallback);
-            if (!string.IsNullOrEmpty(resolved.Type))
+            if (!string.IsNullOrEmpty(resolved.Name))
                 return resolved;
         }
 

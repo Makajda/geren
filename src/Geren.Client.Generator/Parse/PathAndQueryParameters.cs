@@ -21,7 +21,7 @@ internal static class PathAndQueryParameters {
             if (inValue == "path") {
                 string identifier = ToParameterIdentifier(parameter.Name, usedParamIdentifiers);
                 PurposeType paramType = SchemaToPurpose.Convert(parameter.Schema);
-                pathParams.Add(new(parameter.Name, identifier, paramType));
+                pathParams.Add(new(parameter.Name, identifier, paramType.Name, paramType.By));
 
                 continue;
             }

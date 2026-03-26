@@ -61,15 +61,15 @@ internal static class ExtractorOne {
         }
 
         var httpMethod = HttpMethods.Get(methodSymbol, invocation, semanticModel, cancellationToken);
-        if (string.IsNullOrEmpty(httpMethod) || true) {
+        if (string.IsNullOrEmpty(httpMethod)) {
             warnings.Add(Dide.Create(invocation, "GERENEXP004", $"Skipped '{methodSymbol.Name}': unknown HTTP method"));
             return;
         }
 
-        var returnType = ReturnType.Unwrap(handlerMethod.ReturnType, compilation);
-        var (bodyType, bodyMedia, @params, queries) = InferParameters.Get(handlerMethod, routeParameterNames, httpMethod, excludeTypes);
+        var (returnType, returnTypeBy) = ReturnType.Unwrap(handlerMethod.ReturnType, compilation);
+        var (bodyType, bodyTypeBy, bodyMedia, @params, queries) = InferParameters.Get(handlerMethod, routeParameterNames, httpMethod, excludeTypes);
 
-        endpoints.Add(new(httpMethod, routeTemplate, null, returnType, bodyType, bodyMedia, @params, queries));
+        endpoints.Add(new(httpMethod, routeTemplate, null, returnType, returnTypeBy, bodyType, bodyTypeBy, bodyMedia, @params, queries));
     }
 
     private static string NormalizeRouteTemplate(string template) {

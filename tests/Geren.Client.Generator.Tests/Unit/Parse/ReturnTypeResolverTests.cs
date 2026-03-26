@@ -27,7 +27,7 @@ public sealed class ReturnTypeResolverTests {
 
         var resolved = ReturnTypeResolver.Resolve(op);
 
-        resolved.Type.Should().Be("int");
+        resolved.Name.Should().Be("int");
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class ReturnTypeResolverTests {
         var doc = OpenApiDocument.Load(ms).Document!;
         var op = doc.Paths["/ping"].Operations![HttpMethod.Get];
 
-        ReturnTypeResolver.Resolve(op).Type.Should().Be("string");
+        ReturnTypeResolver.Resolve(op).Name.Should().Be("string");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public sealed class ReturnTypeResolverTests {
 
         var resolved = ReturnTypeResolver.Resolve(op);
 
-        resolved.Type.Should().Be("string");
+        resolved.Name.Should().Be("string");
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class ReturnTypeResolverTests {
         var doc = OpenApiDocument.Load(ms).Document!;
         var op = doc.Paths["/ping"].Operations![HttpMethod.Get];
 
-        ReturnTypeResolver.Resolve(op).Type.Should().Be("string");
+        ReturnTypeResolver.Resolve(op).Name.Should().Be("string");
     }
 
     [Fact]
@@ -134,6 +134,6 @@ public sealed class ReturnTypeResolverTests {
         var doc = OpenApiDocument.Load(ms).Document!;
         var op = doc.Paths["/ping"].Operations![HttpMethod.Get];
 
-        ReturnTypeResolver.Resolve(op).Type.Should().BeEmpty();
+        ReturnTypeResolver.Resolve(op).Name.Should().BeEmpty();
     }
 }

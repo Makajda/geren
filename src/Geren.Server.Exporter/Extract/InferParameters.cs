@@ -2,10 +2,11 @@ namespace Geren.Server.Exporter.Extract;
 
 internal static class InferParameters {
     internal static (
-        PurposeType? bodyType,
-        MediaTypes bodyMedia,
-        ImmutableArray<Purparam> @params,
-        ImmutableArray<Maparam> queries)
+        string? bodyType,
+        Byres? bodyTypeBy,
+        MediaTypes? bodyMedia,
+        ImmutableArray<Purparam>? @params,
+        ImmutableArray<Maparam>? queries)
         Get(
         IMethodSymbol handlerMethod,
         HashSet<string> routeParameterNames,
@@ -14,8 +15,9 @@ internal static class InferParameters {
 
         bool bodyAssigned = false;
         var allowBody = httpMethod is "POST" or "PUT" or "PATCH";
-        PurposeType? bodyType = null;
-        MediaTypes bodyMedia = MediaTypes.None;
+        string? bodyType = null;
+        Byres? bodyTypeBy = null;
+        MediaTypes? bodyMedia = null;
         var @params = ImmutableArray.CreateBuilder<Purparam>(handlerMethod.Parameters.Length);
         var queries = ImmutableArray.CreateBuilder<Maparam>(handlerMethod.Parameters.Length);
 
@@ -24,21 +26,28 @@ internal static class InferParameters {
                 continue;
 
             if (routeParameterNames.Contains(parameter.Name) || HasFromRouteAttribute(parameter))
-                @params.Add(new(parameter.Name, parameter.Name, Given.GetPurposeType(parameter.Type)));
-            else if (IsSimpleType(parameter.Type)) {
+                @params.Add(new(
+                    parameter.Name, null,
+                    parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    Given.IsSimpleType(parameter.Type) ? null : Given.GetByres(parameter.Type)));
+            else if (Given.IsSimpleType(parameter.Type)) {
                 var format = new SymbolDisplayFormat(
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                     miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes); // Int32 to int without namespace, for readability in query parameters
                 queries.Add(new(parameter.Name, parameter.Name, parameter.Type.ToDisplayString(format)));// SymbolDisplayFormat.MinimallyQualifiedFormat)));
             }
             else if (allowBody && !bodyAssigned) {// body is first complex parameter, if allowed by HTTP method
-                bodyType = Given.GetPurposeType(parameter.Type);
+                bodyType = parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                bodyTypeBy = Given.GetByres(parameter.Type);
                 bodyMedia = MediaTypes.Application_Json;
                 bodyAssigned = true;
             }
         }
 
-        return (bodyType, bodyMedia, @params.ToImmutable(), queries.ToImmutable());
+        return (
+            bodyType, bodyTypeBy, bodyMedia,
+            @params.Count == 0 ? null : @params.ToImmutable(),
+            queries.Count == 0 ? null : queries.ToImmutable());
     }
 
     private static bool HasFromRouteAttribute(IParameterSymbol parameter) {
@@ -82,10 +91,10 @@ internal static class InferParameters {
     }
 
     private static bool IsInfrastructureType(ITypeSymbol type, string[] excludeTypes) {
-        type = UnwrapNullable(type);
+        type = Given.UnwrapNullable(type);
 
         if (type is IArrayTypeSymbol array)
-            type = UnwrapNullable(array.ElementType);
+            type = Given.UnwrapNullable(array.ElementType);
 
         if (type is not INamedTypeSymbol named)
             return false;
@@ -113,50 +122,5 @@ internal static class InferParameters {
             return true;
 
         return false;
-    }
-
-    private static bool IsSimpleType(ITypeSymbol type) {
-        type = UnwrapNullable(type);
-
-        if (type is IArrayTypeSymbol array)
-            type = UnwrapNullable(array.ElementType);
-
-        if (type.TypeKind == TypeKind.Enum)
-            return true;
-
-        return type.SpecialType switch {
-            SpecialType.System_Boolean or
-            SpecialType.System_Byte or
-            SpecialType.System_SByte or
-            SpecialType.System_Int16 or
-            SpecialType.System_UInt16 or
-            SpecialType.System_Int32 or
-            SpecialType.System_UInt32 or
-            SpecialType.System_Int64 or
-            SpecialType.System_UInt64 or
-            SpecialType.System_Char or
-            SpecialType.System_Decimal or
-            SpecialType.System_Double or
-            SpecialType.System_Single or
-            SpecialType.System_String => true,
-            _ => type.Name switch {
-                "Guid" => type.ContainingNamespace?.ToDisplayString() == "System",
-                "DateTime" => type.ContainingNamespace?.ToDisplayString() == "System",
-                "DateTimeOffset" => type.ContainingNamespace?.ToDisplayString() == "System",
-                "TimeSpan" => type.ContainingNamespace?.ToDisplayString() == "System",
-                "Uri" => type.ContainingNamespace?.ToDisplayString() == "System",
-                _ => false,
-            },
-        };
-    }
-
-    private static ITypeSymbol UnwrapNullable(ITypeSymbol type) {
-        if (type is INamedTypeSymbol named
-            && named.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
-            && named.TypeArguments.Length == 1) {
-            return named.TypeArguments[0];
-        }
-
-        return type;
     }
 }

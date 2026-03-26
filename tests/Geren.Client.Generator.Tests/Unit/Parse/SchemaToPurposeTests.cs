@@ -3,7 +3,7 @@ namespace Geren.Client.Generator.Tests.Unit.Parse;
 public sealed class SchemaToPurposeTests {
     [Fact]
     public void Convert_NullSchema_DefaultsToString() {
-        SchemaToPurpose.Convert(schema: null).Type.Should().Be("object");
+        SchemaToPurpose.Convert(schema: null).Name.Should().Be("object");
     }
 
     [Fact]
@@ -15,8 +15,8 @@ public sealed class SchemaToPurposeTests {
 
         var result = SchemaToPurpose.Convert(schema);
 
-        result.Puresolve.Should().Be(Puresolve.Metadata);
-        result.Type.Should().Be("Dto.Pet");
+        result.By.Should().Be(Byres.Metadata);
+        result.Name.Should().Be("Dto.Pet");
     }
 
     [Fact]
@@ -29,8 +29,8 @@ public sealed class SchemaToPurposeTests {
 
         var result = SchemaToPurpose.Convert(schema);
 
-        result.Puresolve.Should().Be(Puresolve.Compile);
-        result.Type.Should().Be("System.Collections.Generic.List<int[]>");
+        result.By.Should().Be(Byres.Compile);
+        result.Name.Should().Be("System.Collections.Generic.List<int[]>");
     }
 
     [Fact]
@@ -71,32 +71,32 @@ public sealed class SchemaToPurposeTests {
 
         var result = SchemaToPurpose.Convert(schema);
 
-        result.Puresolve.Should().Be(Puresolve.Reference);
-        result.Type.Should().Be("PetDto");
+        result.By.Should().Be(Byres.Reference);
+        result.Name.Should().Be("PetDto");
     }
 
     [Fact]
     public void Convert_IntFormats_MapToCSharpAliases() {
-        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Integer, Format = "int64" }).Type.Should().Be("long");
-        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Integer, Format = "int32" }).Type.Should().Be("int");
+        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Integer, Format = "int64" }).Name.Should().Be("long");
+        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Integer, Format = "int32" }).Name.Should().Be("int");
     }
 
     [Fact]
     public void Convert_Primitives_MapToCSharpAliases() {
-        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Boolean }).Type.Should().Be("bool");
-        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Number }).Type.Should().Be("double");
-        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.String }).Type.Should().Be("string");
+        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Boolean }).Name.Should().Be("bool");
+        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Number }).Name.Should().Be("double");
+        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.String }).Name.Should().Be("string");
     }
 
     [Fact]
     public void Convert_Object_MapsToObject() {
-        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Object }).Type.Should().Be("object");
+        SchemaToPurpose.Convert(new OpenApiSchema { Type = JsonSchemaType.Object }).Name.Should().Be("object");
     }
 
     [Fact]
     public void Convert_Array_MapsToIReadOnlyListOfItemType() {
         var schema = new OpenApiSchema { Type = JsonSchemaType.Array, Items = new OpenApiSchema { Type = JsonSchemaType.Boolean } };
 
-        SchemaToPurpose.Convert(schema).Type.Should().Be("System.Collections.Generic.IReadOnlyList<bool>");
+        SchemaToPurpose.Convert(schema).Name.Should().Be("System.Collections.Generic.IReadOnlyList<bool>");
     }
 }
