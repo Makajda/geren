@@ -33,12 +33,13 @@ internal sealed record MapInc(
             string? returnType = point.ReturnType is null ? null : _typeResolver.Resolve(point.ReturnType, point.ReturnTypeBy);
             string? bodyType = point.BodyType is null ? null : _typeResolver.Resolve(point.BodyType, point.BodyTypeBy);
             ImmutableArray<Maparam>.Builder ps = ImmutableArray.CreateBuilder<Maparam>();
-            foreach (var param in point.Params)
-                ps.Add(new(param.Name, param.Identifier, _typeResolver.Resolve(param.Type, param.By)));
+            if (point.Params is not null)
+                foreach (var param in point.Params)
+                    ps.Add(new(param.Name, param.Identifier, _typeResolver.Resolve(param.Type, param.By)));
 
             endpoints.Add(new(
                 point.Method, point.Path, spaceName, className, methodName,
-                returnType, bodyType, point.BodyMedia, ps.ToImmutable(), point.Queries));
+                returnType, bodyType, point.BodyMedia, ps.ToImmutable(), point.Queries ?? []));
         }
 
         ImmutableArray<UnresolvedSchemaType> unresolved = _unresolvedByPlaceholder.Count == 0
