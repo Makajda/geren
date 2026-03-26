@@ -1,20 +1,20 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class HttpMethods {
-    internal static ImmutableArray<string> Get(
+    internal static string? Get(
         IMethodSymbol mapMethod,
         InvocationExpressionSyntax invocation,
         SemanticModel semanticModel,
         CancellationToken cancellationToken) {
 
         string name = mapMethod.Name;
-        if (name.Equals("MapGet", StringComparison.Ordinal)) return ["GET"];
-        if (name.Equals("MapPost", StringComparison.Ordinal)) return ["POST"];
-        if (name.Equals("MapPut", StringComparison.Ordinal)) return ["PUT"];
-        if (name.Equals("MapPatch", StringComparison.Ordinal)) return ["PATCH"];
-        if (name.Equals("MapDelete", StringComparison.Ordinal)) return ["DELETE"];
-        if (name.Equals("MapHead", StringComparison.Ordinal)) return ["HEAD"];
-        if (name.Equals("MapOptions", StringComparison.Ordinal)) return ["OPTIONS"];
+        if (name.Equals("MapGet", StringComparison.Ordinal)) return "GET";
+        if (name.Equals("MapPost", StringComparison.Ordinal)) return "POST";
+        if (name.Equals("MapPut", StringComparison.Ordinal)) return "PUT";
+        if (name.Equals("MapPatch", StringComparison.Ordinal)) return "PATCH";
+        if (name.Equals("MapDelete", StringComparison.Ordinal)) return "DELETE";
+        if (name.Equals("MapHead", StringComparison.Ordinal)) return "HEAD";
+        if (name.Equals("MapOptions", StringComparison.Ordinal)) return "OPTIONS";
 
         if (name.Equals("MapMethods", StringComparison.Ordinal)) {
             int methodsArgIndex = FindHttpMethodsArgumentIndex(mapMethod);
@@ -22,13 +22,16 @@ internal static class HttpMethods {
                 && invocation.ArgumentList is not null
                 && invocation.ArgumentList.Arguments.Count > methodsArgIndex
                 && TryGetConstantStringList(semanticModel, invocation.ArgumentList.Arguments[methodsArgIndex].Expression, cancellationToken, out var methods)) {
-                return methods;
+                if (methods.Length != 1)
+                    return null;
+
+                return methods[0];
             }
 
-            return [];
+            return null;
         }
 
-        return [];
+        return null;
     }
 
     private static int FindHttpMethodsArgumentIndex(IMethodSymbol mapMethod) {

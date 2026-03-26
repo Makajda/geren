@@ -26,20 +26,9 @@ internal sealed record ParseInc(
         var _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
 
         try {
-            var doc = JsonSerializer.Deserialize<Erdoc>(text) ?? throw new ArgumentNullException("Deserialize error");
+            var doc = JsonSerializer.Deserialize<ErDocument>(text) ?? throw new ArgumentNullException("Deserialize error");
             foreach (var path in doc.Endpoints) {
                 //todo _endpoints.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
-                _endpoints.Add(new(
-                    path.HttpMethods.FirstOrDefault(),
-                    path.RouteTemplate,
-                    string.Empty,
-                    "WebApiClient",
-                    path.Handler,
-                    new PurposeType(path.ReturnType),
-                    null,
-                    null,
-                    path.Parameters.Select(p => new Purparam(p.Name, p.Name, new(p.Type))).ToImmutableArray(),
-                    path.Parameters.Select(p => new Maparam(p.Name, p.Name, p.Type)).ToImmutableArray()));
             }
 
             return new(true, filePath, _endpoints.ToImmutable(), _diagnostics.ToImmutable());
@@ -75,7 +64,6 @@ internal sealed record ParseInc(
         var _endpoints = ImmutableArray.CreateBuilder<Purpoint>();
         var _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
 
-        HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var path in doc.Paths) {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -89,47 +77,39 @@ internal sealed record ParseInc(
                     continue;
 
                 string method = char.ToUpperInvariant(key[0]) + key.Substring(1).ToLowerInvariant();
-                if (method != Given.Get && method != Given.Post && method != Given.Put && method != Given.Delete)
+                if (method is not (Given.Get or Given.Post or Given.Put or Given.Patch or Given.Delete))
                     continue;
-
-                var (spaceName, className, methodName) = ResolveNames(operation.Value.OperationId, method, normalizedPath);
-                string methodKey = spaceName + "." + className + "." + methodName;
-                if (!seenMethodKeys.Add(methodKey)) {
-                    _diagnostics.Add(Diagnostic.Create(Dide.DuplicateMethodName, Location.None, methodName, className, path.Key));
-                    continue;
-                }
 
                 var returnType = ReturnTypeResolver.Resolve(operation.Value);
+
                 var (bodyType, bodyMediaType) = ResolveRequestBody(operation.Value, _diagnostics);
-                if (bodyType is null && bodyMediaType is not null)
-                    continue;
 
                 var effectiveParameters = MergeOperationParameters(path.Value.Parameters, operation.Value.Parameters);
                 var (@params, queries) = PathAndQueryParameters.Split(path.Key, effectiveParameters, _diagnostics);
                 if (!ValidatePathParametersAgainstPath(path.Key, normalizedPath, @params, _diagnostics))
                     continue;
 
-                _endpoints.Add(new(method, normalizedPath, spaceName, className, methodName, returnType, bodyType, bodyMediaType, @params, queries));
+                _endpoints.Add(new(method, normalizedPath, operation.Value.OperationId, returnType, bodyType, bodyMediaType, @params, queries));
             }
         }
 
         return new(true, filePath, _endpoints.ToImmutable(), _diagnostics.ToImmutable());
     }
 
-    private static (PurposeType? BodyType, string? MediaType) ResolveRequestBody(OpenApiOperation operation, ImmutableArray<Diagnostic>.Builder diagnostics) {
+    private static (PurposeType? BodyType, MediaTypes MediaType) ResolveRequestBody(OpenApiOperation operation, ImmutableArray<Diagnostic>.Builder diagnostics) {
         var requestBody = operation.RequestBody;
         if (requestBody is null || requestBody.Content is null || requestBody.Content.Count == 0)
-            return (null, null);
+            return (null, MediaTypes.None);
 
         if (requestBody.Content.TryGetValue("application/json", out var json))
-            return (SchemaToPurpose.Convert(json.Schema), "application/json");
+            return (SchemaToPurpose.Convert(json.Schema), MediaTypes.Application_Json);
 
         if (requestBody.Content.ContainsKey("text/plain"))
-            return (new("string"), "text/plain");
+            return (new("string"), MediaTypes.Text_Plain);
 
         string mediaType = requestBody.Content.Keys.FirstOrDefault() ?? "<unknown>";
         diagnostics.Add(Diagnostic.Create(Dide.UnsupportedRequestBody, Location.None, operation.OperationId, mediaType));
-        return (null, mediaType);
+        return (null, MediaTypes.None);
     }
 
     private static bool ValidatePathParametersAgainstPath(
@@ -196,24 +176,6 @@ internal sealed record ParseInc(
 
         return sb.ToString();
     }
-
-    private static (string SpaceName, string ClassName, string MethodName) ResolveNames(string? operationId, string method, string path) {
-        string? withName = operationId is null ? null : Given.ToLetterOrDigitName(operationId);
-        string[] sections = [.. path
-            .Trim('/')
-            .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
-            .Where(static s => !IsPathTemplateSegment(s))
-            .Select(n=>Given.ToLetterOrDigitName(n))];
-
-        int classIndex = sections.Length - 2;
-        string methodName = withName ?? (method + sections.LastOrDefault());
-        string className = classIndex >= 0 ? sections[classIndex] : "WebApiClient";
-        string spaceName = classIndex > 0 ? string.Join(".", sections.Take(classIndex)) : string.Empty;
-        return (spaceName, className, methodName);
-    }
-
-    private static bool IsPathTemplateSegment(string segment)
-        => segment.Length > 1 && segment[0] == '{' && segment[segment.Length - 1] == '}';
 
     private static ImmutableArray<IOpenApiParameter> MergeOperationParameters(
         IList<IOpenApiParameter>? pathParameters,

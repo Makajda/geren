@@ -9,7 +9,7 @@ internal static class ExtractorOne {
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         string[] excludeTypes,
-        ImmutableArray<Erpoint>.Builder endpoints,
+        ImmutableArray<Purpoint>.Builder endpoints,
         ImmutableArray<ErWarning>.Builder warnings,
         CancellationToken cancellationToken) {
 
@@ -41,7 +41,7 @@ internal static class ExtractorOne {
 
         var routeTemplateExpression = invocation.ArgumentList.Arguments[routeTemplateArgIndex].Expression;
         if (!Given.TryGetConstantString(semanticModel, routeTemplateExpression, cancellationToken, out var routeTemplate)) {
-            warnings.Add(Dide.Create(invocation, "GERENEXP002", $"Skipped '{methodSymbol.Name}': route template is not a constant string."));
+            warnings.Add(Dide.Create(invocation, "GERENEXP002", $"Skipped '{methodSymbol.Name}': route template is not a constant string"));
             return;
         }
 
@@ -56,26 +56,20 @@ internal static class ExtractorOne {
         var operation = semanticModel.GetOperation(handlerExpression, cancellationToken);
         var handlerMethod = operation is null ? null : GetHandlerMethodSymbol(operation);
         if (handlerMethod is null) {
-            warnings.Add(Dide.Create(invocation, "GERENEXP003", $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol."));
+            warnings.Add(Dide.Create(invocation, "GERENEXP003", $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol"));
             return;
         }
 
-        var httpMethods = HttpMethods.Get(methodSymbol, invocation, semanticModel, cancellationToken);
-        if (httpMethods.IsEmpty) {
-            warnings.Add(Dide.Create(invocation, "GERENEXP004", $"Skipped '{methodSymbol.Name}': unknown HTTP method(s) (unable to infer from map call)."));
+        var httpMethod = HttpMethods.Get(methodSymbol, invocation, semanticModel, cancellationToken);
+        if (string.IsNullOrEmpty(httpMethod) || true) {
+            warnings.Add(Dide.Create(invocation, "GERENEXP004", $"Skipped '{methodSymbol.Name}': unknown HTTP method"));
             return;
         }
 
-        var parameters = InferParameters.Get(handlerMethod, routeParameterNames, httpMethods, excludeTypes);
         var returnType = ReturnType.Unwrap(handlerMethod.ReturnType, compilation);
+        var (bodyType, bodyMedia, @params, queries) = InferParameters.Get(handlerMethod, routeParameterNames, httpMethod, excludeTypes);
 
-        endpoints.Add(new(
-            HttpMethods: httpMethods,
-            RouteTemplate: routeTemplate,
-            RouteParameters: [.. routeParameterNames.OrderBy(static p => p, StringComparer.Ordinal)],
-            Handler: handlerMethod.ToDisplayString(Given.FullyQualifiedMethodFormat),
-            Parameters: parameters,
-            ReturnType: returnType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+        endpoints.Add(new(httpMethod, routeTemplate, null, returnType, bodyType, bodyMedia, @params, queries));
     }
 
     private static string NormalizeRouteTemplate(string template) {

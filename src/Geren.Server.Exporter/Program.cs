@@ -32,19 +32,20 @@ internal static class Program {
             var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes ?? [], cts.Token);
             spinner2.Dispose();
 
-            Dide.Show(warnings);
-
-            Erdoc document = new("1.0.0", endpoints, settings.IncludeWarningsInOutput ? warnings : null);
-            string json = JsonSerializer.Serialize(document, options);
+            var logs = Dide.ToStrings(warnings);
+            foreach (string l in logs)
+                Console.Error.WriteLine(l);
 
             Directory.CreateDirectory(settings.OutputDirectory);
+
+            var warningPath = Path.Combine(settings.OutputDirectory, Path.GetFileNameWithoutExtension(settings.OutputFileName) + ".log");
+            await Save(warningPath, string.Join('\n', logs), cts.Token).ConfigureAwait(false);
+
+            ErDocument document = new("1.0.0", endpoints);
+            string json = JsonSerializer.Serialize(document, options);
+
             var outputPath = Path.Combine(settings.OutputDirectory, settings.OutputFileName);
-            await File.WriteAllTextAsync(
-                    outputPath,
-                    json,
-                    new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                    cts.Token)
-                .ConfigureAwait(false);
+            await Save(outputPath, json, cts.Token).ConfigureAwait(false);
 
             Console.WriteLine($"Wrote {endpoints.Length} endpoints to");
             Console.WriteLine(outputPath);
@@ -88,4 +89,13 @@ internal static class Program {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
     };
+
+    private static async Task Save(string filePath, string text, CancellationToken cancellationToken) {
+        await File.WriteAllTextAsync(
+                filePath,
+                text,
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
 }

@@ -222,13 +222,10 @@ Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper exte
 
 ## Warnings
 
-The exporter writes warnings to stderr. If needed, they can be included in the JSON:
+The exporter writes warnings to stderr and file output.log.
+Some endpoints may be skipped if the exporter could not unambiguously determine the HTTP method (for example, `MapMethods(...)` with a non-constant list of methods) - in this case, the warning `GERENEXP004` will be issued.
 
-```powershell
-geren-server-exporter --project .\MyServer.csproj --output-dir .\artifacts --IncludeWarningsInOutput true
-```
-
-Some endpoints may be skipped if the exporter could not unambiguously determine the HTTP method (for example, `MapMethods(...)` with a non-constant list of methods) - in this case, the warning `GERENEXP003` will be issued.
+## Important about `DI types`
 
 Default excluded types:
 
@@ -248,7 +245,6 @@ In the `settings.json`, you can specify additional types to exclude in the param
   "Project": "...\WebApiProject.csproj",
   "OutputDirectory": "...\result-dir",
   "OutputFileName": "",
-  "IncludeWarningsInOutput": "true",
   "ExcludeTypes": [
     "Microsoft.EntityFrameworkCore.DbContext"
   ]

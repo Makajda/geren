@@ -1,5 +1,8 @@
 namespace Geren.Server.Exporter.Common;
 
+internal sealed record ErLocation(string File, int Line, int Column);
+internal sealed record ErWarning(string Id, string Message, ErLocation? Location = null);
+
 internal static class Dide {
     internal const string UnableIEndpointRouteBuilder = "GERENEXP001";
     internal const string SkipTemplate = "GERENEXP002";
@@ -16,12 +19,8 @@ internal static class Dide {
         return new(id, message, new ErLocation(file, line, col));
     }
 
-    internal static void Show(IEnumerable<ErWarning> warnings) {
-        foreach (var warning in warnings) {
-            if (warning.Location is null)
-                Console.Error.WriteLine($"{warning.Id}: {warning.Message}");
-            else
-                Console.Error.WriteLine($"{warning.Location.File}({warning.Location.Line},{warning.Location.Column}): {warning.Id}: {warning.Message}");
-        }
-    }
+    internal static IEnumerable<string> ToStrings(IEnumerable<ErWarning> warnings) =>
+        warnings.Select(w => $"{w.Id}: {w.Message}{(w.Location is null
+            ? null
+            : $": {w.Location.File}({w.Location.Line},{w.Location.Column})")}");
 }

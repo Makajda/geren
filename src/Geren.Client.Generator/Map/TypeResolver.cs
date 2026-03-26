@@ -16,9 +16,9 @@ internal class TypeResolver(
     internal string Resolve(PurposeType schema) {
         var (type, purpose) = schema;
         return purpose switch {
-            PurposeTypes.Metadata => ResolveByMetadata(type),
-            PurposeTypes.Compile => ResolveByCompile(type),
-            PurposeTypes.Reference => ResolveByReference(type),
+            Puresolve.Metadata => ResolveByMetadata(type),
+            Puresolve.Compile => ResolveByCompile(type),
+            Puresolve.Reference => ResolveByReference(type),
             _ => type
         };
     }

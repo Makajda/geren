@@ -31,7 +31,7 @@
 
 	<ItemGroup>
         <None Include="..\..\bin\bin-client-generator\$(Configuration)\netstandard2.0\Geren.Client.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="..\..\bin\bin-client-generator\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\..\bin\bin-client-generatSor\$(Configuration)\netstandard2.0\Microsoft.OpenApi.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="build\Geren.OpenApiClientGenerator.props" Pack="true" PackagePath="build\" Visible="false" />
         <None Include="buildTransitive\Geren.OpenApiClientGenerator.props" Pack="true" PackagePath="buildTransitive\" Visible="false" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />

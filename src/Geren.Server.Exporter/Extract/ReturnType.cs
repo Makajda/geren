@@ -1,9 +1,11 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class ReturnType {
-    internal static ITypeSymbol? Unwrap(ITypeSymbol returnType, Compilation compilation) {
+    internal static PurposeType Unwrap(ITypeSymbol returnType, Compilation compilation) {
+        PurposeType result = new(string.Empty);
+
         if (returnType.SpecialType == SpecialType.System_Void)
-            return null;
+            return result;
 
         var taskOfT = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
         var valueTaskOfT = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
@@ -15,28 +17,6 @@ internal static class ReturnType {
         var iResult = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.IResult");
         const string HttpResultsNamespace = "Microsoft.AspNetCore.Http.HttpResults";
         const string ResultsUnionNamespace = "Microsoft.AspNetCore.Http.Results";
-
-        static bool IsOrImplements(ITypeSymbol type, INamedTypeSymbol target) {
-            if (SymbolEqualityComparer.Default.Equals(type, target))
-                return true;
-
-            if (type is not INamedTypeSymbol named)
-                return false;
-
-            if (target.TypeKind == TypeKind.Interface) {
-                foreach (var iface in named.AllInterfaces)
-                    if (SymbolEqualityComparer.Default.Equals(iface, target))
-                        return true;
-
-                return false;
-            }
-
-            for (INamedTypeSymbol? t = named; t is not null; t = t.BaseType)
-                if (SymbolEqualityComparer.Default.Equals(t, target))
-                    return true;
-
-            return false;
-        }
 
         ITypeSymbol current = returnType;
         while (true) {
@@ -92,28 +72,50 @@ internal static class ReturnType {
                     continue;
                 }
 
-                return null;
+                return result;
             }
 
             break;
         }
 
         if (task is not null && SymbolEqualityComparer.Default.Equals(current, task))
-            return null;
+            return result;
 
         if (valueTask is not null && SymbolEqualityComparer.Default.Equals(current, valueTask))
-            return null;
+            return result;
 
         // "Zoo": returning IActionResult/IResult/etc. does not expose a stable DTO type.
         if (actionResult is not null && IsOrImplements(current, actionResult))
-            return null;
+            return result;
 
         if (iActionResult is not null && IsOrImplements(current, iActionResult))
-            return null;
+            return result;
 
         if (iResult is not null && IsOrImplements(current, iResult))
-            return null;
+            return result;
 
-        return current;
+        return Given.GetPurposeType(current);
+    }
+
+    private static bool IsOrImplements(ITypeSymbol type, INamedTypeSymbol target) {
+        if (SymbolEqualityComparer.Default.Equals(type, target))
+            return true;
+
+        if (type is not INamedTypeSymbol named)
+            return false;
+
+        if (target.TypeKind == TypeKind.Interface) {
+            foreach (var iface in named.AllInterfaces)
+                if (SymbolEqualityComparer.Default.Equals(iface, target))
+                    return true;
+
+            return false;
+        }
+
+        for (INamedTypeSymbol? t = named; t is not null; t = t.BaseType)
+            if (SymbolEqualityComparer.Default.Equals(t, target))
+                return true;
+
+        return false;
     }
 }

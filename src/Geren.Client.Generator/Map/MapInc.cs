@@ -13,13 +13,22 @@ internal sealed record MapInc(
         string filePath,
         ImmutableArray<Purpoint> purpoints,
         CancellationToken cancellationToken) {
+
         ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
         Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
         string namespaceFromFile = Given.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
         TypeResolver _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _unresolvedByPlaceholder, _diagnostics, cancellationToken);
         var endpoints = ImmutableArray.CreateBuilder<Mapoint>();
+        HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
         foreach (var point in purpoints) {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var (spaceName, className, methodName) = ResolveNames(point.Method, point.Path, point.OperationId);
+            string methodKey = spaceName + "." + className + "." + methodName;
+            if (!seenMethodKeys.Add(methodKey)) {
+                _diagnostics.Add(Diagnostic.Create(Dide.DuplicateMethodName, Location.None, methodName, className, point.Path));
+                continue;
+            }
 
             string returnType = _typeResolver.Resolve(point.ReturnType);
             string? bodyType = point.BodyType is null ? null : _typeResolver.Resolve(point.BodyType.Value);
@@ -28,8 +37,8 @@ internal sealed record MapInc(
                 ps.Add(new(param.Name, param.Identifier, _typeResolver.Resolve(param.Type)));
 
             endpoints.Add(new(
-                point.Method, point.Path, point.SpaceName, point.ClassName, point.MethodName,
-                returnType, bodyType, point.BodyMediaType, ps.ToImmutable(), point.Queries));
+                point.Method, point.Path, spaceName, className, methodName,
+                returnType, bodyType, point.BodyMedia, ps.ToImmutable(), point.Queries));
         }
 
         ImmutableArray<UnresolvedSchemaType> unresolved = _unresolvedByPlaceholder.Count == 0
@@ -46,6 +55,24 @@ internal sealed record MapInc(
             unresolved,
             _diagnostics.ToImmutable());
     }
+
+    private static (string SpaceName, string ClassName, string MethodName) ResolveNames(string method, string path, string? operationId) {
+        string? withName = operationId is null ? null : Given.ToLetterOrDigitName(operationId);
+        string[] sections = [.. path
+            .Trim('/')
+            .Split(['/'], StringSplitOptions.RemoveEmptyEntries)
+            .Where(static s => !IsPathTemplateSegment(s))
+            .Select(n=>Given.ToLetterOrDigitName(n))];
+
+        int classIndex = sections.Length - 2;
+        string methodName = withName ?? (method + sections.LastOrDefault());
+        string className = classIndex >= 0 ? sections[classIndex] : "WebApiClient";
+        string spaceName = classIndex > 0 ? string.Join(".", sections.Take(classIndex)) : string.Empty;
+        return (spaceName, className, methodName);
+    }
+
+    private static bool IsPathTemplateSegment(string segment)
+        => segment.Length > 1 && segment[0] == '{' && segment[segment.Length - 1] == '}';
 
     private static string CreateHintFilePath(string filePath) {
         unchecked {

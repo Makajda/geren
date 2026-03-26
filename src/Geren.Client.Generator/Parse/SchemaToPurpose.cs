@@ -9,15 +9,15 @@ internal static class SchemaToPurpose {
         bool hasExtensions = schema.Extensions is not null;
         if (hasExtensions && schema.Extensions!.TryGetValue("x-metadata", out IOpenApiExtension nodeExtension)) {
             if (nodeExtension is JsonNodeExtension node)
-                return new(node.Node.GetValue<string>(), PurposeTypes.Metadata);
+                return new(node.Node.GetValue<string>(), Puresolve.Metadata);
         }
         else if (hasExtensions && schema.Extensions!.TryGetValue("x-compile", out IOpenApiExtension nodeGeneric)) {
             if (nodeGeneric is JsonNodeExtension node)
-                return new(Given.ArraysRestore(node.Node.GetValue<string>()), PurposeTypes.Compile);
+                return new(Given.ArraysRestore(node.Node.GetValue<string>()), Puresolve.Compile);
         }
         else if (schema is OpenApiSchemaReference schemaReference)
             if (schemaReference.Reference.Id is not null)
-                return new(schemaReference.Reference.Id, PurposeTypes.Reference);
+                return new(schemaReference.Reference.Id, Puresolve.Reference);
 
         if (schema.Format == "int64") return new("long");
         if (schema.Format == "int32") return new("int");

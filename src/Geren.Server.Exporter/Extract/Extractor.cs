@@ -1,12 +1,12 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class Extractor {
-    public static (ImmutableArray<Erpoint>, ImmutableArray<ErWarning>) Extract(Compilation compilation, string[] excludeTypes, CancellationToken cancellationToken) {
-        var endpoints = ImmutableArray.CreateBuilder<Erpoint>();
+    public static (ImmutableArray<Purpoint>, ImmutableArray<ErWarning>) Extract(Compilation compilation, string[] excludeTypes, CancellationToken cancellationToken) {
+        var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
         var warnings = ImmutableArray.CreateBuilder<ErWarning>();
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");
         if (endpointRouteBuilder is null) {
-            warnings.Add(Dide.Create("GERENEXP001", "Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered."));
+            warnings.Add(Dide.Create("GERENEXP001", "Unable to find Microsoft.AspNetCore.Routing.IEndpointRouteBuilder in compilation; no endpoints will be discovered"));
             return (endpoints.ToImmutable(), warnings.ToImmutable());
         }
 
@@ -21,15 +21,10 @@ internal static class Extractor {
         }
 
         endpoints.Sort(static (a, b) => {
-            var c = StringComparer.Ordinal.Compare(a.RouteTemplate, b.RouteTemplate);
+            var c = StringComparer.Ordinal.Compare(a.Path, b.Path);
             if (c != 0) return c;
 
-            var aMethod = a.HttpMethods.Length == 0 ? "" : a.HttpMethods[0];
-            var bMethod = b.HttpMethods.Length == 0 ? "" : b.HttpMethods[0];
-            c = StringComparer.Ordinal.Compare(aMethod, bMethod);
-            if (c != 0) return c;
-
-            return StringComparer.Ordinal.Compare(a.Handler, b.Handler);
+            return StringComparer.Ordinal.Compare(a.Method, b.Method);
         });
 
         return (endpoints.ToImmutable(), warnings.ToImmutable());

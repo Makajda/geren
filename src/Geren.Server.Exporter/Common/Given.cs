@@ -65,4 +65,10 @@ internal static class Given {
 
         return false;
     }
+
+    internal static PurposeType GetPurposeType(ITypeSymbol type) =>
+        new(type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            type.TypeKind == TypeKind.Array || (type is INamedTypeSymbol named && named.IsGenericType)
+            ? Puresolve.Compile
+            : Puresolve.Metadata);
 }

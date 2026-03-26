@@ -23,27 +23,27 @@ public sealed partial class {{className}}
         if (args.Length > 0)
             args += ", ";
 
-        if (!string.IsNullOrEmpty(endpoint.BodyType) && (endpoint.Method == Given.Post || endpoint.Method == Given.Put || endpoint.Method == Given.Delete))
+        if (!string.IsNullOrEmpty(endpoint.BodyType) && (endpoint.Method == Given.Post
+            || endpoint.Method == Given.Put
+            || endpoint.Method == Given.Patch
+            || endpoint.Method == Given.Delete))
             args += $"{endpoint.BodyType} body, ";
 
         var signature = $"{methodName}({args}CancellationToken cancellationToken = default)";
         var pathExpr = BuildPathExpression(endpoint);
-        if (endpoint.Method == Given.Get)
-            return EmitGet(endpoint.ReturnType, signature, pathExpr);
+        if (endpoint.Method == Given.Get || endpoint.Method == Given.Delete)
+            return EmitGetDelete(endpoint.Method, endpoint.ReturnType, signature, pathExpr);
 
-        if (endpoint.Method == Given.Delete)
-            return EmitDelete(endpoint, signature, pathExpr);
-
-        return EmitPostOrPut(endpoint, signature, pathExpr);
+        return EmitPostOrPutOrPatch(endpoint, signature, pathExpr);
     }
 
-    private static string EmitGet(string returnType, string signature, string pathExpr) {
+    private static string EmitGetDelete(string method, string returnType, string signature, string pathExpr) {
         // void
         if (string.IsNullOrEmpty(returnType)) {
             return $$"""
     public async Task {{signature}}
     {
-        var response = await _http.GetAsync({{pathExpr}}, cancellationToken);
+        var response = await _http.{{method}}Async({{pathExpr}}, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 """;
@@ -54,7 +54,7 @@ public sealed partial class {{className}}
             return $$"""
     public async Task<string> {{signature}}
     {
-        var response = await _http.GetAsync({{pathExpr}}, cancellationToken);
+        var response = await _http.{{method}}Async({{pathExpr}}, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync(cancellationToken);
     }
@@ -64,45 +64,19 @@ public sealed partial class {{className}}
         // FromJson
         return $$"""
     public Task<{{returnType}}> {{signature}}
-        => _http.GetFromJsonAsync<{{returnType}}>({{pathExpr}}, cancellationToken);
+        => _http.{{method}}FromJsonAsync<{{returnType}}>({{pathExpr}}, cancellationToken);
 """;
     }
 
-    private static string EmitDelete(Mapoint endpoint, string signature, string pathExpr) {
+    private static string EmitPostOrPutOrPatch(Mapoint endpoint, string signature, string pathExpr) {
         string send;
-        if (endpoint.BodyMediaType == "application/json")
-            send = $$"""
-        using var request = new HttpRequestMessage(HttpMethod.Delete, {{pathExpr}})
-        {
-            Content = JsonContent.Create(body)
-        };
-        var response = await _http.SendAsync(request, cancellationToken);
-""";
-        else if (endpoint.BodyMediaType == "text/plain")
-            send = $$"""
-        using var request = new HttpRequestMessage(HttpMethod.Delete, {{pathExpr}})
-        {
-            Content = new StringContent(body, Encoding.UTF8, "text/plain")
-        };
-        var response = await _http.SendAsync(request, cancellationToken);
-""";
-        else
-            send = $"        var response = await _http.DeleteAsync({pathExpr}, cancellationToken);";
-
-        return EmitResponse(signature, endpoint.ReturnType, send);
-    }
-
-    private static string EmitPostOrPut(Mapoint endpoint, string signature, string pathExpr) {
-        string send;
-        if (endpoint.BodyMediaType == "application/json")
+        if (endpoint.BodyMedia == MediaTypes.Application_Json)
             send = $"        var response = await _http.{endpoint.Method}AsJsonAsync({pathExpr}, body, cancellationToken);";
-        else if (endpoint.BodyMediaType == "text/plain")
+        else
             send = $$"""
         using var content = new StringContent(body, Encoding.UTF8, "text/plain");
         var response = await _http.{{endpoint.Method}}Async({{pathExpr}}, content, cancellationToken);
 """;
-        else
-            send = $"        var response = await _http.{endpoint.Method}Async({pathExpr}, null, cancellationToken);";
 
         return EmitResponse(signature, endpoint.ReturnType, send);
     }
@@ -147,7 +121,7 @@ public sealed partial class {{className}}
             interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{V(" + param.Identifier + ")}");
 
         string pathExpr = $"$\"{interpolatedPath}\"";
-        if (endpoint.Queries.Length == 0)
+        if (endpoint.Queries.IsEmpty)
             return pathExpr;
 
         string queryBuilder = string.Join(Given.NewLine, endpoint.Queries.Select(static p =>

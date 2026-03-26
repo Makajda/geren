@@ -6,7 +6,6 @@ internal sealed record Settings(
     string Project = "",
     string OutputDirectory = "",
     string OutputFileName = "",
-    bool IncludeWarningsInOutput = false,
     string[]? ExcludeTypes = null,
     string Configuration = "Release",
     string Platform = "AnyCPU");
@@ -49,8 +48,6 @@ internal static class Config {
             { "-f", "OutputFileName" },
             { "--output-file", "OutputFileName" },
 
-            { "--IncludeWarningsInOutput", "IncludeWarningsInOutput" },
-
             { "-c", "Configuration" },
             { "--configuration", "Configuration" },
 
@@ -76,7 +73,6 @@ internal static class Config {
         Console.WriteLine();
         Console.WriteLine("Options:");
         Console.WriteLine("  -f, --output-file <name>       Output file name (default: <ProjectName>.gerenapi.json)");
-        Console.WriteLine("      --IncludeWarningsInOutput  Emit 'warnings' array to JSON (default: false)");
         Console.WriteLine("  -c, --configuration <cfg>      MSBuild Configuration (default: Release)");
         Console.WriteLine("      --platform <platform>      MSBuild Platform (default: AnyCPU)");
         Console.WriteLine("  -h, --help                     Show help");

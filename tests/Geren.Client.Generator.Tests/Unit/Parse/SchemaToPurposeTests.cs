@@ -15,7 +15,7 @@ public sealed class SchemaToPurposeTests {
 
         var result = SchemaToPurpose.Convert(schema);
 
-        result.Purpose.Should().Be(PurposeTypes.Metadata);
+        result.Puresolve.Should().Be(Puresolve.Metadata);
         result.Type.Should().Be("Dto.Pet");
     }
 
@@ -29,7 +29,7 @@ public sealed class SchemaToPurposeTests {
 
         var result = SchemaToPurpose.Convert(schema);
 
-        result.Purpose.Should().Be(PurposeTypes.Compile);
+        result.Puresolve.Should().Be(Puresolve.Compile);
         result.Type.Should().Be("System.Collections.Generic.List<int[]>");
     }
 
@@ -71,7 +71,7 @@ public sealed class SchemaToPurposeTests {
 
         var result = SchemaToPurpose.Convert(schema);
 
-        result.Purpose.Should().Be(PurposeTypes.Reference);
+        result.Puresolve.Should().Be(Puresolve.Reference);
         result.Type.Should().Be("PetDto");
     }
 

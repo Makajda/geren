@@ -1,48 +1,44 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class InferParameters {
-    internal static ImmutableArray<Erparam> Get(
+    internal static (
+        PurposeType? bodyType,
+        MediaTypes bodyMedia,
+        ImmutableArray<Purparam> @params,
+        ImmutableArray<Maparam> queries)
+        Get(
         IMethodSymbol handlerMethod,
         HashSet<string> routeParameterNames,
-        ImmutableArray<string> httpMethods,
+        string httpMethod,
         string[] excludeTypes) {
 
-        var allowBody = httpMethods.Any(static m => m is "POST" or "PUT" or "PATCH");
-        var bodyAssigned = false;
+        bool bodyAssigned = false;
+        var allowBody = httpMethod is "POST" or "PUT" or "PATCH";
+        PurposeType? bodyType = null;
+        MediaTypes bodyMedia = MediaTypes.None;
+        var @params = ImmutableArray.CreateBuilder<Purparam>(handlerMethod.Parameters.Length);
+        var queries = ImmutableArray.CreateBuilder<Maparam>(handlerMethod.Parameters.Length);
 
-        var builder = ImmutableArray.CreateBuilder<Erparam>(handlerMethod.Parameters.Length);
         foreach (var parameter in handlerMethod.Parameters) {
             if (IsServicesOrInfrastructureParameter(parameter, excludeTypes))
                 continue;
 
-            string source = InferParameterSource(parameter, routeParameterNames, allowBody, ref bodyAssigned);
-            builder.Add(new(
-                Name: parameter.Name,
-                Type: parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                Source: source));
+            if (routeParameterNames.Contains(parameter.Name) || HasFromRouteAttribute(parameter))
+                @params.Add(new(parameter.Name, parameter.Name, Given.GetPurposeType(parameter.Type)));
+            else if (IsSimpleType(parameter.Type)) {
+                var format = new SymbolDisplayFormat(
+                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes); // Int32 to int without namespace, for readability in query parameters
+                queries.Add(new(parameter.Name, parameter.Name, parameter.Type.ToDisplayString(format)));// SymbolDisplayFormat.MinimallyQualifiedFormat)));
+            }
+            else if (allowBody && !bodyAssigned) {// body is first complex parameter, if allowed by HTTP method
+                bodyType = Given.GetPurposeType(parameter.Type);
+                bodyMedia = MediaTypes.Application_Json;
+                bodyAssigned = true;
+            }
         }
 
-        return builder.ToImmutable();
-    }
-
-    private static string InferParameterSource(
-        IParameterSymbol parameter,
-        HashSet<string> routeParameterNames,
-        bool allowBody,
-        ref bool bodyAssigned) {
-
-        if (HasFromRouteAttribute(parameter))
-            return "route";
-
-        if (routeParameterNames.Contains(parameter.Name))
-            return "route";
-
-        if (allowBody && !bodyAssigned && !IsSimpleType(parameter.Type)) {
-            bodyAssigned = true;
-            return "body";
-        }
-
-        return "query";
+        return (bodyType, bodyMedia, @params.ToImmutable(), queries.ToImmutable());
     }
 
     private static bool HasFromRouteAttribute(IParameterSymbol parameter) {
