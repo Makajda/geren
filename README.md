@@ -144,6 +144,18 @@ Path to class/method mapping:
 dotnet tool install -g geren.server.exporter
 ```
 
+## Usage
+
+```powershell
+geren-server-exporter --project .\MyServer.csproj --output-dir .\gerenapiresult
+```
+
+Then for `Geren.OpenApiClientGenerator` in a client project:
+
+```xml
+<AdditionalFiles Include="...\WebApiProject-gerenapi.json" Geren="gerenapi" />
+```
+
 ## Important about `MapGroup`
 
 Group prefixes are taken **only** when they are specified by a **constant string** (compile-time constant):
@@ -162,7 +174,7 @@ Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper exte
 The exporter writes warnings to stderr and file output.log.
 Some endpoints may be skipped if the exporter could not unambiguously determine the HTTP method (for example, `MapMethods(...)` with a non-constant list of methods) - in this case, the warning `GERENEXP004` will be issued.
 
-## Important about `DI types`
+## Important about DI types
 
 Default excluded types:
 
@@ -191,9 +203,3 @@ In the `settings.json`, you can specify additional types to exclude in the param
 ```powershell
 geren-server-exporter -s ...\settings.json
 ```
-
-Then for `Geren.OpenApiClientGenerator` in a client project use `AdditionalFiles`:
-
-```xml
-  <AdditionalFiles Include="...\WebApiProject-gerenapi.json" Geren="gerenapi" />
-```xml
