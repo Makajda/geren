@@ -125,7 +125,7 @@ Path to class/method mapping:
 - `GEREN001` JSON read failed (`Warning`)
 - `GEREN002` OpenAPI parse failed (`Error`)
 - `GEREN003` Unsupported parameter location (`Error`)
-- `GEREN004` Unsupported query parameter type (`Error`)
+- `GEREN004` Unsupported query parameter type (`Warning`)
 - `GEREN005` Unsupported request body (`Error`)
 - `GEREN006` Duplicate generated method name (`Error`)
 - `GEREN007` Unresolved schema reference (`Error`)
@@ -147,13 +147,13 @@ dotnet tool install -g geren.server.exporter
 ## Usage
 
 ```powershell
-geren-server-exporter --project .\MyServer.csproj --output-dir .\gerenapiresult
+geren-server-exporter --project .\MyServerApi.csproj --output-dir .\gerenapiresult
 ```
 
 Then for `Geren.OpenApiClientGenerator` in a client project:
 
 ```xml
-<AdditionalFiles Include="...\WebApiProject-gerenapi.json" Geren="gerenapi" />
+<AdditionalFiles Include=".\MyServerApi-gerenapi.json" Geren="gerenapi" />
 ```
 
 ## Important about `MapGroup`
@@ -191,7 +191,7 @@ In the `settings.json`, you can specify additional types to exclude in the param
 
 ```json
 {
-  "Project": "...\WebApiProject.csproj",
+  "Project": "...\MyServerApi.csproj",
   "OutputDirectory": "...\result-dir",
   "OutputFileName": "",
   "ExcludeTypes": [
