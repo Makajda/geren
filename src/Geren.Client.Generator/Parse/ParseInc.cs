@@ -10,13 +10,13 @@ internal sealed record ParseInc(
 
     private static ParseInc Skip(Diagnostic diagnostic) => new(false, string.Empty, [], [diagnostic]);
 
-    internal static ParseInc Parse(AdditionalText file, string jsonFormat, CancellationToken cancellationToken) {
+    internal static ParseInc Parse(AdditionalText file, bool isFileOpenApi, CancellationToken cancellationToken) {
         try {
             string? text = file.GetText(cancellationToken)?.ToString();
             if (string.IsNullOrWhiteSpace(text))
                 return Skip(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid {file.Path}: File is empty."));
 
-            if (string.Equals(jsonFormat, "openapi", StringComparison.OrdinalIgnoreCase))
+            if (isFileOpenApi)
                 return ParseOpenApi(file.Path, text!, cancellationToken);
 
             var endpoints = ImmutableArray.CreateBuilder<Purpoint>();

@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.Diagnostics;
+
 namespace Geren.Client.Generator;
 
 [Generator]
@@ -10,12 +12,9 @@ public sealed class Generator : IIncrementalGenerator {
         // Parse
         var parsed = context.AdditionalTextsProvider
             .Combine(context.AnalyzerConfigOptionsProvider)
-            .Select(static (x, cancellationToken) =>
-                x.Right.GetOptions(x.Left).TryGetValue("build_metadata.AdditionalFiles.Geren", out string? JsonFormat)
-                    ? new { x.Left, JsonFormat }
-                    : null)
-            .Where(static p => p is not null)
-            .Select(static (p, cancellationToken) => ParseInc.Parse(p!.Left, p.JsonFormat, cancellationToken));
+            .Select(static (x, cancellationToken) => new { x.Left, HasFormat = GetGerenFormat(x.Left, x.Right) })
+            .Where(static p => p.HasFormat is not null)
+            .Select(static (p, cancellationToken) => ParseInc.Parse(p!.Left, p.HasFormat ?? true, cancellationToken));
 
         context.RegisterSourceOutput(parsed.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));
@@ -80,7 +79,22 @@ public sealed class Generator : IIncrementalGenerator {
         });
     }
 
-    record Client(string Hint, string RootNamespace, string NamespaceFromFile, string SpaceName, string ClassName);
+    private record Client(string Hint, string RootNamespace, string NamespaceFromFile, string SpaceName, string ClassName);
     private static string NormalizeEol(string text) => text.Replace("\r\n", "\n").Replace('\r', '\n');
     private static string NameDot(string name) => string.IsNullOrWhiteSpace(name) ? string.Empty : name + ".";
+
+    private static bool? GetGerenFormat(AdditionalText text, AnalyzerConfigOptionsProvider provider) {
+        if (provider.GetOptions(text).TryGetValue("build_metadata.AdditionalFiles.Geren", out string? format)) {
+            if (string.IsNullOrEmpty(format))
+                return null;
+
+            if (string.Equals(format, "openapi", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (string.Equals(format, "gerenapi", StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        return null;
+    }
 }
