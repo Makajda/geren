@@ -122,7 +122,10 @@ internal static class ExtractorOne {
             char ch = template[i];
             if (ch == '{') {
                 if (i + 1 < template.Length && template[i + 1] == '{') {
-                    sb ??= new StringBuilder(template.Length);
+                    if (sb is null) {
+                        sb = new StringBuilder(template.Length);
+                        sb.Append(template, 0, i);
+                    }
                     sb.Append("{{");
                     i += 2;
                     continue;
@@ -157,7 +160,10 @@ internal static class ExtractorOne {
             }
 
             if (ch == '}' && i + 1 < template.Length && template[i + 1] == '}') {
-                sb ??= new StringBuilder(template.Length);
+                if (sb is null) {
+                    sb = new StringBuilder(template.Length);
+                    sb.Append(template, 0, i);
+                }
                 sb.Append("}}");
                 i += 2;
                 continue;

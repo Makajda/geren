@@ -36,8 +36,8 @@ public sealed class GeneratorEndToEndTests {
 
         var gen = run.DriverResult.Results.Single().GeneratedSources.ToDictionary(static s => s.HintName, static s => s.SourceText.ToString());
 
-        gen.Keys.Should().Contain("FactoryBridge.g.cs");
-        gen.Keys.Should().Contain("Extensions.g.cs");
+        gen.Keys.Should().Contain("_FactoryBridge.g.cs");
+        gen.Keys.Should().Contain("_Extensions.g.cs");
         gen.Keys.Should().Contain("WebApiClient.g.cs");
         gen["WebApiClient.g.cs"].Should().Contain("namespace Acme.Petstore;");
 
@@ -58,8 +58,8 @@ public sealed class GeneratorEndToEndTests {
 
         var hintNames = run.DriverResult.Results.Single().GeneratedSources.Select(static s => s.HintName).ToArray();
 
-        hintNames.Should().Contain(static name => name.StartsWith('h') && name.Contains(".Extensions.g.cs", StringComparison.Ordinal));
-        hintNames.Should().NotContain("Extensions.g.cs", "when more than one document is present, hint prefix avoids collisions");
+        hintNames.Should().Contain(static name => name.StartsWith("_h") && name.Contains(".Extensions.g.cs", StringComparison.Ordinal));
+        hintNames.Should().NotContain("_Extensions.g.cs", "when more than one document is present, hint prefix avoids collisions");
     }
 
     [Fact]

@@ -25,7 +25,7 @@ internal static class GeneratorRunner {
                 continue;
 
             perAdditional[f.Path] = new Dictionary<string, string>(StringComparer.Ordinal) {
-                ["build_metadata.AdditionalFiles.Geren"] = "true"
+                ["build_metadata.AdditionalFiles.Geren"] = "openapi"
             };
         }
 

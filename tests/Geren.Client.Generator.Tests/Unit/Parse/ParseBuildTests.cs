@@ -21,7 +21,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN004");
@@ -49,7 +49,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN002");
@@ -76,7 +76,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN002");
@@ -102,7 +102,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN003");
@@ -129,7 +129,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Purpoints.Should().ContainSingle();
@@ -158,7 +158,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\ping.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\ping.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().BeEmpty();
@@ -192,7 +192,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().BeEmpty();
@@ -219,7 +219,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Purpoints.Single().Queries?.Should().ContainSingle(q => q.Name == "class" && q.Identifier == "class_");
@@ -248,7 +248,7 @@ public sealed class ParseBuildTests {
             }
             """;
 
-        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), "openapi", CancellationToken.None);
+        var result = ParseInc.Parse(new InMemoryAdditionalText(@"C:\specs\pets.json", json), true, CancellationToken.None);
 
         result.Success.Should().BeTrue();
         result.Diagnostics.Should().BeEmpty();
