@@ -15,8 +15,8 @@ public static partial class {{namespaceFromFile}}Extensions
 {
     public static IServiceCollection AddGerenClients(
         this IServiceCollection services,
-        Action<IHttpClientBuilder>? configureBuilder = null,
         Action<HttpClient>? configureClient = null,
+        Action<IHttpClientBuilder>? configureBuilder = null,
         bool? useResilience = null,
         string? resiliencePipelineName = null,
         Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null) {
