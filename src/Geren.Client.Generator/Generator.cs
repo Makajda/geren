@@ -55,12 +55,12 @@ public sealed class Generator : IIncrementalGenerator {
         var hasAnyEndpoints = ended.Select(static (_, _) => true).Collect().Select(static (flags, _) => flags.Any(f => f));
         context.RegisterSourceOutput(hasAnyEndpoints.Combine(rootNamespace), static (spc, t) => {
             if (t.Left)
-                spc.AddSource("FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8));
+                spc.AddSource("_FactoryBridge.g.cs", SourceText.From(NormalizeEol(EmitFactoryBridge.Run(t.Right)), Encoding.UTF8));
         });
 
         // Extensions
         context.RegisterSourceOutput(ended, static (spc, x) => {
-            spc.AddSource($"{x.Hint}Extensions.g.cs",
+            spc.AddSource($"_{x.Hint}Extensions.g.cs",
                 SourceText.From(NormalizeEol(EmitExtensions.Run(x.RootNamespace, x.Map.NamespaceFromFile,
                 x.Map.Endpoints
                     .Select(static e => NameDot(e.SpaceName) + e.ClassName)

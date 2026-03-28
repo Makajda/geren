@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace {{rootNamespace}};
 
@@ -88,6 +89,7 @@ internal static class FactoryBridge
         value switch
         {
             bool boolean => boolean ? "true" : "false",
+            Enum @enum => Convert.ToInt32(@enum).ToString(),
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
             _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty
         });

@@ -49,6 +49,7 @@ internal static class ExtractorOne {
             routeTemplate = ChainedMapGroup.AddPrefix(routeTemplate, endpointRouteBuilder, semanticModel, memberAccess.Expression, cancellationToken);
 
         routeTemplate = NormalizeRouteTemplate(routeTemplate);
+        routeTemplate = NormalizeRouteTemplatePlaceholders(routeTemplate);
 
         var routeParameterNames = RouteParameterNames.Extract(routeTemplate);
 
@@ -109,6 +110,91 @@ internal static class ExtractorOne {
             template = template[..^1];
 
         return template;
+    }
+
+    private static string NormalizeRouteTemplatePlaceholders(string template) {
+        if (template.Length == 0)
+            return template;
+
+        StringBuilder? sb = null;
+        int i = 0;
+        while (i < template.Length) {
+            char ch = template[i];
+            if (ch == '{') {
+                if (i + 1 < template.Length && template[i + 1] == '{') {
+                    sb ??= new StringBuilder(template.Length);
+                    sb.Append("{{");
+                    i += 2;
+                    continue;
+                }
+
+                int end = template.IndexOf('}', i + 1);
+                if (end < 0) {
+                    sb?.Append(template, i, template.Length - i);
+                    break;
+                }
+
+                string inner = template.Substring(i + 1, end - i - 1);
+                string name = NormalizeRouteParameterInnerText(inner);
+
+                if (sb is not null) {
+                    if (name.Length == 0)
+                        sb.Append(template, i, end - i + 1);
+                    else
+                        sb.Append('{').Append(name).Append('}');
+                }
+                else {
+                    // Only allocate if we need to change anything (including whitespace cleanup).
+                    if (name.Length != 0 && !inner.AsSpan().Trim().SequenceEqual(name.AsSpan())) {
+                        sb = new StringBuilder(template.Length);
+                        sb.Append(template, 0, i);
+                        sb.Append('{').Append(name).Append('}');
+                    }
+                }
+
+                i = end + 1;
+                continue;
+            }
+
+            if (ch == '}' && i + 1 < template.Length && template[i + 1] == '}') {
+                sb ??= new StringBuilder(template.Length);
+                sb.Append("}}");
+                i += 2;
+                continue;
+            }
+
+            sb?.Append(ch);
+            i++;
+        }
+
+        return sb is null ? template : sb.ToString();
+    }
+
+    private static string NormalizeRouteParameterInnerText(string inner) {
+        string trimmed = inner.Trim();
+        if (trimmed.Length == 0)
+            return string.Empty;
+
+        int start = 0;
+        while (start < trimmed.Length && trimmed[start] == '*')
+            start++;
+
+        trimmed = trimmed[start..];
+
+        int cutIndex = trimmed.Length;
+        int colonIndex = trimmed.IndexOf(':');
+        if (colonIndex >= 0)
+            cutIndex = Math.Min(cutIndex, colonIndex);
+
+        int questionIndex = trimmed.IndexOf('?');
+        if (questionIndex >= 0)
+            cutIndex = Math.Min(cutIndex, questionIndex);
+
+        int equalsIndex = trimmed.IndexOf('=');
+        if (equalsIndex >= 0)
+            cutIndex = Math.Min(cutIndex, equalsIndex);
+
+        return trimmed[..cutIndex].Trim();
     }
 
     private static int GetHandlerArgumentIndex(Compilation compilation, IMethodSymbol methodSymbol) {

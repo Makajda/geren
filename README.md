@@ -156,7 +156,7 @@ Then for `Geren.OpenApiClientGenerator` in a client project:
 <AdditionalFiles Include=".\MyServerApi-gerenapi.json" Geren="gerenapi" />
 ```
 
-## Important about `MapGroup`
+## Important about `MapGroup` and `route template`
 
 Group prefixes are taken **only** when they are specified by a **compile-time constant**:
 
@@ -169,6 +169,8 @@ app.MapGroup("stat").RequireAuthorization(...)
 ```
 
 Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper extensions with reflection and any runtime logic for constructing the prefix—the exporter is not required to (and usually cannot) determine such prefixes.
+
+Similar a route template.
 
 ## Warnings
 
