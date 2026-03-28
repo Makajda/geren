@@ -16,21 +16,17 @@ internal sealed record ParseInc(
             if (string.IsNullOrWhiteSpace(text))
                 return Skip(Diagnostic.Create(Dide.JsonReadError, Location.None, $"Invalid {file.Path}: File is empty."));
 
-            if (string.Equals(jsonFormat, "gerenapi", StringComparison.OrdinalIgnoreCase))
-                return ParseGerenApi(file.Path, text!);
-            else
+            if (string.Equals(jsonFormat, "openapi", StringComparison.OrdinalIgnoreCase))
                 return ParseOpenApi(file.Path, text!, cancellationToken);
+
+            var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
+            var doc = JsonSerializer.Deserialize<ErDocument>(text!, Givens.JsonSerializerOptions) ?? throw new ArgumentNullException("Deserialize gerenapi error");
+            return new(true, file.Path, doc.Endpoints, []);
         }
         catch (Exception ex) {
             return Skip(Diagnostic.Create(Dide.ParseError, Location.None,
                 $"GerenAPI parse exception in {file.Path}: {ex.Message}"));
         }
-    }
-
-    private static ParseInc ParseGerenApi(string filePath, string text) {
-        var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
-        var doc = JsonSerializer.Deserialize<ErDocument>(text, Givens.JsonSerializerOptions) ?? throw new ArgumentNullException("Deserialize error");
-        return new(true, filePath, doc.Endpoints, []);
     }
 
     private static ParseInc ParseOpenApi(string filePath, string text, CancellationToken cancellationToken) {

@@ -102,12 +102,12 @@ If you see `CS9137` related to `Microsoft.AspNetCore.OpenApi.SourceGenerators`, 
 
 ## Reference
 
-### Generation Contract (High Level)
+### Generation Contract
 
 - Input files: `AdditionalFiles` with `Geren="openapi"` or `Geren="gerenapi"`.
 - The generator emits client classes, one `Extensions` type, and one shared `FactoryBridge` helper per OpenAPI file.
 
-### Naming Contract (High Level)
+### Naming Contract
 
 - Namespace suffix is derived from the OpenAPI file name (without extension), sanitized by `ToLetterOrDigitName`.
 - Final namespace is `{RootNamespace}.{NamespaceFromFileName}.{NamespaceFromSections}`.
@@ -129,7 +129,7 @@ Path to class/method mapping:
 - `GEREN005` Unsupported request body (`Error`)
 - `GEREN006` Duplicate generated method name (`Error`)
 - `GEREN007` Unresolved schema reference (`Error`)
-- `GEREN008` Missing parameter location
+- `GEREN008` Missing parameter location (`Error`)
 - `GEREN014` Ambiguous schema reference (`Error`)
 - `GEREN015` Path placeholder and parameter name mismatch (`Error`)
 
@@ -158,13 +158,14 @@ Then for `Geren.OpenApiClientGenerator` in a client project:
 
 ## Important about `MapGroup`
 
-Group prefixes are taken **only** when they are specified by a **constant string** (compile-time constant):
+Group prefixes are taken **only** when they are specified by a **compile-time constant**:
 
 ```csharp
-app.MapGroup("stat").MapPost("setItems/{tourId:int}", ...);
-app.MapGroup(nameof(..)).MapPost("setItems/{tourId:int}", ...);
-const string Prefix = "stat";
-app.MapGroup(Prefix).MapPost("setItems/{tourId:int}", ...);
+const string const_name = "stat";
+app.MapGroup("stat").RequireAuthorization(...)
+   .MapGroup(nameof(..)).WithTags("tag")
+   .MapGroup($"{nameof(..)}/{nameof(..)}")
+   .MapGroup(const_name).MapGet("item/{id:int}", ...);
 ```
 
 Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper extensions with reflection and any runtime logic for constructing the prefix—the exporter is not required to (and usually cannot) determine such prefixes.
@@ -191,8 +192,8 @@ In the `settings.json`, you can specify additional types to exclude in the param
 
 ```json
 {
-  "Project": "...\MyServerApi.csproj",
-  "OutputDirectory": "...\result-dir",
+  "Project": "...\\MyServerApi.csproj",
+  "OutputDirectory": "...\\result-dir",
   "OutputFileName": "",
   "ExcludeTypes": [
     "Microsoft.EntityFrameworkCore.DbContext"

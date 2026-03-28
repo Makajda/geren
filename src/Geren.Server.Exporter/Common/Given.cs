@@ -66,11 +66,6 @@ internal static class Given {
         return false;
     }
 
-    internal static Byres GetByres(ITypeSymbol type) =>
-        type.TypeKind == TypeKind.Array || (type is INamedTypeSymbol named && named.IsGenericType)
-            ? Byres.Compile
-            : Byres.Metadata;
-
     internal static (string, Byres) GetNameAndByres(ITypeSymbol type) {
         string name = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         return type.TypeKind == TypeKind.Array || (type is INamedTypeSymbol named && named.IsGenericType)

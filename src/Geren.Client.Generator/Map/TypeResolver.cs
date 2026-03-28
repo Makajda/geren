@@ -115,7 +115,7 @@ internal class TypeResolver(
     private string GetOrCreatePlaceholderTypeName(string kind, string requested, string? details = null) {
         string name = "__GerenUnresolvedType_" + ComputeStableHash12($"{kind}:{requested}");
         if (!_unresolvedByPlaceholder.ContainsKey(name)) {
-            _unresolvedByPlaceholder[name] = new UnresolvedSchemaType(
+            _unresolvedByPlaceholder[name] = new(
                 PlaceholderTypeName: name,
                 Kind: kind,
                 Requested: requested,

@@ -25,11 +25,13 @@ internal static class InferParameters {
             if (IsServicesOrInfrastructureParameter(parameter, excludeTypes))
                 continue;
 
-            if (routeParameterNames.Contains(parameter.Name) || HasFromRouteAttribute(parameter))
+            if (routeParameterNames.Contains(parameter.Name) || HasFromRouteAttribute(parameter)) {
+                var (nameType, byres) = Given.GetNameAndByres(parameter.Type);
                 @params.Add(new(
                     parameter.Name, null,
-                    parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    Given.IsSimpleType(parameter.Type) ? null : Given.GetByres(parameter.Type)));
+                    nameType,
+                    Given.IsSimpleType(parameter.Type) ? null : byres));
+            }
             else if (Given.IsSimpleType(parameter.Type)) {
                 var format = new SymbolDisplayFormat(
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -37,8 +39,8 @@ internal static class InferParameters {
                 queries.Add(new(parameter.Name, parameter.Name, parameter.Type.ToDisplayString(format)));// SymbolDisplayFormat.MinimallyQualifiedFormat)));
             }
             else if (allowBody && !bodyAssigned) {// body is first complex parameter, if allowed by HTTP method
-                var (name, byres) = Given.GetNameAndByres(parameter.Type);
-                bodyType = name;
+                var (nameType, byres) = Given.GetNameAndByres(parameter.Type);
+                bodyType = nameType;
                 bodyTypeBy = byres;
                 bodyMedia = MediaTypes.Application_Json;
                 bodyAssigned = true;
