@@ -16,7 +16,7 @@ public static partial class {{namespaceFromFile}}Extensions
     public static IServiceCollection AddGerenClients(
         this IServiceCollection services,
         Action<HttpClient>? configureClient = null,
-        Action<IHttpClientBuilder>? configureBuilder = null,
+        Action<IHttpClientBuilder>? clientBuilder = null,
         bool? useResilience = null,
         string? resiliencePipelineName = null,
         Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null) {
@@ -29,7 +29,7 @@ public static partial class {{namespaceFromFile}}Extensions
 """;
 
         string AllReg() => string.Join(Given.NewLine, names.Select(name => $$"""
-        global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient, configureBuilder, useResilience, resiliencePipelineName, configureResilience);
+        global::{{rootNamespace}}.FactoryBridge.AddClient<{{name}}>(services, configureClient, clientBuilder, useResilience, resiliencePipelineName, configureResilience);
 """));
 
         // Registration for each class
