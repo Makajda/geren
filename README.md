@@ -89,6 +89,21 @@ Note: if you reference the generator via `ProjectReference`/manual `<Analyzer In
 </ItemGroup>
 ```
 
+### JsonSerializerOptions
+
+Default JsonSerializerOptions is:
+
+```csharp
+NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+ReferenceHandler = ReferenceHandler.IgnoreCycles,
+```
+You can override it:
+
+```csharp
+FactoryBridge.SetJsonSerializerOptions(new());
+```
+
 ## Troubleshooting
 
 ### CS9137 With ASP.NET OpenAPI Source Generators
@@ -116,7 +131,7 @@ If you see `CS9137` related to `Microsoft.AspNetCore.OpenApi.SourceGenerators`, 
 Path to class/method mapping:
 
 - method name: `operationId ?? (methodHttp + last section)`.
-- class name: `penultimate section ?? WebApiClient`.
+- class name: `penultimate section ?? RootClient`.
 - namespace: `remaining sections`
 - Duplicate generated key `{SpaceName}.{ClassName}.{MethodName}` produces `GEREN006` and the endpoint is skipped.
 

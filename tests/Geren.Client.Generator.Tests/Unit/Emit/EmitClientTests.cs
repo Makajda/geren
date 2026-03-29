@@ -7,7 +7,7 @@ public sealed class EmitClientTests {
             Method: Givens.Get,
             Path: "/ping",
             SpaceName: "",
-            ClassName: "WebApiClient",
+            ClassName: "RootClient",
             MethodName: "GetPing",
             ReturnType: string.Empty,
             BodyType: null,
@@ -16,7 +16,7 @@ public sealed class EmitClientTests {
             Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
-        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
+        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("var response = await _http.GetAsync");
         code.Should().Contain("response.EnsureSuccessStatusCode();");
@@ -28,7 +28,7 @@ public sealed class EmitClientTests {
             Method: Givens.Get,
             Path: "/ping",
             SpaceName: "",
-            ClassName: "WebApiClient",
+            ClassName: "RootClient",
             MethodName: "GetPing",
             ReturnType: "string",
             BodyType: null,
@@ -37,7 +37,7 @@ public sealed class EmitClientTests {
             Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
-        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
+        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("return await response.Content.ReadAsStringAsync");
     }
@@ -48,7 +48,7 @@ public sealed class EmitClientTests {
             Method: Givens.Get,
             Path: "/pets",
             SpaceName: "",
-            ClassName: "WebApiClient",
+            ClassName: "RootClient",
             MethodName: "GetPets",
             ReturnType: "global::Dto.Pet",
             BodyType: null,
@@ -57,7 +57,7 @@ public sealed class EmitClientTests {
             Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
-        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
+        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("_http.GetFromJsonAsync<global::Dto.Pet>");
     }
@@ -68,7 +68,7 @@ public sealed class EmitClientTests {
             Method: Givens.Get,
             Path: "/pets",
             SpaceName: "",
-            ClassName: "WebApiClient",
+            ClassName: "RootClient",
             MethodName: "GetPets",
             ReturnType: "string",
             BodyType: null,
@@ -77,7 +77,7 @@ public sealed class EmitClientTests {
             Queries: [new Maparam("q", "q", "string?")]);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
-        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
+        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("BuildRequestUri");
         code.Should().Contain("A(query, \"q\", q);");
@@ -89,7 +89,7 @@ public sealed class EmitClientTests {
             Method: Givens.Post,
             Path: "/pets",
             SpaceName: "",
-            ClassName: "WebApiClient",
+            ClassName: "RootClient",
             MethodName: "CreatePet",
             ReturnType: string.Empty,
             BodyType: "Dto.CreatePet",
@@ -98,7 +98,7 @@ public sealed class EmitClientTests {
             Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
-        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
+        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("CreatePet(Dto.CreatePet body");
         code.Should().Contain("await _http.PostAsJsonAsync");
@@ -111,7 +111,7 @@ public sealed class EmitClientTests {
             Method: Givens.Put,
             Path: "/ping",
             SpaceName: "",
-            ClassName: "WebApiClient",
+            ClassName: "RootClient",
             MethodName: "PutPing",
             ReturnType: "string",
             BodyType: "string",
@@ -120,7 +120,7 @@ public sealed class EmitClientTests {
             Queries: []);
 
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
-        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "WebApiClient");
+        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("using System.Text;");
         code.Should().Contain("new StringContent(body, Encoding.UTF8, \"text/plain\")");

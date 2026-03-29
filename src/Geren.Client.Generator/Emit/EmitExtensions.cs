@@ -11,7 +11,7 @@ using System;
 
 namespace {{rootNamespace}}.{{namespaceFromFile}};
 
-public static partial class {{namespaceFromFile}}Extensions
+public static class {{namespaceFromFile.Replace('.', '_')}}_Extensions
 {
     public static IServiceCollection AddGerenClients(
         this IServiceCollection services,
@@ -19,7 +19,8 @@ public static partial class {{namespaceFromFile}}Extensions
         Action<IHttpClientBuilder>? clientBuilder = null,
         bool? useResilience = null,
         string? resiliencePipelineName = null,
-        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null) {
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null)
+    {
 {{AllReg()}}
         return services;
     }

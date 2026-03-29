@@ -9,6 +9,8 @@ using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace {{rootNamespace}};
 
@@ -85,7 +87,7 @@ internal static class FactoryBridge
     }
 
     // FormatPathValue
-    internal static string V(object? value)=> Uri.EscapeDataString(
+    internal static string V(object? value) => Uri.EscapeDataString(
         value switch
         {
             bool boolean => boolean ? "true" : "false",
@@ -93,5 +95,18 @@ internal static class FactoryBridge
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
             _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty
         });
+
+    // JsonSerializerOptions
+    internal static JsonSerializerOptions jso = new()
+    {
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+    };
+
+    internal static void SetJsonSerializerOptions(JsonSerializerOptions jsonSerializerOptions)
+    {
+        jso = jsonSerializerOptions;
+    }
 """;
 }

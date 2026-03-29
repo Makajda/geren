@@ -14,19 +14,22 @@ internal sealed record MapInc(
         ImmutableArray<Purpoint> purpoints,
         CancellationToken cancellationToken) {
 
-        ImmutableArray<Diagnostic>.Builder _diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
-        Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
-        string namespaceFromFile = Given.ToLetterOrDigitName(Path.GetFileNameWithoutExtension(filePath) ?? string.Empty);
-        TypeResolver _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _unresolvedByPlaceholder, _diagnostics, cancellationToken);
+        var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
         var endpoints = ImmutableArray.CreateBuilder<Mapoint>();
+
+        Dictionary<string, UnresolvedSchemaType> _unresolvedByPlaceholder = new(StringComparer.Ordinal);
         HashSet<string> seenMethodKeys = new(StringComparer.Ordinal);
+
+        string namespaceFromFile = string.Join(".", Path.GetFileNameWithoutExtension(filePath).Split('.').Select(n => Given.ToLetterOrDigitName(n)));
+        TypeResolver _typeResolver = new($"{rootNamespace}.{namespaceFromFile}", compilation, _unresolvedByPlaceholder, diagnostics, cancellationToken);
+
         foreach (var point in purpoints) {
             cancellationToken.ThrowIfCancellationRequested();
 
             var (spaceName, className, methodName) = ResolveNames(point.Method, point.Path, point.OperationId);
             string methodKey = spaceName + "." + className + "." + methodName;
             if (!seenMethodKeys.Add(methodKey)) {
-                _diagnostics.Add(Diagnostic.Create(Dide.DuplicateMethodName, Location.None, methodName, className, point.Path));
+                diagnostics.Add(Diagnostic.Create(Dide.DuplicateMethodName, Location.None, methodName, className, point.Path));
                 continue;
             }
 
@@ -54,7 +57,7 @@ internal sealed record MapInc(
             namespaceFromFile,
             endpoints.ToImmutable(),
             unresolved,
-            _diagnostics.ToImmutable());
+            diagnostics.ToImmutable());
     }
 
     private static (string SpaceName, string ClassName, string MethodName) ResolveNames(string method, string path, string? operationId) {
@@ -67,7 +70,7 @@ internal sealed record MapInc(
 
         int classIndex = sections.Length - 2;
         string methodName = withName ?? (method + sections.LastOrDefault());
-        string className = classIndex >= 0 ? sections[classIndex] : "WebApiClient";
+        string className = classIndex >= 0 ? sections[classIndex] : "RootClient";
         string spaceName = classIndex > 0 ? string.Join(".", sections.Take(classIndex)) : string.Empty;
         return (spaceName, className, methodName);
     }
