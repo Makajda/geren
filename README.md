@@ -20,11 +20,9 @@ See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON,
 
 1. Add packages:
 
-```xml
-<ItemGroup>
-  <PackageReference Include="Geren.OpenApi.Server" Version="0.4.2" />
-  <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.3" PrivateAssets="all" />
-</ItemGroup>
+```powershell
+dotnet add package Geren.OpenApi.Server
+dotnet add package Microsoft.Extensions.ApiDescription.Server
 ```
 
 2. Configure OpenAPI output (example):
@@ -57,10 +55,8 @@ app.MapOpenApi();
 
 2. Add the generator package:
 
-```xml
-<ItemGroup>
-  <PackageReference Include="Geren.OpenApiClientGenerator" Version="0.4.2" />
-</ItemGroup>
+```powershell
+dotnet add package Geren.OpenApiClientGenerator
 ```
 
 3. Build once: `dotnet build`. Geren will generate:

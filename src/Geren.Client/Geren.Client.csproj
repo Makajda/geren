@@ -8,7 +8,6 @@
 
         <IsPackable>true</IsPackable>
         <PackageId>Geren.OpenApiClientGenerator</PackageId>
-		<Version>0.4.2</Version>
 		<Authors>Makajda</Authors>
 		<Description>Incremental generator for API clients from OpenAPI file</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
