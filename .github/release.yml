@@ -1,0 +1,51 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+      - duplicate
+      - invalid
+      - question
+      - wontfix
+    authors:
+      - dependabot
+
+  categories:
+    - title: Breaking changes
+      labels:
+        - breaking
+
+    - title: Exporter
+      labels:
+        - area:exporter
+
+    - title: Client generator
+      labels:
+        - area:client
+
+    - title: OpenAPI server
+      labels:
+        - area:server
+
+    - title: Features
+      labels:
+        - enhancement
+
+    - title: Fixes
+      labels:
+        - bug
+
+    - title: Documentation
+      labels:
+        - documentation
+
+    - title: Maintenance
+      labels:
+        - chore
+        - dependencies
+
+  template: |
+    ## Changes
+    $CHANGES
+
+    ## Contributors
+    $CONTRIBUTORS
