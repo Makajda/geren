@@ -20,7 +20,7 @@ internal static class FactoryBridge
         IServiceCollection services,
         Action<HttpClient>? configureClient,
         Action<IHttpClientBuilder>? configureBuilder,
-        bool? useResilience,
+        bool useResilience,
         string? resiliencePipelineName,
         Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience)
         where TClient : class
@@ -30,7 +30,7 @@ internal static class FactoryBridge
         if (configureClient is not null)
             builder.ConfigureHttpClient(configureClient);
 
-        if (useResilience ?? false)
+        if (useResilience)
         {
             if (resiliencePipelineName is not null && configureResilience is not null)
                 builder.AddResilienceHandler(resiliencePipelineName, configureResilience);

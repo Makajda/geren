@@ -17,7 +17,7 @@ public static class {{namespaceFromFile.Replace('.', '_')}}_Extensions
         this IServiceCollection services,
         Action<HttpClient>? configureClient = null,
         Action<IHttpClientBuilder>? clientBuilder = null,
-        bool? useResilience = null,
+        bool useResilience = true,
         string? resiliencePipelineName = null,
         Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null)
     {
