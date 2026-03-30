@@ -59,3 +59,24 @@ If you want to build the samples against published packages from nuget.org:
 ```powershell
 dotnet build .\samples\Geren.Samples.slnx -nologo
 ```
+
+### Example Code Snippets
+
+## Register clients
+
+```csharp
+builder.Services.AddGerenClients(http => http.BaseAddress = new(ApiAddress), b => b.AddHttpMessageHandler<TAuthMessageHandler>());
+```
+
+## Set JsonSerializerOptions
+
+```csharp
+FactoryBridge.Jsop = new(JsonSerializerDefaults.Web)
+{
+    Converters =
+    {
+        new JsonCustomConverter(...)
+    }
+};
+```
+
