@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.targets" />
+  </Folder>
   <Project Path="src/Geren.Client.Generator/Geren.Client.Generator.csproj" />
   <Project Path="src/Geren.Client/Geren.Client.csproj" />
   <Project Path="src/Geren.OpenApi.Server/Geren.OpenApi.Server.csproj" />

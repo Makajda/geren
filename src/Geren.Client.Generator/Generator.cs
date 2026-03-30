@@ -12,9 +12,9 @@ public sealed class Generator : IIncrementalGenerator {
         // Parse
         var parsed = context.AdditionalTextsProvider
             .Combine(context.AnalyzerConfigOptionsProvider)
-            .Select(static (x, cancellationToken) => new { x.Left, HasFormat = GetGerenFormat(x.Left, x.Right) })
-            .Where(static p => p.HasFormat is not null)
-            .Select(static (p, cancellationToken) => ParseInc.Parse(p!.Left, p.HasFormat ?? true, cancellationToken));
+            .Select(static (x, cancellationToken) => (x.Left, GetGerenFormat(x.Left, x.Right)))
+            .Where(static p => p.Item2.HasValue)
+            .Select(static (p, cancellationToken) => ParseInc.Parse(p!.Left, p.Item2!.Value, cancellationToken));
 
         context.RegisterSourceOutput(parsed.SelectMany(static (r, _) => r.Diagnostics),
             static (spc, r) => spc.ReportDiagnostic(r));

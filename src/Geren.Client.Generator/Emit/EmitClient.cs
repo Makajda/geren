@@ -60,14 +60,14 @@ public sealed partial class {{className}}
         // FromJson
         return $$"""
     public Task<{{endpoint.ReturnType}}> {{signature}}
-        => _http.{{endpoint.Method}}FromJsonAsync<{{endpoint.ReturnType}}>({{pathExpr}}, jso, cancellationToken);
+        => _http.{{endpoint.Method}}FromJsonAsync<{{endpoint.ReturnType}}>({{pathExpr}}, Jsop, cancellationToken);
 """;
     }
 
     private static string EmitPostOrPutOrPatch(Mapoint endpoint, string signature, string pathExpr) {
         string send;
         if (endpoint.BodyMedia == MediaTypes.Application_Json)
-            send = $"        var response = await _http.{endpoint.Method}AsJsonAsync({pathExpr}, body, jso, cancellationToken);";
+            send = $"        var response = await _http.{endpoint.Method}AsJsonAsync({pathExpr}, body, Jsop, cancellationToken);";
         else
             send = $$"""
         using var content = new StringContent(body, Encoding.UTF8, "text/plain");
@@ -107,7 +107,7 @@ public sealed partial class {{className}}
     {
 {{send}}
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<{{returnType}}>(jso, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<{{returnType}}>(Jsop, cancellationToken);
     }
 """;
     }

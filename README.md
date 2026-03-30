@@ -87,17 +87,10 @@ Note: if you reference the generator via `ProjectReference`/manual `<Analyzer In
 
 ### JsonSerializerOptions
 
-Default JsonSerializerOptions is:
+Default JsonSerializerOptions is JsonSerializerOptions.Web. You can override it:
 
 ```csharp
-NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
-PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-ReferenceHandler = ReferenceHandler.IgnoreCycles,
-```
-You can override it:
-
-```csharp
-FactoryBridge.SetJsonSerializerOptions(new());
+FactoryBridge.Jsop = new();
 ```
 
 ## Troubleshooting

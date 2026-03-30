@@ -97,16 +97,6 @@ internal static class FactoryBridge
         });
 
     // JsonSerializerOptions
-    internal static JsonSerializerOptions jso = new()
-    {
-        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        ReferenceHandler = ReferenceHandler.IgnoreCycles,
-    };
-
-    internal static void SetJsonSerializerOptions(JsonSerializerOptions jsonSerializerOptions)
-    {
-        jso = jsonSerializerOptions;
-    }
+    internal static JsonSerializerOptions Jsop = JsonSerializerOptions.Web;
 """;
 }

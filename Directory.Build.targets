@@ -1,10 +1,11 @@
 <Project>
   <PropertyGroup>
-    <Version>0.4.2</Version>
+    <Version>0.4.3</Version>
   </PropertyGroup>
 
   <!-- Keep in-repo samples aligned with the repo/package version without enabling Central Package Management. -->
   <ItemGroup>
-    <PackageReference Update="Geren.OpenApiClientGenerator" Version="$(Version)" />
+      <PackageReference Update="Geren.OpenApiClientGenerator" Version="$(Version)" />
+      <PackageReference Update="Geren.OpenApi.Server" Version="$(Version)" />
   </ItemGroup>
 </Project>
