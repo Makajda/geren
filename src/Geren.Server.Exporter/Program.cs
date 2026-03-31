@@ -30,14 +30,13 @@ internal static class Program {
             var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes ?? [], cts.Token);
             spinner2.Dispose();
 
-            var logs = Dide.ToStrings(warnings);
-            foreach (string l in logs)
-                Console.Error.WriteLine(l);
+            string log = Dide.ToString(warnings);
+            Console.Error.WriteLine(log);
 
             Directory.CreateDirectory(settings.OutputDirectory);
 
             var warningPath = Path.Combine(settings.OutputDirectory, Path.GetFileNameWithoutExtension(settings.OutputFileName) + ".log");
-            await Save(warningPath, string.Join('\n', logs), cts.Token).ConfigureAwait(false);
+            await Save(warningPath, log, cts.Token).ConfigureAwait(false);
 
             ErDocument document = new("1.0.0", [.. endpoints]);
             string json = JsonSerializer.Serialize(document, Givens.JsonSerializerOptions);

@@ -19,8 +19,9 @@ internal static class Dide {
         return new(id, message, new ErLocation(file, line, col));
     }
 
-    internal static IEnumerable<string> ToStrings(IEnumerable<ErWarning> warnings) =>
-        warnings.Select(w => $"{w.Id}: {w.Message}{(w.Location is null
-            ? null
-            : $": {w.Location.File}({w.Location.Line},{w.Location.Column})")}");
+    internal static string ToString(IEnumerable<ErWarning> warnings) =>
+        string.Join('\n',
+            warnings.Select(w => $"{w.Id}: {w.Message}{(w.Location is null
+                ? null
+                : $": {w.Location.File}({w.Location.Line},{w.Location.Column})")}"));
 }

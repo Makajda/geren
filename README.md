@@ -141,6 +141,7 @@ Path to class/method mapping:
 # Geren.Server.Exporter
 
   - dotnet tool geren-server-exporter for exporting GerenAPI JSON from a Minimal API server project.
+  - experiment
 
 ## Install
 
