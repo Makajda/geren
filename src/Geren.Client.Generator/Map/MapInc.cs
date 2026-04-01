@@ -70,7 +70,7 @@ internal sealed record MapInc(
 
         int classIndex = sections.Length - 2;
         string methodName = withName ?? (method + sections.LastOrDefault());
-        string className = classIndex >= 0 ? sections[classIndex] : "RootClient";
+        string className = classIndex >= 0 ? sections[classIndex] + "Http" : "RootHttp";
         string spaceName = classIndex > 0 ? string.Join(".", sections.Take(classIndex)) : string.Empty;
         return (spaceName, className, methodName);
     }

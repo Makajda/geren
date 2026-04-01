@@ -120,7 +120,7 @@ If you see `CS9137` related to `Microsoft.AspNetCore.OpenApi.SourceGenerators`, 
 Path to class/method mapping:
 
 - method name: `operationId ?? (methodHttp + last section)`.
-- class name: `penultimate section ?? RootClient`.
+- class name: `penultimate section + "Http" or RootHttp`.
 - namespace: `remaining sections`
 - Duplicate generated key `{SpaceName}.{ClassName}.{MethodName}` produces `GEREN006` and the endpoint is skipped.
 
@@ -141,7 +141,6 @@ Path to class/method mapping:
 # Geren.Server.Exporter
 
   - dotnet tool geren-server-exporter for exporting GerenAPI JSON from a Minimal API server project.
-  - experiment
 
 ## Install
 
