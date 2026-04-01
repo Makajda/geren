@@ -10,11 +10,10 @@ public class DideTests {
             new ErWarning("X2", "World", null),
         };
 
-        var lines = Dide.ToStrings(warnings).ToArray();
+        var lines = Dide.ToString(warnings);
 
-        lines.Should().HaveCount(2);
-        lines[0].Should().Be("X1: Hello: C:\\a.cs(10,20)");
-        lines[1].Should().Be("X2: World");
+        lines.Should().Contain("X1: Hello: C:\\a.cs(10,20)");
+        lines.Should().Contain("X2: World");
     }
 }
 
