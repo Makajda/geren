@@ -37,10 +37,7 @@ dotnet add package Microsoft.Extensions.ApiDescription.Server
 3. Wire it up in `Program.cs`:
 
 ```csharp
-builder.Services.AddOpenApi(options =>
-  options.AddSchemaTransformer<Geren.Server.Transformer>());
-
-app.MapOpenApi();
+builder.Services.AddOpenApi(options => options.AddSchemaTransformer<Geren.Server.Transformer>());
 ```
 
 ### Client: Generate the API client
@@ -63,7 +60,7 @@ dotnet add package Geren.OpenApiClientGenerator
 
 - A shared `FactoryBridge` helper.
 - A `...Extensions` type with `AddGerenClients(...)`.
-- Typed client classes grouped by OpenAPI path sections.
+- Typed client classes.
 
 ## Configuration
 

@@ -6,8 +6,6 @@ builder.Services.AddOpenApi(options => options.AddSchemaTransformer<Geren.Server
 
 var app = builder.Build();
 
-app.MapOpenApi();
-
 app.MapGet("/your_namespace/your_type/hello", () => new SimpleDto("hello")).WithName("GetHello");
 app.MapGet("/your_namespace/your_type/hello-generic/{value}", (int value) => new GenericDto<int>(value));
 
