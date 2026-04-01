@@ -38,8 +38,8 @@ public sealed class GeneratorEndToEndTests {
 
         gen.Keys.Should().Contain("_FactoryBridge.g.cs");
         gen.Keys.Should().Contain("_Extensions.g.cs");
-        gen.Keys.Should().Contain("RootClient.g.cs");
-        gen["RootClient.g.cs"].Should().Contain("namespace Acme.Petstore;");
+        gen.Keys.Should().Contain("RootHttp.g.cs");
+        gen["RootHttp.g.cs"].Should().Contain("namespace Acme.Petstore;");
 
         run.OutputCompilation.GetDiagnostics(CancellationToken.None).Where(static d => d.Severity == DiagnosticSeverity.Error).Should().BeEmpty();
     }
@@ -77,7 +77,7 @@ public sealed class GeneratorEndToEndTests {
 
         generated.Keys.Should().Contain("_UnresolvedTypes.g.cs");
         generated["_UnresolvedTypes.g.cs"].Should().Contain("public sealed partial class __GerenUnresolvedType_");
-        generated["RootClient.g.cs"].Should().Contain("__GerenUnresolvedType_");
+        generated["RootHttp.g.cs"].Should().Contain("__GerenUnresolvedType_");
 
         run.DriverResult.Diagnostics.Should().Contain(d => d.Id == "GEREN007");
         run.OutputCompilation.GetDiagnostics(CancellationToken.None).Where(static d => d.Severity == DiagnosticSeverity.Warning).Should().BeEmpty();
