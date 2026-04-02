@@ -63,6 +63,24 @@ dotnet add package Geren.OpenApiClientGenerator
 
 - `MapGroup(...)` prefixes are detected only when the prefix is a **compile-time constant string** (`"stat"`, `nameof(...)`, etc.).
 - Avoid `MapGroup(Func<string>)`, reflection-based wrappers, and any runtime logic for constructing prefixes.
+- Similarly, a route template must be a compile-time constant string.
 - If the HTTP method cannot be determined (for example, `MapMethods(...)` with a non-constant method list), the endpoint is skipped and a warning is emitted.
+
+## DI parameters and excluded types
+
+The exporter tries to infer which handler parameters are “real API parameters”.
+
+It excludes common DI/system parameters by default:
+
+```csharp
+System.Threading.CancellationToken
+System.Security.Claims.ClaimsPrincipal
+Microsoft.AspNetCore.Http.HttpContext
+Microsoft.AspNetCore.Http.HttpRequest
+Microsoft.AspNetCore.Http.HttpResponse
+Microsoft.Extensions.Logging.ILogger
+```
+
+You can add your own excluded types via `ExcludeTypes` in `settings.json` (fully-qualified type names).
 
 Tip: run `geren-server-exporter --help` to see available options and exit codes.
