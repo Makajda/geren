@@ -18,7 +18,9 @@ public sealed class EmitClientTests {
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
-        code.Should().Contain("var response = await _http.GetAsync");
+        code.Should().Contain("new HttpRequestMessage(HttpMethod.Get");
+        code.Should().Contain("PrepareRequest(request);");
+        code.Should().Contain("await Http.SendAsync(request");
         code.Should().Contain("response.EnsureSuccessStatusCode();");
     }
 
@@ -59,7 +61,7 @@ public sealed class EmitClientTests {
         var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
-        code.Should().Contain("_http.GetFromJsonAsync<global::Dto.Pet>");
+        code.Should().Contain("return await response.Content.ReadFromJsonAsync<global::Dto.Pet>(JsonOptions");
     }
 
     [Fact]
@@ -101,7 +103,8 @@ public sealed class EmitClientTests {
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("CreatePet(Dto.CreatePet body");
-        code.Should().Contain("await _http.PostAsJsonAsync");
+        code.Should().Contain("Content = JsonContent.Create(body, options: JsonOptions)");
+        code.Should().Contain("await Http.SendAsync(request");
         code.Should().Contain("response.EnsureSuccessStatusCode();");
     }
 
@@ -124,6 +127,7 @@ public sealed class EmitClientTests {
 
         code.Should().Contain("using System.Text;");
         code.Should().Contain("new StringContent(body, Encoding.UTF8, \"text/plain\")");
-        code.Should().Contain("await _http.PutAsync");
+        code.Should().Contain("new HttpRequestMessage(HttpMethod.Put");
+        code.Should().Contain("await Http.SendAsync(request");
     }
 }

@@ -2,16 +2,16 @@ namespace Geren.Client.Generator.Emit;
 
 internal sealed class EmitClient {
     internal static string Run(IGrouping<object, Mapoint> endpoints, string rootNamespace, string spaceName, string className) => $$"""
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using static {{rootNamespace}}.FactoryBridge;
 
 namespace {{spaceName}};
 
-public sealed partial class {{className}}
+public sealed partial class {{className}} : GerenClientBase
 {
-    private readonly HttpClient _http;
-    public {{className}}(HttpClient http) => _http = http;
+    public {{className}}(HttpClient http) : base(http) { }
 
 {{string.Join(Given.NewLine + Given.NewLine, endpoints.Select(EmitMethod))}}
 }
@@ -39,7 +39,11 @@ public sealed partial class {{className}}
             return $$"""
     public async Task {{signature}}
     {
-        var response = await _http.{{endpoint.Method}}Async({{pathExpr}}, cancellationToken);
+        var path = {{pathExpr}};
+        using var request = new HttpRequestMessage({{HttpMethodExpr(endpoint)}}, path);
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 """;
@@ -50,7 +54,11 @@ public sealed partial class {{className}}
             return $$"""
     public async Task<string> {{signature}}
     {
-        var response = await _http.{{endpoint.Method}}Async({{pathExpr}}, cancellationToken);
+        var path = {{pathExpr}};
+        using var request = new HttpRequestMessage({{HttpMethodExpr(endpoint)}}, path);
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync(cancellationToken);
     }
@@ -59,22 +67,46 @@ public sealed partial class {{className}}
 
         // FromJson
         return $$"""
-    public Task<{{endpoint.ReturnType}}> {{signature}}
-        => _http.{{endpoint.Method}}FromJsonAsync<{{endpoint.ReturnType}}>({{pathExpr}}, Jsop, cancellationToken);
+    public async Task<{{endpoint.ReturnType}}> {{signature}}
+    {
+        var path = {{pathExpr}};
+        using var request = new HttpRequestMessage({{HttpMethodExpr(endpoint)}}, path);
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<{{endpoint.ReturnType}}>(JsonOptions, cancellationToken);
+    }
 """;
     }
 
     private static string EmitPostOrPutOrPatch(Mapoint endpoint, string signature, string pathExpr) {
-        string send;
-        if (endpoint.BodyMedia == MediaTypes.Application_Json)
-            send = $"        var response = await _http.{endpoint.Method}AsJsonAsync({pathExpr}, body, Jsop, cancellationToken);";
-        else
-            send = $$"""
-        using var content = new StringContent(body, Encoding.UTF8, "text/plain");
-        var response = await _http.{{endpoint.Method}}Async({{pathExpr}}, content, cancellationToken);
-""";
+        string method = HttpMethodExpr(endpoint);
 
-        return EmitResponse(signature, endpoint.ReturnType, send);
+        if (endpoint.BodyMedia == MediaTypes.Application_Json) {
+            return EmitResponse(signature, endpoint.ReturnType, $$"""
+        var path = {{pathExpr}};
+        using var request = new HttpRequestMessage({{method}}, path)
+        {
+            Content = JsonContent.Create(body, options: JsonOptions)
+        };
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
+""");
+        }
+
+        // text/plain
+        return EmitResponse(signature, endpoint.ReturnType, $$"""
+        var path = {{pathExpr}};
+        using var request = new HttpRequestMessage({{method}}, path)
+        {
+            Content = new StringContent(body, Encoding.UTF8, "text/plain")
+        };
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
+""");
     }
 
     private static string EmitResponse(string signature, string? returnType, string send) {
@@ -107,7 +139,7 @@ public sealed partial class {{className}}
     {
 {{send}}
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<{{returnType}}>(Jsop, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<{{returnType}}>(JsonOptions, cancellationToken);
     }
 """;
     }
@@ -130,4 +162,15 @@ BuildRequestUri({{pathExpr}}, query =>
         })
 """;
     }
+
+    private static string HttpMethodExpr(Mapoint endpoint)
+        => endpoint.Method switch
+        {
+            Givens.Get => "HttpMethod.Get",
+            Givens.Post => "HttpMethod.Post",
+            Givens.Put => "HttpMethod.Put",
+            Givens.Patch => "HttpMethod.Patch",
+            Givens.Delete => "HttpMethod.Delete",
+            _ => "new HttpMethod(\"" + endpoint.Method + "\")",
+        };
 }

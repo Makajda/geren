@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using System.Globalization;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -55,6 +56,32 @@ public static class FactoryBridge
 
 {{EmitHelpers()}}
 }
+
+public abstract partial class GerenClientBase
+{
+    protected GerenClientBase(HttpClient http) => Http = http;
+
+    protected HttpClient Http { get; }
+
+    protected JsonSerializerOptions JsonOptions => JsonSerializerOptionsHolder.Shared;
+
+    protected void PrepareRequest(HttpRequestMessage request) => OnPrepareRequest(request);
+
+    static partial void OnPrepareRequest(HttpRequestMessage request);
+    static partial void OnConfigureJsonSerializerOptions(JsonSerializerOptions options);
+
+    private static class JsonSerializerOptionsHolder
+    {
+        internal static readonly JsonSerializerOptions Shared = Create();
+
+        private static JsonSerializerOptions Create()
+        {
+            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            OnConfigureJsonSerializerOptions(options);
+            return options;
+        }
+    }
+}
 """;
     }
 
@@ -96,7 +123,6 @@ public static class FactoryBridge
             _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty
         });
 
-    // JsonSerializerOptions
-    public static JsonSerializerOptions Jsop = JsonSerializerOptions.Web;
+
 """;
 }

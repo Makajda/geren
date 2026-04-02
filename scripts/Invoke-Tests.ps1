@@ -17,6 +17,12 @@ if (-not (Test-Path $testsRoot)) {
 
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
+$env:DOTNET_CLI_HOME = (Join-Path $repoRoot ".dotnet-home")
+$env:NUGET_PACKAGES = (Join-Path $repoRoot ".nuget\packages")
+$env:DOTNET_MULTILEVEL_LOOKUP = "0"
+
+New-Item -ItemType Directory -Path $env:DOTNET_CLI_HOME -Force | Out-Null
+New-Item -ItemType Directory -Path $env:NUGET_PACKAGES -Force | Out-Null
 
 $projects = Get-ChildItem -Path $testsRoot -Recurse -Filter *.csproj -File |
     Sort-Object FullName
@@ -45,4 +51,3 @@ foreach ($p in $projects) {
 
 Write-Host ""
 Write-Host "All tests passed ($total project(s))."
-

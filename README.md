@@ -84,10 +84,28 @@ Note: if you reference the generator via `ProjectReference`/manual `<Analyzer In
 
 ### JsonSerializerOptions
 
-Default JsonSerializerOptions is JsonSerializerOptions.Web. You can override it:
+Default JSON behavior uses `JsonSerializerDefaults.Web`.
+
+To customize JSON and outgoing requests for all generated clients, implement partial hooks once:
 
 ```csharp
-FactoryBridge.Jsop = new();
+using System.Net.Http;
+using System.Text.Json;
+
+namespace MyCompany.Generated;
+
+public abstract partial class GerenClientBase
+{
+    static partial void OnConfigureJsonSerializerOptions(JsonSerializerOptions options)
+    {
+        options.PropertyNameCaseInsensitive = true;
+    }
+
+    static partial void OnPrepareRequest(HttpRequestMessage request)
+    {
+        request.Headers.Add("X-Client", "afterline");
+    }
+}
 ```
 
 ## Troubleshooting
