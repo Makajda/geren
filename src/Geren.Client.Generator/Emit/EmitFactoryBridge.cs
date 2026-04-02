@@ -14,9 +14,9 @@ using System.Text.Json.Serialization;
 
 namespace {{rootNamespace}};
 
-internal static class FactoryBridge
+public static class FactoryBridge
 {
-    internal static void AddClient<TClient>(
+    public static void AddClient<TClient>(
         IServiceCollection services,
         Action<HttpClient>? configureClient,
         Action<IHttpClientBuilder>? configureBuilder,
@@ -41,7 +41,7 @@ internal static class FactoryBridge
         configureBuilder?.Invoke(builder);
     }
 
-    internal static IHttpClientBuilder AddClient<TClient>(
+    public static IHttpClientBuilder AddClient<TClient>(
         IServiceCollection services,
         Action<HttpClient>? configureClient = null)
         where TClient : class
@@ -97,6 +97,6 @@ internal static class FactoryBridge
         });
 
     // JsonSerializerOptions
-    internal static JsonSerializerOptions Jsop = JsonSerializerOptions.Web;
+    public static JsonSerializerOptions Jsop = JsonSerializerOptions.Web;
 """;
 }
