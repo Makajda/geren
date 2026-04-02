@@ -3,6 +3,11 @@ using System.Text;
 namespace Geren.Server;
 
 internal static class ClrTypeFormatter {
+    // Design notes:
+    // - This formatter produces C#-compilable type names (global::Namespace.Type<...>), including array ranks
+    //   and ValueTuple layouts.
+    // - The output is intended to be stored in OpenAPI schema extensions (x-compile) and consumed by the
+    //   client generator.
     public static string Format(Type type) {
         var sb = new StringBuilder();
         AppendType(sb, type);

@@ -13,6 +13,12 @@ internal static class ExtractorOne {
         ImmutableArray<ErWarning>.Builder warnings,
         CancellationToken cancellationToken) {
 
+        // Design notes:
+        // - Endpoint discovery is based on Map* extension calls on IEndpointRouteBuilder.
+        // - Route template must be a compile-time constant string; otherwise we cannot generate a stable client contract.
+        // - MapGroup prefixes are supported only for constant strings (see ChainedMapGroup).
+        // - If HTTP method cannot be determined unambiguously, the endpoint is skipped with a warning.
+
         cancellationToken.ThrowIfCancellationRequested();
 
         var methodName = invocation.Expression switch {

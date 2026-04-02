@@ -10,6 +10,13 @@ internal class TypeResolver(
     ImmutableArray<Diagnostic>.Builder _diagnostics,
     CancellationToken cancellationToken) {
 
+    // Design notes:
+    // - We intentionally do not "fallback to object" silently when a type cannot be resolved:
+    //   instead we emit placeholder types and keep a dedicated "_UnresolvedTypes.g.cs" list.
+    // - ResolveByCompile probes the compiler by parsing the type string into a tiny syntax tree and asking
+    //   Roslyn for the resulting ITypeSymbol (this catches invalid/unknown generic arguments reliably).
+    // - ResolveByReference handles OpenAPI $ref-like identifiers where only a short type name is known.
+
     private readonly Dictionary<string, string> _resolvedSchemaTypeCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reportedUnresolvedSchemaTypes = new(StringComparer.Ordinal);
 

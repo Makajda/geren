@@ -2,6 +2,11 @@ namespace Geren.Server.Exporter.Extract;
 
 internal static class ReturnType {
     internal static (string?, Byres?) Unwrap(ITypeSymbol returnType, Compilation compilation) {
+        // Design notes:
+        // - Minimal APIs often return wrappers (Task<T>, ActionResult<T>, TypedResults.*).
+        // - For client generation we want the underlying DTO type when it is unambiguous.
+        // - The "result zoo" (IActionResult/IResult/etc.) does not expose a stable DTO type, so we return null.
+
         (string?, Byres?) result = (null, null);
 
         if (returnType.SpecialType == SpecialType.System_Void)

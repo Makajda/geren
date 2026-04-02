@@ -5,6 +5,12 @@ namespace Geren.Client.Generator;
 [Generator]
 public sealed class Generator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
+        // Design notes:
+        // - We must skip non-owned AdditionalFiles silently (other generators can populate AdditionalFiles too).
+        // - We keep the pipeline incremental by filtering opted-in files early and emitting deterministic outputs.
+        // - Hint names must be stable and collision-free when multiple documents are present in the same compilation.
+        // - We avoid emitting shared helpers when there are no discovered endpoints.
+
         var rootNamespace = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
             options.GlobalOptions.TryGetValue("build_property.Geren_RootNamespace", out var configured)
                 && !string.IsNullOrWhiteSpace(configured) ? configured.Trim() : "Geren");
@@ -33,6 +39,7 @@ public sealed class Generator : IIncrementalGenerator {
             static (spc, r) => spc.ReportDiagnostic(r));
 
         // Need Hint
+        // If the compilation has multiple opted-in documents, hint prefix avoids collisions like "_Extensions.g.cs".
         var needHint = maped.Collect().Select(static (p, _) => p.Count() > 1);
         var hinted = maped.Combine(needHint).Combine(rootNamespace).Select((x, _) => {
             var ((Map, needHint), RootNamespace) = x;
@@ -51,6 +58,7 @@ public sealed class Generator : IIncrementalGenerator {
         var ended = hinted.Where(static p => !p.Map.Endpoints.IsEmpty);
 
         // FactoryBridge
+        // Emit shared helpers only when at least one document produced endpoints.
         var hasAnyEndpoints = ended.Select(static (_, _) => true).Collect().Select(static (flags, _) => flags.Any(f => f));
         context.RegisterSourceOutput(hasAnyEndpoints.Combine(rootNamespace), static (spc, t) => {
             if (t.Left)

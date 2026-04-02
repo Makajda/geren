@@ -7,6 +7,11 @@ internal sealed record MapInc(
     ImmutableArray<UnresolvedSchemaType> UnresolvedSchemaTypes,
     ImmutableArray<Diagnostic> Diagnostics) {
 
+    // Design notes:
+    // - This step translates parsed endpoints (Purpoint) into emit-ready endpoints (Mapoint).
+    // - All type names must be unambiguous and compilable; unresolved types are represented by placeholder types.
+    // - Generated method keys must be stable and unique to avoid producing duplicate member definitions.
+
     internal static MapInc Map(
         Compilation compilation,
         string rootNamespace,
@@ -62,6 +67,11 @@ internal sealed record MapInc(
 
     private static (string SpaceName, string ClassName, string MethodName) ResolveNames(string method, string path, string? operationId) {
         string? withName = operationId is null ? null : Given.ToLetterOrDigitName(operationId);
+        // Naming contract:
+        // - operationId (if present) wins for method name
+        // - otherwise: Method + last non-template path segment
+        // - class name: penultimate non-template segment + "Http", or "RootHttp" for short paths
+        // - namespace: remaining non-template segments
         string[] sections = [.. path
             .Trim('/')
             .Split(['/'], StringSplitOptions.RemoveEmptyEntries)

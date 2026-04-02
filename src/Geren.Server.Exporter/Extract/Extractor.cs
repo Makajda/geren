@@ -2,6 +2,11 @@ namespace Geren.Server.Exporter.Extract;
 
 internal static class Extractor {
     public static (ImmutableArray<Purpoint>, ImmutableArray<ErWarning>) Extract(Compilation compilation, string[] excludeTypes, CancellationToken cancellationToken) {
+        // Design notes:
+        // - Exporter is syntax-first: we walk invocations and then validate them with the semantic model.
+        // - We explicitly skip obj/bin and generated sources to avoid duplicated discovery and noise.
+        // - Ambiguous or non-constant constructs are skipped with a structured warning.
+
         var endpoints = ImmutableArray.CreateBuilder<Purpoint>();
         var warnings = ImmutableArray.CreateBuilder<ErWarning>();
         var endpointRouteBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder");

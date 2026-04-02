@@ -13,6 +13,14 @@ internal static class InferParameters {
         string httpMethod,
         string[] excludeTypes) {
 
+        // Design notes:
+        // - Parameter binding in Minimal APIs is flexible; this exporter uses a pragmatic inference model that
+        //   works well for client generation.
+        // - Infrastructure/DI parameters are excluded (FromServices + common ASP.NET Core binding-only types).
+        // - Route parameters: [FromRoute] or parameter name matches {placeholder} in the route template.
+        // - Body: first complex parameter for POST/PUT/PATCH (assumed JSON).
+        // - Query: remaining parameters (simple types), with GET/DELETE simulating AsParameters.
+
         bool bodyAssigned = false;
         var allowBody = httpMethod is Givens.Post or Givens.Put or Givens.Patch;
         string? bodyType = null;

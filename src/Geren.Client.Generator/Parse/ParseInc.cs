@@ -8,6 +8,11 @@ internal sealed record ParseInc(
     ImmutableArray<Purpoint> Purpoints,
     ImmutableArray<Diagnostic> Diagnostics) {
 
+    // Design notes:
+    // - Never throw from a generator pipeline: parse errors must be converted into diagnostics.
+    // - AdditionalFiles can be large and/or invalid; the generator must be resilient and incremental.
+    // - We normalize route templates early so the rest of the pipeline can rely on a stable representation.
+
     private static ParseInc Skip(Diagnostic diagnostic) => new(false, string.Empty, [], [diagnostic]);
 
     internal static ParseInc Parse(AdditionalText file, bool isFileOpenApi, CancellationToken cancellationToken) {
@@ -30,6 +35,8 @@ internal sealed record ParseInc(
     }
 
     private static ParseInc ParseOpenApi(string filePath, string text, CancellationToken cancellationToken) {
+        // OpenApiDocument.Load parses JSON/YAML and also processes extension values. ArraysDisguise is a small
+        // workaround to preserve CLR-like array rank strings (e.g. "T[]", "T[,,]") that may appear in extensions.
         using MemoryStream ms = new(Encoding.UTF8.GetBytes(Given.ArraysDisguise(text)));
         var readResult = OpenApiDocument.Load(ms);
         var errors = readResult.Diagnostic?.Errors;
@@ -176,6 +183,7 @@ internal sealed record ParseInc(
         List<IOpenApiParameter> merged = [];
         Dictionary<string, int> indexByKey = new(StringComparer.Ordinal);
 
+        // OpenAPI semantics: operation parameters can override path-level parameters with the same name+location.
         Add(pathParameters, allowOverride: false);
         Add(operationParameters, allowOverride: true);
         return [.. merged];

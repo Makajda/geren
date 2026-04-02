@@ -8,6 +8,13 @@ internal static class ChainedMapGroup {
         ExpressionSyntax receiverExpression,
         CancellationToken cancellationToken) {
 
+        // Design notes:
+        // - We only support compile-time constant MapGroup prefixes. Anything computed at runtime (Func<string>,
+        //   reflection, dynamic string building) cannot be evaluated reliably from syntax/semantic model.
+        // - We walk backwards through fluent chains and try to recover receiver aliases (locals/fields/properties)
+        //   to handle patterns like: var g = app.MapGroup("stat"); g.MapGet(...)
+        // - visitedReceiverSymbols prevents infinite loops when aliases are self-referential.
+
         List<string> prefixesReversed = [];
         ExpressionSyntax current = UnwrapExpression(receiverExpression);
         HashSet<ISymbol> visitedReceiverSymbols = new(SymbolEqualityComparer.Default);

@@ -12,6 +12,12 @@ It ships as a Roslyn source generator (analyzer), so it runs during `dotnet buil
 - `Geren.Server.Exporter`
   - Exporter scans the project and builds a Geren JSON specification using the Minimal API.
 
+## Design docs (internal)
+
+- `docs\FORMAT.md`
+- `docs\GENERATOR-DESIGN.md`
+- `docs\EXPORTER-DESIGN.md`
+
 ## Samples
 
 See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON, Blazor WebAssembly client consumes it via `AdditionalFiles` and generates typed clients).
