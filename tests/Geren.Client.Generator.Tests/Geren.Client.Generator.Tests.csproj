@@ -25,4 +25,9 @@
         <ProjectReference Include="..\..\src\Geren.Client.Generator\Geren.Client.Generator.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Remove="Snapshots\**\*.*" />
+        <None Include="Snapshots\**\*.*" />
+    </ItemGroup>
+
 </Project>

@@ -1,0 +1,11 @@
+#nullable enable
+namespace Acme.Petstore;
+
+// This file is a support artifact:
+// - Each type below is a placeholder emitted by the generator when it couldn't resolve a schema reference to a real CLR type.
+// - Generated client code uses these placeholders to avoid producing extra compiler errors.
+// - Share this file with the DTO/support team to fix missing or ambiguous types at the source.
+
+// kind: metadata
+// requested: Dto.MissingType
+public sealed partial class __GerenUnresolvedType_CC03097E4BFD { }

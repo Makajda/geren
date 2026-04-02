@@ -1,0 +1,49 @@
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text;
+using static Acme.FactoryBridge;
+
+namespace Acme.Petstore;
+
+public sealed partial class RootHttp : GerenClientBase
+{
+    public RootHttp(HttpClient http) : base(http) { }
+
+    public async Task<string> GetPing(CancellationToken cancellationToken = default)
+    {
+        var path = $"/ping";
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync(cancellationToken);
+    }
+
+    public async Task<object> GetPets(string? q, CancellationToken cancellationToken = default)
+    {
+        var path = BuildRequestUri($"/pets", query =>
+        {
+            A(query, "q", q);
+        });
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<object>(JsonOptions, cancellationToken);
+    }
+
+    public async Task PostPets(object body, CancellationToken cancellationToken = default)
+    {
+        var path = $"/pets";
+        using var request = new HttpRequestMessage(HttpMethod.Post, path)
+        {
+            Content = JsonContent.Create(body, options: JsonOptions)
+        };
+        PrepareRequest(request);
+
+        using var response = await Http.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+}

@@ -1,0 +1,25 @@
+#nullable enable
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
+using System;
+
+namespace Acme.Petstore;
+
+public static class Petstore_Extensions
+{
+    public static IServiceCollection AddGerenClients(
+        this IServiceCollection services,
+        Action<HttpClient>? configureClient = null,
+        Action<IHttpClientBuilder>? clientBuilder = null,
+        bool useResilience = true,
+        string? resiliencePipelineName = null,
+        Action<ResiliencePipelineBuilder<HttpResponseMessage>, ResilienceHandlerContext>? configureResilience = null)
+    {
+        global::Acme.FactoryBridge.AddClient<RootHttp>(services, configureClient, clientBuilder, useResilience, resiliencePipelineName, configureResilience);
+        return services;
+    }
+
+    public static IHttpClientBuilder AddGerenRootHttp(this IServiceCollection services,
+        Action<HttpClient>? configureClient = null) => global::Acme.FactoryBridge.AddClient<RootHttp>(services, configureClient);
+}
