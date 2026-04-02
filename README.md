@@ -166,7 +166,7 @@ Path to class/method mapping:
 ## Install
 
 ```powershell
-dotnet tool install -g geren.server.exporter
+dotnet tool install -g Geren.Server.Exporter
 ```
 
 ## Usage
@@ -175,10 +175,16 @@ dotnet tool install -g geren.server.exporter
 geren-server-exporter --project .\MyServerApi.csproj --output-dir .\gerenapiresult
 ```
 
+## Output
+
+- `<ProjectName>.gerenapi.json` (by default) in `--output-dir`
+- `<ProjectName>.gerenapi.log` (warnings copy) in `--output-dir`
+- Warnings are also written to stderr
+
 Then for `Geren.OpenApiClientGenerator` in a client project:
 
 ```xml
-<AdditionalFiles Include=".\MyServerApi-gerenapi.json" Geren="gerenapi" />
+<AdditionalFiles Include=".\MyServerApi.gerenapi.json" Geren="gerenapi" />
 ```
 
 ## Important about `MapGroup` and `route template`
@@ -195,11 +201,11 @@ app.MapGroup("stat").RequireAuthorization(...)
 
 Do not use `MapGroup(Func<string>)`, `MapGroup(MethodBase)`, custom wrapper extensions with reflection and any runtime logic for constructing the prefix—the exporter is not required to (and usually cannot) determine such prefixes.
 
-Similar a route template.
+Similarly, a route template must be a compile-time constant string.
 
 ## Warnings
 
-The exporter writes warnings to stderr and file output.log.
+The exporter writes warnings to stderr and to `<ProjectName>.gerenapi.log` next to the JSON output file.
 Some endpoints may be skipped if the exporter could not unambiguously determine the HTTP method (for example, `MapMethods(...)` with a non-constant list of methods) - in this case, the warning `GERENEXP004` will be issued.
 
 ## Important about DI types
@@ -231,3 +237,5 @@ In the `settings.json`, you can specify additional types to exclude in the param
 ```powershell
 geren-server-exporter -s ...\settings.json
 ```
+
+Tip: run `geren-server-exporter --help` to see available options and exit codes.

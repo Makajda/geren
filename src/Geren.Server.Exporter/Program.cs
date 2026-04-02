@@ -7,9 +7,8 @@ namespace Geren.Server.Exporter;
 
 internal static class Program {
     public static async Task<int> Main(string[] args) {
-        Settings? settings = Config.Get(args);
-        if (settings is null)
-            return 2;
+        if (!Config.TryGet(args, out Settings settings, out int exitCode))
+            return exitCode;
 
         using CancellationTokenSource cts = new();
         Console.CancelKeyPress += (_, e) => {

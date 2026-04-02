@@ -40,7 +40,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+        <None Include="README.md" Pack="true" PackagePath="\" />
         <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" Link="LICENSE.txt" />
     </ItemGroup>
 
