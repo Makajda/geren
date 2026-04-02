@@ -10,6 +10,8 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$env:DOTNET_CLI_UI_LANGUAGE = "en-US"
+
 function Get-ProjectPackageMetadata {
     param(
         [Parameter(Mandatory)]
