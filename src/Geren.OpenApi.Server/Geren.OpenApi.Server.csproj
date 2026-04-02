@@ -5,6 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
 
         <IsPackable>true</IsPackable>
         <PackageId>Geren.OpenApi.Server</PackageId>

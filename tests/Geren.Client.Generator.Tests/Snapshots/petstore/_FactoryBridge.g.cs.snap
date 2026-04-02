@@ -10,8 +10,24 @@ using System.Text.Json.Serialization;
 
 namespace Acme;
 
+/// <summary>
+/// Shared helpers emitted by Geren for the generated client set.
+/// </summary>
+/// <remarks>
+/// This type is generated. Prefer using the generated <c>..._Extensions</c> methods for registration.
+/// </remarks>
 public static class FactoryBridge
 {
+    /// <summary>
+    /// Registers a typed <see cref="HttpClient"/>-based API client with optional resilience configuration.
+    /// </summary>
+    /// <typeparam name="TClient">Generated API client type.</typeparam>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configureClient">Optional <see cref="HttpClient"/> configuration.</param>
+    /// <param name="configureBuilder">Optional builder customization.</param>
+    /// <param name="useResilience">When true, configures a resilience handler.</param>
+    /// <param name="resiliencePipelineName">Optional resilience pipeline name (used when <paramref name="configureResilience"/> is provided).</param>
+    /// <param name="configureResilience">Optional resilience pipeline configuration.</param>
     public static void AddClient<TClient>(
         IServiceCollection services,
         Action<HttpClient>? configureClient,
@@ -37,6 +53,13 @@ public static class FactoryBridge
         configureBuilder?.Invoke(builder);
     }
 
+    /// <summary>
+    /// Registers a typed <see cref="HttpClient"/>-based API client in DI.
+    /// </summary>
+    /// <typeparam name="TClient">Generated API client type.</typeparam>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configureClient">Optional <see cref="HttpClient"/> configuration.</param>
+    /// <returns>The created <see cref="IHttpClientBuilder"/> for further configuration.</returns>
     public static IHttpClientBuilder AddClient<TClient>(
         IServiceCollection services,
         Action<HttpClient>? configureClient = null)
@@ -89,17 +112,53 @@ public static class FactoryBridge
 
 }
 
+/// <summary>
+/// A base class for all Geren-generated API clients for this OpenAPI document.
+/// </summary>
+/// <remarks>
+/// To customize JSON serialization and outgoing requests globally for all generated clients,
+/// create a partial class in your project and implement the optional partial hooks:
+/// <list type="bullet">
+/// <item><description><c>OnConfigureJsonSerializerOptions</c>: configure shared JSON settings (runs once).</description></item>
+/// <item><description><c>OnPrepareRequest</c>: mutate outgoing requests (called for every request).</description></item>
+/// </list>
+/// </remarks>
 public abstract partial class GerenClientBase
 {
+    /// <summary>
+    /// Initializes a new client wrapper around the provided <see cref="HttpClient"/>.
+    /// </summary>
+    /// <param name="http">The underlying <see cref="HttpClient"/> instance.</param>
     protected GerenClientBase(HttpClient http) => Http = http;
 
+    /// <summary>
+    /// The underlying <see cref="HttpClient"/> used to send requests.
+    /// </summary>
     protected HttpClient Http { get; }
 
+    /// <summary>
+    /// Shared <see cref="JsonSerializerOptions"/> used by all clients in this generated set.
+    /// </summary>
+    /// <remarks>
+    /// The options instance is created lazily and configured once via <c>OnConfigureJsonSerializerOptions</c>.
+    /// Do not mutate it per-request.
+    /// </remarks>
     protected JsonSerializerOptions JsonOptions => JsonSerializerOptionsHolder.Shared;
 
+    /// <summary>
+    /// Applies global request customization hook (if implemented).
+    /// </summary>
+    /// <param name="request">The outgoing request.</param>
     protected void PrepareRequest(HttpRequestMessage request) => OnPrepareRequest(request);
 
+    /// <summary>
+    /// Optional hook invoked for every outgoing request created by generated clients.
+    /// </summary>
     static partial void OnPrepareRequest(HttpRequestMessage request);
+
+    /// <summary>
+    /// Optional hook invoked once when the shared <see cref="JsonSerializerOptions"/> instance is created.
+    /// </summary>
     static partial void OnConfigureJsonSerializerOptions(JsonSerializerOptions options);
 
     private static class JsonSerializerOptionsHolder

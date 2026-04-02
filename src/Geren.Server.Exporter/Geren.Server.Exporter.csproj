@@ -5,6 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
         <OutputType>Exe</OutputType>
         <UserSecretsId>5f0f7a01-663b-41a4-9e4d-784f1a0b64bc</UserSecretsId>
 
