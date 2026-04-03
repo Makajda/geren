@@ -13,6 +13,43 @@ public sealed class MapIncTests {
     }
 
     [Fact]
+    public void Map_DuplicateMethodName() {
+        var compilation = CompilationFactory.Create("t", """
+            namespace Dto;
+            public sealed class Duplicate { }
+            """);
+
+        var points = ImmutableArray.Create(
+            new Purpoint(
+                Method: Givens.Get,
+                Path: "/duplicateClass/duplicateMethod",
+                OperationId: null,
+                ReturnType: null,
+                ReturnTypeBy: null,
+                BodyType: null,
+                BodyTypeBy: null,
+                BodyMedia: null,
+                Params: null,
+                Queries: null),
+            new Purpoint(
+                Method: Givens.Get,
+                Path: "/duplicateClass/duplicateMethod",
+                OperationId: null,
+                ReturnType: null,
+                ReturnTypeBy: null,
+                BodyType: null,
+                BodyTypeBy: null,
+                BodyMedia: null,
+                Params: null,
+                Queries: null));
+
+        var map = MapInc.Map(compilation, "Acme", @"C:\Specs\Pets.json", points, CancellationToken.None);
+
+        map.Endpoints.Should().HaveCount(1);
+        map.Diagnostics.Should().ContainSingle(d => d.Id == "GEREN006");
+    }
+
+    [Fact]
     public void Map_ResolvesMetadataTypes_AndCollectsUnresolved() {
         var compilation = CompilationFactory.Create("t", """
             namespace Dto;

@@ -11,16 +11,13 @@ internal sealed record Settings(
     string Platform = "AnyCPU");
 
 internal static class Config {
-    internal const int ExitOk = 0;
-    internal const int ExitUsage = 2;
-
     internal static bool TryGet(string[] args, out Settings settings, out int exitCode) {
         settings = new();
-        exitCode = ExitUsage;
+        exitCode = Given.ExitUsage;
 
         if (args.Any(static a => IsHelpArg(a))) {
             PrintUsage();
-            exitCode = ExitOk;
+            exitCode = Given.ExitOk;
             return false;
         }
 
@@ -41,14 +38,14 @@ internal static class Config {
 
         if (string.IsNullOrEmpty(settings.Project) || string.IsNullOrEmpty(settings.OutputDirectory)) {
             PrintUsage();
-            exitCode = ExitUsage;
+            exitCode = Given.ExitUsage;
             return false;
         }
 
         if (string.IsNullOrEmpty(settings.OutputFileName))
             settings = settings with { OutputFileName = $"{Path.GetFileNameWithoutExtension(settings.Project)}.gerenapi.json" };
 
-        exitCode = ExitOk;
+        exitCode = Given.ExitOk;
         return true;
     }
 

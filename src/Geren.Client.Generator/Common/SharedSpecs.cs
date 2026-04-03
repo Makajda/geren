@@ -12,7 +12,7 @@ internal sealed record Maparam(
 
 internal sealed record Purparam(
     string Name,
-    string Identifier,
+    string? Identifier,
     string Type,
     Byres? By);
 

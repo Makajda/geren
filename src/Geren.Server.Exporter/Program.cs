@@ -22,7 +22,7 @@ internal static class Program {
             spinner1.Dispose();
             if (compilation is null) {
                 Console.Error.WriteLine("Failed to create Compilation.");
-                return 3;
+                return Given.ExitCompilation;
             }
 
             using Spinner spinner2 = new("Extracting", ConsoleColor.Blue);
@@ -45,15 +45,15 @@ internal static class Program {
 
             Console.WriteLine($"Wrote {endpoints.Length} endpoints to");
             Console.WriteLine(outputPath);
-            return 0;
+            return Given.ExitOk;
         }
         catch (OperationCanceledException) {
             Console.Error.WriteLine("Canceled.");
-            return 4;
+            return Given.ExitCanceled;
         }
         catch (Exception ex) {
             Console.Error.WriteLine(ex.ToString());
-            return 1;
+            return Given.ExitUnexpected;
         }
     }
 

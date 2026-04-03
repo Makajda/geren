@@ -1,6 +1,12 @@
 namespace Geren.Server.Exporter.Common;
 
 internal static class Given {
+    internal const int ExitOk = 0;
+    internal const int ExitUnexpected = 1;
+    internal const int ExitUsage = 2;
+    internal const int ExitCompilation = 3;
+    internal const int ExitCanceled = 4;
+
     internal static readonly SymbolDisplayFormat FullyQualifiedMethodFormat = new(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,

@@ -109,7 +109,7 @@ public abstract partial class GerenClientBase
 
     static partial void OnPrepareRequest(HttpRequestMessage request)
     {
-        request.Headers.Add("X-Client", "afterline");
+        request.Headers.Add("X-Client", "value");
     }
 }
 ```

@@ -7,7 +7,7 @@ namespace Geren.Server.Exporter.Common;
 // the file is shared between the the generator and the exporter
 internal sealed record Maparam(
     string Name,
-    string Identifier,
+    string? Identifier,
     string Type);
 
 internal sealed record Purparam(
