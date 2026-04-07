@@ -9,6 +9,7 @@ internal static class ExtractorOne {
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocation,
         string[] excludeTypes,
+        EndpointFilters filters,
         ImmutableArray<Purpoint>.Builder endpoints,
         ImmutableArray<ErWarning>.Builder warnings,
         CancellationToken cancellationToken) {
@@ -66,6 +67,10 @@ internal static class ExtractorOne {
             warnings.Add(Dide.Create(invocation, "GERENEXP003", $"Skipped '{methodSymbol.Name}': unable to resolve handler method symbol"));
             return;
         }
+
+        var handlerNamespace = handlerMethod.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+        if (!filters.ShouldInclude(routeTemplate, handlerNamespace))
+            return;
 
         var httpMethod = HttpMethods.Get(methodSymbol, invocation, semanticModel, cancellationToken);
         if (string.IsNullOrEmpty(httpMethod)) {

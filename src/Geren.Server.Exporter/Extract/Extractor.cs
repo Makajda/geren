@@ -1,7 +1,7 @@
 namespace Geren.Server.Exporter.Extract;
 
 internal static class Extractor {
-    public static (ImmutableArray<Purpoint>, ImmutableArray<ErWarning>) Extract(Compilation compilation, string[] excludeTypes, CancellationToken cancellationToken) {
+    public static (ImmutableArray<Purpoint>, ImmutableArray<ErWarning>) Extract(Compilation compilation, string[] excludeTypes, EndpointFilters filters, CancellationToken cancellationToken) {
         // Design notes:
         // - Exporter is syntax-first: we walk invocations and then validate them with the semantic model.
         // - We explicitly skip obj/bin and generated sources to avoid duplicated discovery and noise.
@@ -22,7 +22,7 @@ internal static class Extractor {
             var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
-                ExtractorOne.Extract(compilation, endpointRouteBuilder, semanticModel, invocation, excludeTypes, endpoints, warnings, cancellationToken);
+                ExtractorOne.Extract(compilation, endpointRouteBuilder, semanticModel, invocation, excludeTypes, filters, endpoints, warnings, cancellationToken);
         }
 
         return (endpoints.ToImmutable(), warnings.ToImmutable());

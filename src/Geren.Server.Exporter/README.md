@@ -29,6 +29,14 @@ geren-server-exporter --project .\MyServerApi.csproj --output-dir .\gerenapi
   "Project": "C:\\path\\to\\MyServerApi.csproj",
   "OutputDirectory": "C:\\path\\to\\gerenapi",
   "OutputFileName": "",
+  "Include": [
+    "namespace:MyCompany.MyServerApi.*",
+    "path:/public/*"
+  ],
+  "Exclude": [
+    "path:/internal/*",
+    "namespace:MyCompany.MyServerApi.Admin.*"
+  ],
   "ExcludeTypes": [
     "Microsoft.EntityFrameworkCore.DbContext"
   ],
@@ -40,6 +48,29 @@ geren-server-exporter --project .\MyServerApi.csproj --output-dir .\gerenapi
 ```powershell
 geren-server-exporter -s .\settings.json
 ```
+
+## Include / Exclude filters
+
+You can export a subset of endpoints using simple glob or regex rules:
+
+```powershell
+# Only "stat/*" routes:
+geren-server-exporter -p .\MyServerApi.csproj -o .\gerenapi -i path:/stat/*
+
+# Keep everything except internal routes:
+geren-server-exporter -p .\MyServerApi.csproj -o .\gerenapi -x path:/internal/*
+
+# Regex match:
+geren-server-exporter -p .\MyServerApi.csproj -o .\gerenapi -i route:re:^/v[0-9]+/
+
+# Filter by handler namespace:
+geren-server-exporter -p .\MyServerApi.csproj -o .\gerenapi -i namespace:MyCompany.MyServerApi.Public.*
+```
+
+Notes:
+- Rules are OR-ed within include/exclude lists.
+- If any include rules exist, only matching endpoints are kept.
+- Exclude rules always win.
 
 ## Consume in a client project
 

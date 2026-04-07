@@ -10,6 +10,14 @@ internal static class Program {
         if (!Config.TryGet(args, out Settings settings, out int exitCode))
             return exitCode;
 
+        if (!EndpointFilters.TryCreate(settings.Include, settings.Exclude, out var filters, out var filterError)) {
+            Console.Error.WriteLine("Invalid include/exclude filter rule:");
+            Console.Error.WriteLine(filterError);
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("Tip: use --help for filter rule examples.");
+            return Given.ExitUsage;
+        }
+
         using CancellationTokenSource cts = new();
         Console.CancelKeyPress += (_, e) => {
             e.Cancel = true;
@@ -26,7 +34,7 @@ internal static class Program {
             }
 
             using Spinner spinner2 = new("Extracting", ConsoleColor.Blue);
-            var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes ?? [], cts.Token);
+            var (endpoints, warnings) = Extractor.Extract(compilation, settings.ExcludeTypes ?? [], filters, cts.Token);
             spinner2.Dispose();
 
             string log = Dide.ToString(warnings);
