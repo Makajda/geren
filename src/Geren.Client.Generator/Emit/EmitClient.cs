@@ -5,7 +5,6 @@ internal sealed class EmitClient {
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
-using static {{rootNamespace}}.FactoryBridge;
 
 namespace {{spaceName}};
 
@@ -164,14 +163,14 @@ public sealed partial class {{className}} : GerenClientBase
     private static string BuildPathExpression(Mapoint endpoint) {
         string interpolatedPath = endpoint.Path;
         foreach (var param in endpoint.Params)
-            interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{V(" + (param.Identifier ?? param.Name) + ")}");
+            interpolatedPath = interpolatedPath.Replace("{" + param.Name + "}", "{FormatPathValue(" + (param.Identifier ?? param.Name) + ")}");
 
         string pathExpr = $"$\"{interpolatedPath}\"";
         if (endpoint.Queries.IsEmpty)
             return pathExpr;
 
         string queryBuilder = string.Join(Given.NewLine, endpoint.Queries.Select(static p =>
-            $"            A(query, \"{p.Name}\", {p.Identifier});"));
+            $"            AddQueryParameter(query, \"{p.Name}\", {p.Identifier});"));
 
         return $$"""
 BuildRequestUri({{pathExpr}}, query =>

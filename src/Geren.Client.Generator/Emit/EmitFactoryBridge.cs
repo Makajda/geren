@@ -7,6 +7,7 @@ internal sealed class EmitFactoryBridge {
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -76,8 +77,6 @@ public static class FactoryBridge
 
         return builder;
     }
-
-{{EmitHelpers()}}
 }
 
 /// <summary>
@@ -140,12 +139,13 @@ public abstract partial class GerenClientBase
             return options;
         }
     }
-}
-""";
-    }
 
-    private static string EmitHelpers() => $$"""
-    internal static string BuildRequestUri(string path, Action<List<string>>? configureQuery = null)
+    /// <summary>
+    /// Builds a request URI from a path and an optional query-string builder.
+    /// </summary>
+    /// <param name="path">The path (may already include a query).</param>
+    /// <param name="configureQuery">Optional callback to append query parameters.</param>
+    protected static string BuildRequestUri(string path, Action<List<string>>? configureQuery = null)
     {
         if (configureQuery is null)
             return path;
@@ -155,8 +155,10 @@ public abstract partial class GerenClientBase
         return query.Count == 0 ? path : path + "?" + string.Join("&", query);
     }
 
-    // AddQueryParameter
-    internal static void A(List<string> query, string name, object? value)
+    /// <summary>
+    /// Adds a query parameter to the query-string builder list.
+    /// </summary>
+    protected static void AddQueryParameter(List<string> query, string name, object? value)
     {
         if (value is null)
             return;
@@ -164,16 +166,18 @@ public abstract partial class GerenClientBase
         if (value is System.Collections.IEnumerable values && value is not string)
         {
             foreach (var item in values)
-                A(query, name, item);
+                AddQueryParameter(query, name, item);
 
             return;
         }
 
-        query.Add(name + "=" + V(value));
+        query.Add(name + "=" + FormatPathValue(value));
     }
 
-    // FormatPathValue
-    internal static string V(object? value) => Uri.EscapeDataString(
+    /// <summary>
+    /// Formats route/query values using invariant culture and URL-escapes the result.
+    /// </summary>
+    protected static string FormatPathValue(object? value) => Uri.EscapeDataString(
         value switch
         {
             bool boolean => boolean ? "true" : "false",
@@ -181,7 +185,7 @@ public abstract partial class GerenClientBase
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
             _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty
         });
-
-
+}
 """;
+    }
 }
