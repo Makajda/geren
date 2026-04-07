@@ -82,7 +82,7 @@ public sealed class EmitClientTests {
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("BuildRequestUri");
-        code.Should().Contain("A(query, \"q\", q);");
+        code.Should().Contain("AddQueryParameter(query, \"q\", q);");
     }
 
     [Fact]

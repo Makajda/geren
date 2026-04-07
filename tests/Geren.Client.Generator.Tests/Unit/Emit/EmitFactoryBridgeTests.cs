@@ -5,9 +5,12 @@ public sealed class EmitFactoryBridgeTests {
     public void Run_EmitsHelpersUsedByClients() {
         var code = EmitFactoryBridge.Run("Acme");
 
-        code.Should().Contain("internal static string BuildRequestUri");
-        code.Should().Contain("internal static void A(");
-        code.Should().Contain("internal static string V(");
+        code.Should().Contain("public static class FactoryBridge");
+        code.Should().Contain("public static void AddClient<TClient>(");
+        code.Should().Contain("public abstract partial class GerenClientBase");
+        code.Should().Contain("protected static string BuildRequestUri");
+        code.Should().Contain("protected static void AddQueryParameter(");
+        code.Should().Contain("protected static string FormatPathValue(");
     }
 }
 

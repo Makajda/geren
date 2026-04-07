@@ -7,6 +7,7 @@ namespace Geren.Server.Exporter.Tests;
 public class HttpMethodsTests {
     [Fact]
     public void Extract_ShouldHandle_MapMethods_WithSingleConstantMethod() {
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
         var compilation = TestCompilation.Create(
             """
             using Microsoft.AspNetCore.Routing;
@@ -20,7 +21,7 @@ public class HttpMethodsTests {
             }
             """);
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         warnings.Should().BeEmpty();
         endpoints.Should().ContainSingle();
@@ -44,7 +45,8 @@ public class HttpMethodsTests {
             """,
             mainPath: "C:\\src\\App.cs");
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         endpoints.Should().BeEmpty();
         warnings.Should().ContainSingle(w => w.Id == Dide.SkipMethod);

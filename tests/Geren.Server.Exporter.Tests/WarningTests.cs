@@ -22,7 +22,8 @@ public class WarningTests {
             """,
             mainPath: "C:\\src\\App.cs");
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         endpoints.Should().BeEmpty();
         warnings.Should().ContainSingle(w => w.Id == Dide.SkipTemplate);
@@ -45,7 +46,8 @@ public class WarningTests {
             }
             """);
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         endpoints.Should().BeEmpty();
         warnings.Should().ContainSingle(w => w.Id == Dide.SkipHandler);
@@ -70,7 +72,8 @@ public class WarningTests {
             }
             """);
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         endpoints.Should().BeEmpty();
         warnings.Should().ContainSingle(w => w.Id == Dide.SkipMethod);
@@ -84,7 +87,8 @@ public class WarningTests {
             """,
             includeAspNetStubs: false);
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         endpoints.Should().BeEmpty();
         warnings.Should().ContainSingle(w => w.Id == Dide.UnableIEndpointRouteBuilder);

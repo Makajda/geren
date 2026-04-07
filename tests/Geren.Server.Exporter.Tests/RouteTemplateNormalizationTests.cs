@@ -1,3 +1,4 @@
+using Geren.Server.Exporter.Common;
 using Geren.Server.Exporter.Extract;
 using Geren.Server.Exporter.Tests.TestSupport;
 
@@ -27,7 +28,8 @@ public class RouteTemplateNormalizationTests {
 
         var compilation = TestCompilation.Create(source);
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         warnings.Should().BeEmpty();
         endpoints.Should().ContainSingle();
@@ -49,7 +51,8 @@ public class RouteTemplateNormalizationTests {
             }
             """);
 
-        var (endpoints, warnings) = Extractor.Extract(compilation, excludeTypes: Array.Empty<string>(), CancellationToken.None);
+        EndpointFilters.TryCreate([], [], out EndpointFilters filters, out _);
+        var (endpoints, warnings) = Extractor.Extract(compilation, [], filters, CancellationToken.None);
 
         warnings.Should().BeEmpty();
         endpoints.Should().ContainSingle();

@@ -10,7 +10,7 @@ internal static class Program {
         if (!Config.TryGet(args, out Settings settings, out int exitCode))
             return exitCode;
 
-        if (!EndpointFilters.TryCreate(settings.Include, settings.Exclude, out var filters, out var filterError)) {
+        if (!EndpointFilters.TryCreate(settings.Include, settings.Exclude, out EndpointFilters filters, out string? filterError)) {
             Console.Error.WriteLine("Invalid include/exclude filter rule:");
             Console.Error.WriteLine(filterError);
             Console.Error.WriteLine();
