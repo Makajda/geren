@@ -19,6 +19,14 @@ public sealed partial class RootHttp : GerenClientBase
     public RootHttp(HttpClient http) : base(http) { }
 
     /// <summary>
+    /// Creates a new API client instance with per-request hooks resolved from DI.
+    /// </summary>
+    /// <param name="http">The underlying <see cref="HttpClient"/> used to send requests.</param>
+    /// <param name="services">Service provider used to resolve optional hooks (see <see cref="global::Geren.IGerenClientRequestHooks"/>).</param>
+    [global::Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
+    public RootHttp(HttpClient http, System.IServiceProvider services) : base(http, services) { }
+
+    /// <summary>
     /// Calls <c>Get</c> <c>/ping</c>.
     /// </summary>
     /// <exception cref="HttpRequestException">The HTTP response status code is not successful.</exception>

@@ -2,6 +2,28 @@ namespace Geren.Client.Generator.Tests.Unit.Emit;
 
 public sealed class EmitClientTests {
     [Fact]
+    public void Run_EmitsDiConstructorWithActivatorUtilitiesConstructor() {
+        var endpoint = new Mapoint(
+            Method: Givens.Get,
+            Path: "/ping",
+            SpaceName: "",
+            ClassName: "RootClient",
+            MethodName: "GetPing",
+            ReturnType: string.Empty,
+            BodyType: null,
+            BodyMedia: null,
+            Params: [],
+            Queries: []);
+
+        var group = new[] { endpoint }.GroupBy(static _ => (object)"k").First();
+        var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
+
+        code.Should().Contain("public RootClient(HttpClient http) : base(http) { }");
+        code.Should().Contain("[global::Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]");
+        code.Should().Contain("public RootClient(HttpClient http, System.IServiceProvider services) : base(http, services) { }");
+    }
+
+    [Fact]
     public void Run_GetVoid_EmitsGetAsyncAndEnsureSuccess() {
         var endpoint = new Mapoint(
             Method: Givens.Get,
