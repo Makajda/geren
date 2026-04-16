@@ -22,6 +22,14 @@ public sealed partial class {{className}} : GerenClientBase
     /// <param name="http">The underlying <see cref="HttpClient"/> used to send requests.</param>
     public {{className}}(HttpClient http) : base(http) { }
 
+    /// <summary>
+    /// Creates a new API client instance with per-request hooks resolved from DI.
+    /// </summary>
+    /// <param name="http">The underlying <see cref="HttpClient"/> used to send requests.</param>
+    /// <param name="services">Service provider used to resolve optional hooks (see <see cref="global::Geren.IGerenClientRequestHooks"/>).</param>
+    [global::Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
+    public {{className}}(HttpClient http, System.IServiceProvider services) : base(http, services) { }
+
 {{string.Join(Given.NewLine + Given.NewLine, endpoints.Select(EmitMethod))}}
 }
 """;

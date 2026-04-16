@@ -114,6 +114,29 @@ public abstract partial class GerenClientBase
 }
 ```
 
+### Per-request DI hooks (recommended for Blazor Server/SSR auth)
+
+If you need per-user/per-circuit data (for example, a JWT access token) you should not rely on `IHttpContextAccessor`.
+Instead, register a scoped `IGerenClientRequestHooks` and add headers there:
+
+```csharp
+using System.Net.Http;
+
+public sealed class MyHooks(TokenHelper tokenHelper) : Geren.IGerenClientRequestHooks
+{
+    public void PrepareRequest(HttpRequestMessage request)
+    {
+        var token = tokenHelper.AccessToken;
+        if (!string.IsNullOrWhiteSpace(token))
+            request.Headers.Authorization = new("Bearer", token);
+    }
+}
+
+// DI:
+services.AddScoped<Geren.IGerenClientRequestHooks, MyHooks>();
+services.AddGerenClients();
+```
+
 ## Troubleshooting
 
 ### CS9137 With ASP.NET OpenAPI Source Generators

@@ -7,6 +7,7 @@ internal sealed class EmitFactoryBridge {
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
@@ -89,14 +90,30 @@ public static class FactoryBridge
 /// <item><description><c>OnConfigureJsonSerializerOptions</c>: configure shared JSON settings (runs once).</description></item>
 /// <item><description><c>OnPrepareRequest</c>: mutate outgoing requests (called for every request).</description></item>
 /// </list>
+/// <para/>
+/// For DI-based, per-request customization (for example, injecting a scoped bearer token provider),
+/// register an <see cref="global::Geren.IGerenClientRequestHooks"/> service. If present, it is invoked for every request.
 /// </remarks>
 public abstract partial class GerenClientBase
 {
+    private readonly global::Geren.IGerenClientRequestHooks? _requestHooks;
+
     /// <summary>
     /// Initializes a new client wrapper around the provided <see cref="HttpClient"/>.
     /// </summary>
     /// <param name="http">The underlying <see cref="HttpClient"/> instance.</param>
     protected GerenClientBase(HttpClient http) => Http = http;
+
+    /// <summary>
+    /// Initializes a new client wrapper around the provided <see cref="HttpClient"/> and optional services.
+    /// </summary>
+    /// <param name="http">The underlying <see cref="HttpClient"/> instance.</param>
+    /// <param name="services">Service provider used to resolve optional per-request hooks.</param>
+    protected GerenClientBase(HttpClient http, IServiceProvider services)
+    {
+        Http = http;
+        _requestHooks = services.GetService<global::Geren.IGerenClientRequestHooks>();
+    }
 
     /// <summary>
     /// The underlying <see cref="HttpClient"/> used to send requests.
@@ -116,7 +133,11 @@ public abstract partial class GerenClientBase
     /// Applies global request customization hook (if implemented).
     /// </summary>
     /// <param name="request">The outgoing request.</param>
-    protected void PrepareRequest(HttpRequestMessage request) => OnPrepareRequest(request);
+    protected void PrepareRequest(HttpRequestMessage request)
+    {
+        _requestHooks?.PrepareRequest(request);
+        OnPrepareRequest(request);
+    }
 
     /// <summary>
     /// Optional hook invoked for every outgoing request created by generated clients.
