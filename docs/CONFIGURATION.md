@@ -77,7 +77,7 @@ public sealed class MyHooks(TokenHelper tokenHelper) : Geren.IGerenClientRequest
 {
     public void PrepareRequest(HttpRequestMessage request)
     {
-        var token = tokenHelper.AccessToken;
+        string token = tokenHelper.AccessToken;
         if (!string.IsNullOrWhiteSpace(token))
             request.Headers.Authorization = new("Bearer", token);
     }
@@ -97,15 +97,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-public sealed class MyAsyncHooks(TokenHelper tokenHelper) : Geren.IGerenClientRequestHooksAsync
+public sealed class MyAsyncHooks(TokenProvider tokenProvider) : Geren.IGerenClientRequestHooksAsync
 {
-    public ValueTask PrepareRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    public async ValueTask PrepareRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var token = tokenHelper.AccessToken;
+        string token = await tokenProvider.GetAccessToken();
         if (!string.IsNullOrWhiteSpace(token))
             request.Headers.Authorization = new("Bearer", token);
-
-        return ValueTask.CompletedTask;
     }
 }
 
