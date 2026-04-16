@@ -137,6 +137,31 @@ services.AddScoped<Geren.IGerenClientRequestHooks, MyHooks>();
 services.AddGerenClients();
 ```
 
+If request preparation must be asynchronous (for example, token refresh in Blazor WebAssembly), implement `IGerenClientRequestHooksAsync`:
+
+```csharp
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+
+public sealed class MyAsyncHooks(TokenHelper tokenHelper) : Geren.IGerenClientRequestHooksAsync
+{
+    public ValueTask PrepareRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var token = tokenHelper.AccessToken;
+        if (!string.IsNullOrWhiteSpace(token))
+            request.Headers.Authorization = new("Bearer", token);
+
+        return ValueTask.CompletedTask;
+    }
+}
+
+services.AddScoped<Geren.IGerenClientRequestHooksAsync, MyAsyncHooks>();
+services.AddGerenClients();
+```
+
+When both are registered, the call order is: async hooks → sync hooks → `OnPrepareRequest`.
+
 ## Troubleshooting
 
 ### CS9137 With ASP.NET OpenAPI Source Generators

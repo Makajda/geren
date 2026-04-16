@@ -18,6 +18,7 @@ internal static class CompilationFactory {
         AddRef(references, typeof(Microsoft.Extensions.Http.Resilience.ResilienceHandlerContext));
         AddRef(references, typeof(Polly.ResiliencePipelineBuilder<>));
         AddRef(references, typeof(Geren.IGerenClientRequestHooks));
+        AddRef(references, typeof(Geren.IGerenClientRequestHooksAsync));
 
         return CSharpCompilation.Create(
             assemblyName,

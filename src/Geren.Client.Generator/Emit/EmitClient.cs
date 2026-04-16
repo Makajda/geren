@@ -60,7 +60,7 @@ public sealed partial class {{className}} : GerenClientBase
     {
         var path = {{pathExpr}};
         using var request = new HttpRequestMessage({{HttpMethodExpr(endpoint)}}, path);
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -76,7 +76,7 @@ public sealed partial class {{className}} : GerenClientBase
     {
         var path = {{pathExpr}};
         using var request = new HttpRequestMessage({{HttpMethodExpr(endpoint)}}, path);
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -92,7 +92,7 @@ public sealed partial class {{className}} : GerenClientBase
     {
         var path = {{pathExpr}};
         using var request = new HttpRequestMessage({{HttpMethodExpr(endpoint)}}, path);
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -112,7 +112,7 @@ public sealed partial class {{className}} : GerenClientBase
         {
             Content = JsonContent.Create(body, options: JsonOptions)
         };
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
 """);
@@ -125,7 +125,7 @@ public sealed partial class {{className}} : GerenClientBase
         {
             Content = new StringContent(body, Encoding.UTF8, "text/plain")
         };
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
 """);

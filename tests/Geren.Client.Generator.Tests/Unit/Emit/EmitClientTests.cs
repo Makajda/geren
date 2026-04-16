@@ -41,7 +41,7 @@ public sealed class EmitClientTests {
         var code = EmitClient.Run(group, "Acme", "Acme.Spec", "RootClient");
 
         code.Should().Contain("new HttpRequestMessage(HttpMethod.Get");
-        code.Should().Contain("PrepareRequest(request);");
+        code.Should().Contain("await PrepareRequestAsync(request, cancellationToken);");
         code.Should().Contain("await Http.SendAsync(request");
         code.Should().Contain("response.EnsureSuccessStatusCode();");
     }

@@ -36,7 +36,7 @@ public sealed partial class RootHttp : GerenClientBase
     {
         var path = $"/ping";
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -57,7 +57,7 @@ public sealed partial class RootHttp : GerenClientBase
             AddQueryParameter(query, "q", q);
         });
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -78,7 +78,7 @@ public sealed partial class RootHttp : GerenClientBase
         {
             Content = JsonContent.Create(body, options: JsonOptions)
         };
-        PrepareRequest(request);
+        await PrepareRequestAsync(request, cancellationToken);
 
         using var response = await Http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();

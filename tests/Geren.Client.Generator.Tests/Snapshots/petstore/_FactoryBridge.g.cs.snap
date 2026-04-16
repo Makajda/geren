@@ -9,6 +9,8 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Acme;
 
@@ -92,6 +94,7 @@ public static class FactoryBridge
 public abstract partial class GerenClientBase
 {
     private readonly global::Geren.IGerenClientRequestHooks? _requestHooks;
+    private readonly global::Geren.IGerenClientRequestHooksAsync? _requestHooksAsync;
 
     /// <summary>
     /// Initializes a new client wrapper around the provided <see cref="HttpClient"/>.
@@ -108,6 +111,7 @@ public abstract partial class GerenClientBase
     {
         Http = http;
         _requestHooks = services.GetService<global::Geren.IGerenClientRequestHooks>();
+        _requestHooksAsync = services.GetService<global::Geren.IGerenClientRequestHooksAsync>();
     }
 
     /// <summary>
@@ -132,6 +136,28 @@ public abstract partial class GerenClientBase
     {
         _requestHooks?.PrepareRequest(request);
         OnPrepareRequest(request);
+    }
+
+    /// <summary>
+    /// Applies per-request customization hooks (if implemented), including optional async hooks.
+    /// </summary>
+    /// <param name="request">The outgoing request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    protected ValueTask PrepareRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        if (_requestHooksAsync is null)
+        {
+            PrepareRequest(request);
+            return default;
+        }
+
+        return PrepareRequestAsyncCore(request, cancellationToken);
+
+        async ValueTask PrepareRequestAsyncCore(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            await _requestHooksAsync.PrepareRequestAsync(request, cancellationToken).ConfigureAwait(false);
+            PrepareRequest(request);
+        }
     }
 
     /// <summary>
