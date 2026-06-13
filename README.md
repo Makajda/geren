@@ -20,9 +20,9 @@ It ships as a Roslyn source generator (analyzer), so it runs during `dotnet buil
 
 ## Samples
 
-See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON, Blazor WebAssembly client consumes it via `AdditionalFiles` and generates typed clients).
+See `samples/README.md` for an end-to-end sample (server generates OpenAPI JSON, client consumes it via `AdditionalFiles` and generates typed clients).
 
-### Server (optional): Produce OpenAPI JSON
+### Server: Produce OpenAPI JSON
 
 1. Add packages:
 

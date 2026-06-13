@@ -1,20 +1,21 @@
 using Geren.Sample;
+using Geren.Sample.Your_namespace;
+using Geren.Samples.Dto;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-var builder = Host.CreateApplicationBuilder(args);
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddGerenClients(configureClient: http => {
-    http.BaseAddress = new Uri("http://localhost:5000");
-});
+builder.Services.AddGerenClients(c => c.BaseAddress = new Uri("http://localhost:5000"));
 
-using var host = builder.Build();
+using IHost host = builder.Build();
 
-var client = host.Services.GetRequiredService<Geren.Sample.Your_namespace.Your_type>();
+Your_typeHttp client = host.Services.GetRequiredService<Your_typeHttp>();
 
-var simpleMessage = await client.GetHello();
-var genericMessage = await client.GetHello_generic(42);
+SimpleDto simpleMessage = await client.GetHello();
+GenericDto<int> genericMessage = await client.GetHello_generic(42);
 
 Console.WriteLine(simpleMessage.Greeting);
 Console.WriteLine(genericMessage.Data);
 
+Console.ReadLine();
